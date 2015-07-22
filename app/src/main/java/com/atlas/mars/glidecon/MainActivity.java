@@ -18,7 +18,7 @@ public class MainActivity extends AppCompatActivity implements View.OnTouchListe
     ImageView rotateImageView;//вращающаяся картинка
     FrameLayout rotationAreaFrame; // область по которой слушается движение
     int centerRotationX, centerRotationY;
-    double alpha = 0.0, dAlpha = 0.0, moveAlpha = 0.0;
+    double alpha = 0.0, dAlpha = 0.0, moveAlpha = 0.0, endAlpha = 0.0;
     float rotationImageAngle = 0;
 
     @Override
@@ -62,17 +62,30 @@ public class MainActivity extends AppCompatActivity implements View.OnTouchListe
                 alpha = Math.atan((double) tg) * 180 / Math.PI;
                 Log.d(TAG, "" + alpha);
                 break;
+            case MotionEvent.ACTION_UP:
+                Log.d(TAG, "+++ACTION_UP");
+                endAlpha = rotateImageView.getRotation();
+                break;
             case MotionEvent.ACTION_MOVE:
                 prot = (float) centerRotationY - Y;
                 pril = X - (float) centerRotationX;
                 tg = prot / pril;
                 moveAlpha = (Math.atan((double) tg) * 180 / Math.PI);
                 dAlpha = alpha - moveAlpha;
-                rotationImageAngle = (float) dAlpha;
-                rotateImageView.setRotation(rotationImageAngle);
+                //rotationImageAngle = (float) dAlpha;
+                rotateImageView.setRotation((float)(endAlpha+dAlpha));
+                //endAlpha = (endAlpha+dAlpha);
                 Log.d(TAG, "" + dAlpha);
 
                 // Log.d(TAG, "ACTION_MOVE " + X + " : " + Y);
+                break;
+
+            case MotionEvent.ACTION_OUTSIDE:
+                Log.d(TAG, "+++ACTION_OUTSIDE");
+                break;
+            case MotionEvent.ACTION_CANCEL:
+                endAlpha = rotateImageView.getRotation();
+                Log.d(TAG, "" + endAlpha);
                 break;
 
         }
