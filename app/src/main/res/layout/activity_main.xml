@@ -8,6 +8,11 @@
         android:layout_width="match_parent"
         android:background="@drawable/rotate_img"
         android:layout_height="match_parent" />
+    <ImageView
+        android:id="@+id/staticImageView"
+        android:layout_width="match_parent"
+        android:background="@drawable/static_img"
+        android:layout_height="match_parent" />
     <FrameLayout
         android:id="@+id/rotationAreaFrame"
         android:layout_width="match_parent"

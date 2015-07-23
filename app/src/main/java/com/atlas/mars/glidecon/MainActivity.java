@@ -21,6 +21,10 @@ public class MainActivity extends AppCompatActivity implements View.OnTouchListe
     double alpha = 0.0, dAlpha = 0.0, moveAlpha = 0.0, endAlpha = 0.0;
     float rotationImageAngle = 0;
 
+    private final int  H_IMAGE = 0; //
+    private final int  S_IMAGE = 1;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -37,7 +41,7 @@ public class MainActivity extends AppCompatActivity implements View.OnTouchListe
         rotateImageView.setRotation(rotationImageAngle);
         rotationAreaFrame = (FrameLayout) findViewById(R.id.rotationAreaFrame);
         rotationAreaFrame.setLayoutParams(layoutParams);
-
+        findViewById(R.id.staticImageView).setLayoutParams(layoutParams);
 
         centerRotationX = screenParams.widthPixels / 2;
         centerRotationY = screenParams.heightPixels - (screenParams.widthPixels / 2);
@@ -49,35 +53,65 @@ public class MainActivity extends AppCompatActivity implements View.OnTouchListe
     public boolean onTouch(View v, MotionEvent event) {
         final float X = event.getRawX();
         final float Y = event.getRawY();
-
-        float prot, pril, tg;
+        float _a, _b, tg;
         switch (event.getAction() & MotionEvent.ACTION_MASK) {
             case MotionEvent.ACTION_DOWN:
-                //Log.d(TAG, "ACTION_DOWN " + X + " : " + Y);
+                _a = X - (float) centerRotationX;
+                _b = (float) centerRotationY - Y;
 
-                // float tg = ((float)centerRotationY - Y)/(X-(float)centerRotationX);
-                prot = (float) centerRotationY - Y;
-                pril = X - (float) centerRotationX;
-                tg = prot / pril;
-                alpha = Math.atan((double) tg) * 180 / Math.PI;
+                tg = _a / _b;
+                //alpha = Math.atan((double) tg) * 180 / Math.PI;
+                if(0<_a && 0<_b ){ // 0 - 90
+                    tg = _a / _b;
+                    alpha = (Math.atan((double) tg) * 180 / Math.PI);
+                }else if(_b<0 && 0<_a){ // 90 - 180
+                    tg = _b / _a;
+                    alpha = 90 - (Math.atan((double) tg) * 180 / Math.PI);
+                }else if(_a<0 && _b<0){ // 180 - 270
+                    tg = _a / _b;
+                    alpha = 180 + (Math.atan((double) tg) * 180 / Math.PI);
+                }else{ // 270 - 0
+                    tg = _b / _a;
+                    alpha = 270 - (Math.atan((double) tg) * 180 / Math.PI);
+                }
+
+
+
+
+                endAlpha = rotateImageView.getRotation();
                 Log.d(TAG, "" + alpha);
                 break;
             case MotionEvent.ACTION_UP:
                 Log.d(TAG, "+++ACTION_UP");
-                endAlpha = rotateImageView.getRotation();
+              //  endAlpha = rotateImageView.getRotation();
                 break;
             case MotionEvent.ACTION_MOVE:
-                prot = (float) centerRotationY - Y;
-                pril = X - (float) centerRotationX;
-                tg = prot / pril;
-                moveAlpha = (Math.atan((double) tg) * 180 / Math.PI);
-                dAlpha = alpha - moveAlpha;
-                //rotationImageAngle = (float) dAlpha;
-                rotateImageView.setRotation((float)(endAlpha+dAlpha));
-                //endAlpha = (endAlpha+dAlpha);
-                Log.d(TAG, "" + dAlpha);
 
-                // Log.d(TAG, "ACTION_MOVE " + X + " : " + Y);
+                _a = X - (float) centerRotationX;
+                _b = (float) centerRotationY - Y;
+
+                if(0<_a && 0<_b ){ // 0 - 90
+                    tg = _a / _b;
+                    moveAlpha = (Math.atan((double) tg) * 180 / Math.PI);
+                }else if(_b<0 && 0<_a){ // 90 - 180
+                    tg = _b / _a;
+                    moveAlpha = 90 - (Math.atan((double) tg) * 180 / Math.PI);
+                }else if(_a<0 && _b<0){ // 180 - 270
+                    tg = _a / _b;
+                    moveAlpha = 180 + (Math.atan((double) tg) * 180 / Math.PI);
+                }else{ // 270 - 0
+                    tg = _b / _a;
+                    moveAlpha = 270 - (Math.atan((double) tg) * 180 / Math.PI);
+                }
+
+
+
+                dAlpha = moveAlpha - alpha;
+
+
+                Log.d(TAG, "" + moveAlpha  ) ;
+                rotateImageView.setRotation((float) (endAlpha + dAlpha));
+
                 break;
 
             case MotionEvent.ACTION_OUTSIDE:
