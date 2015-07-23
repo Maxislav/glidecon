@@ -1,57 +1,32 @@
 package com.atlas.mars.glidecon;
 
-import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
-import android.view.Gravity;
-import android.widget.FrameLayout;
-import android.widget.ImageView;
+import android.app.Activity;
+import android.util.Log;
+import android.view.MotionEvent;
+import android.view.View;
 
 /**
- * Created by Администратор on 7/22/15.
+ * Created by mars on 7/23/15.
  */
-public class MainActivity extends AppCompatActivity  {
-    private static final String TAG = "MainActivityLog";
-    ScreenParams screenParams;
-    ImageView rotateImageView;//вращающаяся картинка
-    FrameLayout rotationAreaFrame; // область по которой слушается движение
-    float rotationImageAngle = 0;
+public class MoveEvents implements View.OnTouchListener {
+    private static final String TAG = "MoveEventsLog";
+    double alpha = 0.0, dAlpha = 0.0, moveAlpha = 0.0, endAlpha = 0.0;
+    int centerRotationX, centerRotationY;
+    View rotationAreaFrame;
+    View rotateImageView;
+    CenterR center;
 
-    private final int  H_IMAGE = 0; //
-    private final int  S_IMAGE = 1;
+    public  MoveEvents(View rotationAreaFrame, View rotateImageView,  Activity activity){
+        this.rotationAreaFrame = rotationAreaFrame;
+        this.rotateImageView = rotateImageView;
+        center = new CenterR(activity);
+        centerRotationX = center.X;
+        centerRotationY = center.Y;
+        rotationAreaFrame.setOnTouchListener(this);
+    }
 
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        screenParams = new ScreenParams(this);
-        init();
-    }
-
-    private void init() {
-        rotateImageView = (ImageView) findViewById(R.id.rotateImageView);
-        FrameLayout.LayoutParams layoutParams = new FrameLayout.LayoutParams((int) screenParams.widthPixels, (int) screenParams.widthPixels);
-        layoutParams.gravity = Gravity.BOTTOM | Gravity.CENTER;
-        rotateImageView.setLayoutParams(layoutParams);
-        rotateImageView.setRotation(rotationImageAngle);
-        rotationAreaFrame = (FrameLayout) findViewById(R.id.rotationAreaFrame);
-        rotationAreaFrame.setLayoutParams(layoutParams);
-        findViewById(R.id.staticImageView).setLayoutParams(layoutParams);
-
-        new MoveEvents(rotationAreaFrame, rotateImageView, this);
-
-        //rotationAreaFrame.setOnTouchListener(this);
-    }
-
-
-
-
-
-
-
-
-
-    /*@Override
     public boolean onTouch(View v, MotionEvent event) {
         final float X = event.getRawX();
         final float Y = event.getRawY();
@@ -61,16 +36,16 @@ public class MainActivity extends AppCompatActivity  {
                 endAlpha = rotateImageView.getRotation();
                 _a = X - (float) centerRotationX;
                 _b = (float) centerRotationY - Y;
-                if(0<_a && 0<_b ){ // 0 - 90
+                if (0 < _a && 0 < _b) { // 0 - 90
                     tg = _a / _b;
                     alpha = (Math.atan((double) tg) * 180 / Math.PI);
-                }else if(_b<0 && 0<_a){ // 90 - 180
+                } else if (_b < 0 && 0 < _a) { // 90 - 180
                     tg = _b / _a;
                     alpha = 90 - (Math.atan((double) tg) * 180 / Math.PI);
-                }else if(_a<0 && _b<0){ // 180 - 270
+                } else if (_a < 0 && _b < 0) { // 180 - 270
                     tg = _a / _b;
                     alpha = 180 + (Math.atan((double) tg) * 180 / Math.PI);
-                }else{ // 270 - 0
+                } else { // 270 - 0
                     tg = _b / _a;
                     alpha = 270 - (Math.atan((double) tg) * 180 / Math.PI);
                 }
@@ -85,16 +60,16 @@ public class MainActivity extends AppCompatActivity  {
                 _a = X - (float) centerRotationX;
                 _b = (float) centerRotationY - Y;
 
-                if(0<_a && 0<_b ){ // 0 - 90
+                if (0 < _a && 0 < _b) { // 0 - 90
                     tg = _a / _b;
                     moveAlpha = (Math.atan((double) tg) * 180 / Math.PI);
-                }else if(_b<0 && 0<_a){ // 90 - 180
+                } else if (_b < 0 && 0 < _a) { // 90 - 180
                     tg = _b / _a;
                     moveAlpha = 90 - (Math.atan((double) tg) * 180 / Math.PI);
-                }else if(_a<0 && _b<0){ // 180 - 270
+                } else if (_a < 0 && _b < 0) { // 180 - 270
                     tg = _a / _b;
                     moveAlpha = 180 + (Math.atan((double) tg) * 180 / Math.PI);
-                }else{ // 270 - 0
+                } else { // 270 - 0
                     tg = _b / _a;
                     moveAlpha = 270 - (Math.atan((double) tg) * 180 / Math.PI);
                 }
@@ -112,5 +87,5 @@ public class MainActivity extends AppCompatActivity  {
         }
 
         return true;
-    }*/
+    }
 }
