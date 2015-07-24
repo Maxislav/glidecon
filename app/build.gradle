@@ -5,7 +5,7 @@ android {
         config {
             keyAlias 'AppByMars'
             keyPassword 'gliderman2'
-            storeFile file('D:/AndroidStudioProject/My_key_store/my_key_store.jks')
+            storeFile file('/home/mars/AndroidStudioProjects/ObjectControl/KeyStore/my_key_store.jks')
             storePassword 'gliderman2'
         }
     }
