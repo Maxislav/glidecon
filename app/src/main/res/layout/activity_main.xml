@@ -1,26 +1,44 @@
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_height="match_parent"
-    android:layout_width="match_parent">
-
-    <ImageView
-        android:id="@+id/rotateImageView"
-        android:layout_width="match_parent"
-        android:background="@drawable/rotate_img"
-        android:layout_height="match_parent" />
-    <ImageView
-        android:id="@+id/staticImageView"
-        android:layout_width="match_parent"
-        android:background="@drawable/static_img"
-        android:layout_height="match_parent" />
-    <ImageView
-        android:id="@+id/snosImageView"
-        android:layout_width="match_parent"
-        android:background="@drawable/snos_line"
-        android:layout_height="match_parent" />
+    android:layout_width="match_parent"
+    android:background="@drawable/tiles_repat"
+    android:orientation="vertical">
     <FrameLayout
-        android:id="@+id/rotationAreaFrame"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"></FrameLayout>
+        android:layout_weight="1"
+        android:background="@drawable/block"
+        android:layout_height="match_parent">
+        </FrameLayout>
+    
+    
+    <FrameLayout
+        android:layout_height="wrap_content"
 
-</FrameLayout>
+        android:layout_width="match_parent">
+        <ImageView
+            android:id="@+id/rotateImageView"
+            android:layout_width="match_parent"
+            android:background="@drawable/rotate_img"
+            android:layout_height="match_parent" />
+        <ImageView
+            android:id="@+id/staticImageView"
+            android:layout_width="match_parent"
+            android:background="@drawable/static_img"
+            android:layout_height="match_parent" />
+        <ImageView
+            android:id="@+id/snosImageView"
+            android:layout_width="match_parent"
+            android:background="@drawable/snos_line"
+            android:layout_height="match_parent" />
+        <FrameLayout
+            android:id="@+id/rotationAreaFrame"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"></FrameLayout>
+
+    </FrameLayout>
+</LinearLayout>
+
+
+    
+    

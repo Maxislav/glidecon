@@ -5,11 +5,17 @@ import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 
+import java.util.HashMap;
+
 /**
  * Created by mars on 7/23/15.
  */
 public class MoveEvents implements View.OnTouchListener {
     private static final String TAG = "MoveEventsLog";
+    private static final String END_ALPHA_DISK = "endAlphaDisk";
+    private static final String END_ALPHA_SNOS = "endAlphaSnos";
+
+
     double alphaDisk = 0.0,  endAlphaDisk = 0.0;
     double alphaSnos = 0.0,  endAlphaSnos = 0.0;
     int centerRotationX, centerRotationY;
@@ -17,6 +23,8 @@ public class MoveEvents implements View.OnTouchListener {
     View rotateImageView;
     View snosImageView;
     CenterR center;
+    DataBaseHelper db;
+    HashMap<String, String> mapSetting;
 
     private final int  H_IMAGE = 0; //
     private final int  S_IMAGE = 1;
@@ -30,6 +38,15 @@ public class MoveEvents implements View.OnTouchListener {
         center = new CenterR(activity);
         centerRotationX = center.X;
         centerRotationY = center.Y;
+        db = new DataBaseHelper(activity);
+        mapSetting = db.mapSetting;
+
+        endAlphaDisk = mapSetting.get(END_ALPHA_DISK)!=null? Double.parseDouble(mapSetting.get(END_ALPHA_DISK)) : 0.0;
+        endAlphaSnos = mapSetting.get(END_ALPHA_SNOS)!=null? Double.parseDouble(mapSetting.get(END_ALPHA_SNOS)) : 0.0;
+
+        rotateImageView.setRotation((float)endAlphaDisk);
+        snosImageView.setRotation((float)endAlphaSnos);
+
         rotationAreaFrame.setOnTouchListener(this);
     }
 
@@ -104,5 +121,15 @@ public class MoveEvents implements View.OnTouchListener {
             alphaDisk = 270 - (Math.atan((double) tg) * 180 / Math.PI);
         }
         return  alphaDisk;
+    }
+
+    protected void onResume(){
+
+    }
+
+    protected void onPause(){
+        mapSetting.put(END_ALPHA_SNOS, Float.toString(snosImageView.getRotation()));
+        mapSetting.put(END_ALPHA_DISK, Float.toString(rotateImageView.getRotation()));
+        db.saveSetting();
     }
 }

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item name="white" type="color">#FFFFFF</item>
+    <item name="blue" type="color">#4fa5d5</item>
+    <item name="shadow" type="color">#22000000</item>
+
+
+</resources>

@@ -24,9 +24,6 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
             signingConfig signingConfigs.config
         }
-        buildType {
-            signingConfig signingConfigs.config
-        }
     }
 }
 
