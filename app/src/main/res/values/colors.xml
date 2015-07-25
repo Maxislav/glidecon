@@ -1,7 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <item name="white" type="color">#FFFFFF</item>
+    <item name="iron" type="color">#ffeff1de</item>
     <item name="blue" type="color">#4fa5d5</item>
+    <item name="green" type="color">#ff3f9834</item>
+    <item name="red" type="color">#ffb9060e</item>
     <item name="shadow" type="color">#22000000</item>
     <item name="blackColor" type="color">#ff000000</item>
 

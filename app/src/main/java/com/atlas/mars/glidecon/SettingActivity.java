@@ -11,6 +11,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.webkit.WebView;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.squareup.phrase.Phrase;
@@ -51,6 +52,8 @@ public class SettingActivity extends AppCompatActivity {
     private void onActionBarCreate(){
         LayoutInflater inflater = (LayoutInflater) this.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         View v = inflater.inflate(R.layout.action_bar, null);
+        TextView title = (TextView)v.findViewById(R.id.title);
+        title.setText(R.string.app_settings);
         ActionBar actionBar = getSupportActionBar();
         actionBar.setDisplayHomeAsUpEnabled(true);
         actionBar.setDisplayShowCustomEnabled(true);

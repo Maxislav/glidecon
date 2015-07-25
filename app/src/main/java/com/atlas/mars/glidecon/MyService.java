@@ -9,6 +9,8 @@ import android.location.LocationManager;
 import android.os.IBinder;
 import android.util.Log;
 
+import java.util.HashMap;
+
 /**
  * Created by Администратор on 7/24/15.
  */
@@ -18,10 +20,12 @@ public class MyService extends Service {
     public LocationManager locationManagerGps;
     public LocationListener locationListenerGps;
     MyThread thread;
+    HashMap<String, String> mapSetting;
     public void onCreate() {
         super.onCreate();
         Log.d(LOG_TAG, "onCreate");
         locationManagerGps = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        mapSetting = new DataBaseHelper(this).mapSetting;
     }
 
     public int onStartCommand(Intent intent, int flags, int startId) {
@@ -43,7 +47,15 @@ public class MyService extends Service {
 
     void someTask() {
         locationListenerGps = new MyGps(this);
-        locationManagerGps.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 10, locationListenerGps);
+        int INTERVAL_UPDATE = 1000;
+        if(mapSetting.get(DataBaseHelper.INTERVAL_UPDATE)!=null){
+            try {
+                INTERVAL_UPDATE = Integer.parseInt(mapSetting.get(DataBaseHelper.INTERVAL_UPDATE));
+            }catch (Exception e){
+                Log.d(LOG_TAG, e.toString(), e);
+            }
+        }
+        locationManagerGps.requestLocationUpdates(LocationManager.GPS_PROVIDER, INTERVAL_UPDATE, 10, locationListenerGps);
        /* thread = new MyThread();
         thread.start();*/
     }

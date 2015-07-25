@@ -37,7 +37,7 @@ public class MainActivity extends AppCompatActivity  {
     static MyReceiver myReceiver;
     MyJQuery myJQuery;
 
-    TextView speedTextView , altitudeTextView;
+    TextView speedTextView , altitudeTextView, varioTextView , qualityTextView;
 
 
     @Override
@@ -45,7 +45,9 @@ public class MainActivity extends AppCompatActivity  {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         screenParams = new ScreenParams(this);
+        new DataBaseHelper(this);
         onActionBarCreate();
+
         init();
 
     }
@@ -97,6 +99,9 @@ public class MainActivity extends AppCompatActivity  {
     }
 
     private void onCreateMyReceiver(){
+        if(myReceiver!=null){
+            unregisterReceiver(myReceiver);
+        }
         myReceiver = new MyReceiver();
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(MyService.LOCATION);
@@ -115,10 +120,17 @@ public class MainActivity extends AppCompatActivity  {
     }
 
     private void init() {
+
         linearLayoutInfo = (LinearLayout)findViewById(R.id.linearLayoutInfo);
+        setSisze();
         speedTextView = (TextView)findViewById(R.id.speedTextView);
         altitudeTextView = (TextView)findViewById(R.id.altitudeTextView);
+        varioTextView = (TextView)findViewById(R.id.varioTextView);
+        qualityTextView = (TextView)findViewById(R.id.qualityTextView);
+
+
         rotateImageView = (ImageView) findViewById(R.id.rotateImageView);
+
         FrameLayout.LayoutParams layoutParams = new FrameLayout.LayoutParams((int) screenParams.widthPixels, (int) screenParams.widthPixels);
         layoutParams.gravity = Gravity.BOTTOM | Gravity.CENTER;
         rotateImageView.setLayoutParams(layoutParams);
@@ -129,7 +141,7 @@ public class MainActivity extends AppCompatActivity  {
         snosImageView =(ImageView)findViewById(R.id.snosImageView);
         snosImageView.setLayoutParams(layoutParams);
         moveEvents = new MoveEvents(rotationAreaFrame, rotateImageView, snosImageView, this);
-        setSisze();
+
     }
     private void setSisze(){
         ViewTreeObserver observer= linearLayoutInfo.getViewTreeObserver();
@@ -139,11 +151,11 @@ public class MainActivity extends AppCompatActivity  {
                 myJQuery = new MyJQuery();
                 ArrayList<View> textList = myJQuery.findViewByTagClass(linearLayoutInfo, TextView.class);
                 int H = linearLayoutInfo.getHeight();
-                int hText = (H/3) - 3*2*(5*screenParams.density)-(10*screenParams.density);
+                double hText = (H/3) - 3*(5*screenParams.density)-(10*screenParams.density);
 
                 for( View v : textList){
                     TextView textView = (TextView)v;
-                    textView.setTextSize(TypedValue.COMPLEX_UNIT_PX, hText);
+                    textView.setTextSize(TypedValue.COMPLEX_UNIT_PX, (int)hText);
                 }
 
 
@@ -161,9 +173,23 @@ public class MainActivity extends AppCompatActivity  {
             String text = Double.toString(arg1.getExtras().getDouble("lat"));
             String speed = Double.toString(arg1.getExtras().getDouble("speed"));
             String altitude= Double.toString(arg1.getExtras().getDouble("altitude"));
+            double _vario = arg1.getExtras().getDouble("vario");
+
+            String vario;
+            if(_vario<0){
+                vario =  ""+Double.toString(_vario);
+                varioTextView.setTextColor(getResources().getColor(R.color.red));
+            }else{
+                vario =  "+ "+Double.toString(_vario);
+                varioTextView.setTextColor(getResources().getColor(R.color.green));
+            }
+            String quality = Double.toString(arg1.getExtras().getDouble("quality"));
+
             Log.d(TAG, speed);
             speedTextView.setText(speed);
             altitudeTextView.setText(altitude);
+            varioTextView.setText(vario);
+            qualityTextView.setText(quality);
            // textView.setText(text);
             /*
             Toast.makeText(MainActivity.this,

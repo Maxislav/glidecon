@@ -52,6 +52,7 @@
                             android:layout_height="wrap_content"
                             android:layout_margin="10dp"
                             android:hint="0"
+                            android:inputType="number"
                             android:layout_weight="0.8"
                             android:padding="10dp" />
 
@@ -103,8 +104,9 @@
                             android:layout_height="wrap_content"
                             android:layout_margin="10dp"
                             android:layout_weight="0.8"
+                            android:inputType="number"
                             android:hint="1000"
-                            android:inputType="textPassword"
+
                             android:padding="10dp" />
 
                     </LinearLayout>
