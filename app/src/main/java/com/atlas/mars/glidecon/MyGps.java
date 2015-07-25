@@ -112,7 +112,7 @@ public class MyGps implements LocationListener, GpsStatus.Listener {
            _d = Math.sqrt(Math.pow(distance, 2) -Math.pow(h, 2));
         }
         k= _d/h;
-        k = round(k,2);
+        k = -round(k,2);
         return k;
     }
 

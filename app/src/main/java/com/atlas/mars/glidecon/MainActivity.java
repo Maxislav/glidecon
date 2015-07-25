@@ -84,8 +84,10 @@ public class MainActivity extends AppCompatActivity  {
     @Override
     protected void onPause() {
         moveEvents.onPause();
-        super.onPause();
+        unregisterReceiver(myReceiver);
         stopService(new Intent(this, MyService.class));
+        super.onPause();
+
     }
 
 
@@ -99,9 +101,9 @@ public class MainActivity extends AppCompatActivity  {
     }
 
     private void onCreateMyReceiver(){
-        if(myReceiver!=null){
+       /* if(myReceiver!=null){
             unregisterReceiver(myReceiver);
-        }
+        }*/
         myReceiver = new MyReceiver();
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(MyService.LOCATION);
