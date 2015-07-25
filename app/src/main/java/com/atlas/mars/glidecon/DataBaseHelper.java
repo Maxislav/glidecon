@@ -21,6 +21,9 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     private static final String KEY = "key";
     private static final String VALUE = "value";
 
+    public static final String START_ALTITUDE = "startAltitude";
+    public static final String INTERVAL_UPDATE = "intervalUpdate";
+
 
     private static final String SQL_CREATE_TABLE_SETTING =  "CREATE TABLE if not exists "
             +TABLE_SETTING+" (" + UID + " INTEGER PRIMARY KEY AUTOINCREMENT, "

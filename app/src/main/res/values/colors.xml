@@ -3,6 +3,13 @@
     <item name="white" type="color">#FFFFFF</item>
     <item name="blue" type="color">#4fa5d5</item>
     <item name="shadow" type="color">#22000000</item>
+    <item name="blackColor" type="color">#ff000000</item>
 
+    <item name="textColor" type="color">#b60039a3</item>
 
+    <item name="redBorderDark" type="color">#ffff0000</item>
+    <item name="redTitleActive" type="color">#ff9e0003</item>
+    <item name="redBorderLight" type="color">#ffffa9a7</item>
+
+    <item name="borderColor" type="color">#8ca4b5</item>
 </resources>

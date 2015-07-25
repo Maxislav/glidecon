@@ -43,7 +43,7 @@ public class MyService extends Service {
 
     void someTask() {
         locationListenerGps = new MyGps(this);
-        locationManagerGps.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 0, locationListenerGps);
+        locationManagerGps.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 10, locationListenerGps);
        /* thread = new MyThread();
         thread.start();*/
     }
