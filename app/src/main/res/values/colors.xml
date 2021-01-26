@@ -19,4 +19,5 @@
     <color name="colorPrimaryText">#394659</color>
     <color name="colorPrimaryDarkWhite">#98a6ba</color>
     <color name="colorPrimary">#cfdcef</color>
+    <color name="colorPrimaryDark">#7b8697</color>
 </resources>

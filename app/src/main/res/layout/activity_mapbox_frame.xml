@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    style="@style/AppTheme.NoActionBar"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:id="@+id/mainContentView"
+    app:layout_behavior="@string/appbar_scrolling_view_behavior"
+    tools:context="com.atlas.mars.glidecon.MapBoxActivity"
+    tools:showIn="@layout/activity_mapbox_frame"
+    >
+    <com.mapbox.mapboxsdk.maps.MapView
+        android:id="@+id/mapView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        />
+
+    <!--<FrameLayout
+        android:id="@+id/gpsStatusFrameView"
+        android:layout_width="wrap_content"
+        android:layout_height="20dp"
+        android:layout_gravity="center_horizontal|top"
+        android:gravity="center" />-->
+
+</FrameLayout>
