@@ -5,11 +5,29 @@
         <!-- Customize your theme here. -->
     </style>
 
+    <style name = "NoActionBar" parent = "@android:style/Theme.Holo.Light">
+        <item name = "android:windowActionBar">false</item>
+        <item name = "android:windowNoTitle">true</item>
+    </style>
+
+    <style name="AppTheme.NoActionBar" >
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+        <item name="android:textColorHighlight">@color/colorPrimaryDarkWhite</item>
+        <item name="android:textColor">@color/colorPrimaryText</item>
+        <item name="colorControlNormal">@color/colorPrimaryText</item> <!-- Цвет меню иконок типа бутерброд и три точки -->
+        <item name="colorPrimary">@color/colorPrimary</item> <!-- Цвет фонв -->
+        <item name="android:textColorPrimary">@color/colorPrimaryText</item>   <!-- Цвет текста -->
+    </style>
+
     <style name="TextStyle" parent="AppTheme">
         <item name="android:textColor">@color/blackColor</item>
         <item name="android:paddingTop">2dp</item>
         <item name="android:paddingBottom">2dp</item>
         <item name="android:textStyle">bold</item>
+    </style>
+    <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" >
+        <item name="android:textColor">@color/colorPrimaryText</item>
     </style>
     <style name="editTextStyle">
         <item name="android:textSize">
@@ -43,5 +61,8 @@
         </item>
 
     </style>
+
+
+
 
 </resources>

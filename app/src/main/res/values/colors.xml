@@ -15,4 +15,8 @@
     <item name="redBorderLight" type="color">#ffffa9a7</item>
 
     <item name="borderColor" type="color">#8ca4b5</item>
+
+    <color name="colorPrimaryText">#394659</color>
+    <color name="colorPrimaryDarkWhite">#98a6ba</color>
+    <color name="colorPrimary">#cfdcef</color>
 </resources>
