@@ -14,6 +14,8 @@ import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import androidx.drawerlayout.widget.DrawerLayout
+import androidx.fragment.app.FragmentTransaction
+import com.atlas.mars.glidecon.fragment.FragmentGpsStatus
 import com.atlas.mars.glidecon.service.LocationService
 import com.atlas.mars.glidecon.store.MapBoxStore.Companion.locationSubject
 import com.atlas.mars.glidecon.store.MapBoxStore.Companion.mapboxMapSubject
@@ -44,6 +46,7 @@ class MapBoxActivity : AppCompatActivity() {
         setContentView(R.layout.activity_mapbox)
 
         setupDrawerLayout()
+        setupGpsStatusFrame()
 
 
         mapView = findViewById(R.id.mapView)
@@ -63,10 +66,10 @@ class MapBoxActivity : AppCompatActivity() {
         mapboxMapSubject
                 .takeWhile { isSubscribed }
                 .subscribeBy(
-                onNext = { value: MapboxMap ->
-                    Log.d(TAG, "mapboxMap defined")
-                }
-        )
+                        onNext = { value: MapboxMap ->
+                            Log.d(TAG, "mapboxMap defined")
+                        }
+                )
         locationSubject
                 .takeWhile { isSubscribed }
                 .subscribeBy(
@@ -110,6 +113,22 @@ class MapBoxActivity : AppCompatActivity() {
         toggle.syncState()
         val navigationView: NavigationView = findViewById(R.id.nav_view)
         navigationView.setNavigationItemSelectedListener { itt -> false }
+    }
+
+    private fun setupGpsStatusFrame(){
+        val fm = this.supportFragmentManager
+        val ft: FragmentTransaction = fm.beginTransaction()
+        //ft.replace(R.id.gpsStatusFrameView, FragmentGpsStatus());
+        ft.add(R.id.gpsStatusFrameView, FragmentGpsStatus());
+        ft.commit();
+//        val fm: FragmentManager = fragmentManager
+       // FragmentActivity
+        /* FragmentActivity.getSupportFragmentManager()
+        val fTrans = getFragmentManager().beginTransaction();*/
+       /* val gpsStatus = FragmentGpsStatus()
+        val gpsStatusTrans = fragmentManager.beginTransaction()
+        gpsStatusTrans.add(R.id.gpsStatusFrameView, gpsStatus)
+        gpsStatusTrans.commit()*/
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {

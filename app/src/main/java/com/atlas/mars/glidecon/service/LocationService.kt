@@ -12,6 +12,7 @@ import android.os.Bundle
 import android.os.IBinder
 import android.util.Log
 import androidx.core.app.ActivityCompat
+import com.atlas.mars.glidecon.store.MapBoxStore
 import com.atlas.mars.glidecon.store.MapBoxStore.Companion.locationSubject
 import com.atlas.mars.glidecon.store.MapBoxStore.Companion.satelliteSubject
 
@@ -76,7 +77,7 @@ class LocationService : Service() {
                         }
                     }
                     Log.d(TAG, "total ${satellitesTotalCount}, used ${usedSatellites}")
-                    val sat: Map<String, Int> = mapOf("total" to satellitesTotalCount, "used" to usedSatellites)
+                    val sat: Map<MapBoxStore.SatCount, Int> = mapOf(MapBoxStore.SatCount.TOTAl to satellitesTotalCount, MapBoxStore.SatCount.USED  to usedSatellites)
                     satelliteSubject.onNext(sat)
                 }
             }
@@ -101,7 +102,7 @@ class LocationService : Service() {
                                 usedSatellites++
                             }
                         }
-                        satelliteSubject.onNext(mapOf("total" to satellitesTotalCount, "used" to usedSatellites))
+                        satelliteSubject.onNext(mapOf(MapBoxStore.SatCount.TOTAl to satellitesTotalCount, MapBoxStore.SatCount.USED to usedSatellites))
                     }
                 }
             }

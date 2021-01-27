@@ -8,7 +8,12 @@ class MapBoxStore {
     companion object {
         val mapboxMapSubject: BehaviorSubject<MapboxMap> = BehaviorSubject.create()
         val locationSubject: BehaviorSubject<Location> = BehaviorSubject.create()
-        val satelliteSubject: BehaviorSubject<Map<String, Int>> = BehaviorSubject.createDefault(mapOf("total" to 0, "used" to 0))
+        val satelliteSubject: BehaviorSubject<Map<SatCount, Int>> = BehaviorSubject.createDefault(mapOf(SatCount.TOTAl to 0, SatCount.USED  to 0))
+        val satelliteSubject1: BehaviorSubject<Map<SatCount, Int>> = BehaviorSubject.createDefault(mapOf(SatCount.TOTAl to 0, SatCount.USED to 0))
         // val mapboxMapSubject: PublishSubject<MapboxMap> =  PublishSubject.create()
+    }
+
+    enum class SatCount{
+        TOTAl, USED
     }
 }
