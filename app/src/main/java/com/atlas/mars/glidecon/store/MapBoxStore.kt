@@ -8,6 +8,7 @@ class MapBoxStore {
     companion object {
         val mapboxMapSubject: BehaviorSubject<MapboxMap> = BehaviorSubject.create()
         val locationSubject: BehaviorSubject<Location> = BehaviorSubject.create()
+        val satelliteSubject: BehaviorSubject<Map<String, Int>> = BehaviorSubject.createDefault(mapOf("total" to 0, "used" to 0))
         // val mapboxMapSubject: PublishSubject<MapboxMap> =  PublishSubject.create()
     }
 }

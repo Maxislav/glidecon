@@ -22,5 +22,6 @@
             android:layout_height="?attr/actionBarSize"
             app:layout_collapseMode="pin"/>
     </com.google.android.material.appbar.AppBarLayout>
-    <include layout="@layout/activity_mapbox_frame"></include>
+    <include layout="@layout/activity_mapbox_frame"
+        ></include>
 </FrameLayout>

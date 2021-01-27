@@ -33,6 +33,7 @@ class MapBoxActivity : AppCompatActivity() {
     private var locationService: LocationService? = null
     lateinit var serviceIntent: Intent
     lateinit var toolbar: Toolbar
+    var isSubscribed = false;
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
@@ -46,25 +47,33 @@ class MapBoxActivity : AppCompatActivity() {
 
 
         mapView = findViewById(R.id.mapView)
+        // mapView.logoView.isHidden = true
+
+        // mapView?.
         mapView?.onCreate(savedInstanceState)
         mapView?.getMapAsync { mapboxMap ->
             mapboxMapSubject.onNext(mapboxMap)
             mapboxMapSubject.onComplete()
-            mapboxMap.setStyle(Style.MAPBOX_STREETS) {
 
+            mapboxMap.setStyle(Style.MAPBOX_STREETS) {
+                // mapboxMap.uiSettings.setAttributionEnabled(false)
                 // Map is set up and the style has loaded. Now you can add data or make other map adjustments
             }
         }
-        mapboxMapSubject.subscribeBy(
+        mapboxMapSubject
+                .takeWhile { isSubscribed }
+                .subscribeBy(
                 onNext = { value: MapboxMap ->
                     Log.d(TAG, "mapboxMap defined")
                 }
         )
-        locationSubject.subscribeBy(
-                onNext = { location: Location ->
-                    Log.d(TAG, "location ${location.toString()}")
-                }
-        )
+        locationSubject
+                .takeWhile { isSubscribed }
+                .subscribeBy(
+                        onNext = { location: Location ->
+                            Log.d(TAG, "location ${location.toString()}")
+                        }
+                )
         val list = listOf(mapboxMapSubject, locationSubject)
 
         val ff = Observables.combineLatest(mapboxMapSubject, locationSubject)
@@ -92,7 +101,7 @@ class MapBoxActivity : AppCompatActivity() {
 
     }
 
-    private fun setupDrawerLayout(){
+    private fun setupDrawerLayout() {
         toolbar = findViewById(R.id.toolbar)
         setSupportActionBar(toolbar)
         val drawer: DrawerLayout = findViewById(R.id.drawer_layout)
@@ -111,6 +120,7 @@ class MapBoxActivity : AppCompatActivity() {
     }
 
     override fun onResume() {
+        isSubscribed = true
         super.onResume()
         bindService(
                 serviceIntent,
@@ -122,6 +132,7 @@ class MapBoxActivity : AppCompatActivity() {
     }
 
     override fun onPause() {
+        isSubscribed = false
         super.onPause()
         Log.d(TAG, "onPause")
         if (bound) {
