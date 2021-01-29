@@ -15,7 +15,9 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.fragment.app.FragmentTransaction
+import com.atlas.mars.glidecon.fragment.FragmentCompass
 import com.atlas.mars.glidecon.fragment.FragmentGpsStatus
+import com.atlas.mars.glidecon.model.MapBoxModel
 import com.atlas.mars.glidecon.service.LocationService
 import com.atlas.mars.glidecon.store.MapBoxStore.Companion.locationSubject
 import com.atlas.mars.glidecon.store.MapBoxStore.Companion.mapboxMapSubject
@@ -35,6 +37,7 @@ class MapBoxActivity : AppCompatActivity() {
     private var locationService: LocationService? = null
     lateinit var serviceIntent: Intent
     lateinit var toolbar: Toolbar
+    lateinit var mapBoxModel: MapBoxModel
     var isSubscribed = false;
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -47,45 +50,48 @@ class MapBoxActivity : AppCompatActivity() {
 
         setupDrawerLayout()
         setupGpsStatusFrame()
+        setupCompassFrame()
 
 
         mapView = findViewById(R.id.mapView)
-        // mapView.logoView.isHidden = true
 
-        // mapView?.
+
+
         mapView?.onCreate(savedInstanceState)
-        mapView?.getMapAsync { mapboxMap ->
-            mapboxMapSubject.onNext(mapboxMap)
-            mapboxMapSubject.onComplete()
 
-            mapboxMap.setStyle(Style.MAPBOX_STREETS) {
-                // mapboxMap.uiSettings.setAttributionEnabled(false)
-                // Map is set up and the style has loaded. Now you can add data or make other map adjustments
-            }
-        }
-        mapboxMapSubject
-                .takeWhile { isSubscribed }
-                .subscribeBy(
-                        onNext = { value: MapboxMap ->
-                            Log.d(TAG, "mapboxMap defined")
-                        }
-                )
-        locationSubject
-                .takeWhile { isSubscribed }
-                .subscribeBy(
-                        onNext = { location: Location ->
-                            Log.d(TAG, "location ${location.toString()}")
-                        }
-                )
-        val list = listOf(mapboxMapSubject, locationSubject)
+        mapBoxModel = MapBoxModel(mapView!!)
+        /* mapView?.getMapAsync { mapboxMap ->
+             mapboxMapSubject.onNext(mapboxMap)
+             mapboxMapSubject.onComplete()
 
-        val ff = Observables.combineLatest(mapboxMapSubject, locationSubject)
-                .subscribeBy(
-                        onNext = { pair: Pair<MapboxMap, Location> ->
+             mapboxMap.setStyle(Style.MAPBOX_STREETS) {
+                 // mapboxMap.uiSettings.setAttributionEnabled(false)
+                 // Map is set up and the style has loaded. Now you can add data or make other map adjustments
+             }
+         }
+         mapboxMapSubject
+                 .takeWhile { isSubscribed }
+                 .subscribeBy(
+                         onNext = { value: MapboxMap ->
+                             Log.d(TAG, "mapboxMap defined")
+                         }
+                 )
+         locationSubject
+                 .takeWhile { isSubscribed }
+                 .subscribeBy(
+                         onNext = { location: Location ->
+                             Log.d(TAG, "location ${location.toString()}")
+                         }
+                 )
+         val list = listOf(mapboxMapSubject, locationSubject)
+
+         val ff = Observables.combineLatest(mapboxMapSubject, locationSubject)
+                 .subscribeBy(
+                         onNext = { pair: Pair<MapboxMap, Location> ->
 
 
-                        }
-                )
+                         }
+                 )*/
 
     }
 
@@ -115,21 +121,29 @@ class MapBoxActivity : AppCompatActivity() {
         navigationView.setNavigationItemSelectedListener { itt -> false }
     }
 
-    private fun setupGpsStatusFrame(){
+    private fun setupGpsStatusFrame() {
         val fm = this.supportFragmentManager
         val ft: FragmentTransaction = fm.beginTransaction()
         //ft.replace(R.id.gpsStatusFrameView, FragmentGpsStatus());
         ft.add(R.id.gpsStatusFrameView, FragmentGpsStatus());
         ft.commit();
 //        val fm: FragmentManager = fragmentManager
-       // FragmentActivity
+        // FragmentActivity
         /* FragmentActivity.getSupportFragmentManager()
         val fTrans = getFragmentManager().beginTransaction();*/
-       /* val gpsStatus = FragmentGpsStatus()
-        val gpsStatusTrans = fragmentManager.beginTransaction()
-        gpsStatusTrans.add(R.id.gpsStatusFrameView, gpsStatus)
-        gpsStatusTrans.commit()*/
+        /* val gpsStatus = FragmentGpsStatus()
+         val gpsStatusTrans = fragmentManager.beginTransaction()
+         gpsStatusTrans.add(R.id.gpsStatusFrameView, gpsStatus)
+         gpsStatusTrans.commit()*/
     }
+
+    private fun setupCompassFrame() {
+        val fm = this.supportFragmentManager
+        val ft: FragmentTransaction = fm.beginTransaction()
+        ft.add(R.id.compass_layout, FragmentCompass())
+        ft.commit();
+    }
+
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         // Inflate the menu; this adds items to the action bar if it is present.
@@ -158,6 +172,11 @@ class MapBoxActivity : AppCompatActivity() {
             unbindService(sCon);
             stopService(serviceIntent)
         }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        mapBoxModel.onDestroy()
     }
 
 
