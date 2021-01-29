@@ -60,6 +60,10 @@ class MapBoxModel(val mapView: MapView, val context: Context) {
 
                 MyPositionMarker(mapView, mapboxMap, style, context)
 
+
+            // TODO влияет на тачскрин зараза val symbolManager = SymbolManager(mapView, mapboxMap, style)
+
+
             }
         }
         mapboxMapSubject

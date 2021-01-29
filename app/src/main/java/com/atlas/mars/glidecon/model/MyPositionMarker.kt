@@ -27,7 +27,7 @@ class MyPositionMarker(val mapView: MapView, mapboxMap: MapboxMap, val style: St
         val symbolLayer = SymbolLayer(MY_POSITION_MARKER_LAYER_ID, MY_POSITION_MARKER_SOURCE_ID)
         symbolLayer.setProperties(
                 PropertyFactory.iconImage(MY_POSITION_MARKER_IMAGE_ID),
-                PropertyFactory.iconSize(2.0f),
+                PropertyFactory.iconSize(1.0f),
                 PropertyFactory.iconRotationAlignment(Property.ICON_ROTATION_ALIGNMENT_MAP),
                 PropertyFactory.iconPitchAlignment(Property.ICON_PITCH_ALIGNMENT_MAP)
         )
