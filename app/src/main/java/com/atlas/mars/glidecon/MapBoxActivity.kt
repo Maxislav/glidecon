@@ -16,6 +16,7 @@ import androidx.appcompat.widget.Toolbar
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.fragment.app.FragmentTransaction
 import com.atlas.mars.glidecon.fragment.FragmentCompass
+import com.atlas.mars.glidecon.fragment.FragmentFollow
 import com.atlas.mars.glidecon.fragment.FragmentGpsStatus
 import com.atlas.mars.glidecon.model.MapBoxModel
 import com.atlas.mars.glidecon.service.LocationService
@@ -51,6 +52,7 @@ class MapBoxActivity : AppCompatActivity() {
         setupDrawerLayout()
         setupGpsStatusFrame()
         setupCompassFrame()
+        setupFollowFrame()
 
 
         mapView = findViewById(R.id.mapView)
@@ -59,7 +61,7 @@ class MapBoxActivity : AppCompatActivity() {
 
         mapView?.onCreate(savedInstanceState)
 
-        mapBoxModel = MapBoxModel(mapView!!)
+        mapBoxModel = MapBoxModel(mapView!!, this as Context)
         /* mapView?.getMapAsync { mapboxMap ->
              mapboxMapSubject.onNext(mapboxMap)
              mapboxMapSubject.onComplete()
@@ -141,6 +143,13 @@ class MapBoxActivity : AppCompatActivity() {
         val fm = this.supportFragmentManager
         val ft: FragmentTransaction = fm.beginTransaction()
         ft.add(R.id.compass_layout, FragmentCompass())
+        ft.commit();
+    }
+
+    private fun setupFollowFrame(){
+        val fm = this.supportFragmentManager
+        val ft: FragmentTransaction = fm.beginTransaction()
+        ft.add(R.id.follow_layout, FragmentFollow())
         ft.commit();
     }
 

@@ -9,14 +9,16 @@ import android.widget.ImageView
 import androidx.fragment.app.Fragment
 import com.atlas.mars.glidecon.R
 import com.atlas.mars.glidecon.model.MyImage
+import com.atlas.mars.glidecon.store.MapBoxStore
 import com.atlas.mars.glidecon.store.MapBoxStore.Companion.cameraPosition
 import com.atlas.mars.glidecon.store.MapBoxStore.Companion.compassOnClickSubject
+import com.atlas.mars.glidecon.store.MapBoxStore.Companion.followTypeSubject
 import com.atlas.mars.glidecon.store.MapBoxStore.Companion.mapboxMapSubject
 import com.mapbox.mapboxsdk.camera.CameraPosition
 import io.reactivex.rxkotlin.subscribeBy
 
 
-class FragmentCompass: Fragment() {
+class FragmentCompass : Fragment() {
 
     private var isSubscribed = true
     var compassImageView: ImageView? = null
@@ -25,31 +27,35 @@ class FragmentCompass: Fragment() {
         // return super.onCreateView(inflater, container, savedInstanceState)
         return inflater.inflate(R.layout.fragment_compass, null)
     }
-    override fun onActivityCreated(savedInstanceState: Bundle?){
+
+    override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
         val myImage = MyImage(activity as Context)
         compassImageView = view?.findViewById(R.id.compass_image_view)
         compassImageView?.setImageBitmap(myImage.btnCompass)
 
         isSubscribed = true
-      /*  mapboxMapSubject
-                .take(1)
-                .subscribeBy (
-                        onNext = {bearing ->
-                            compassImageView?.rotation = 360 - bearing.toFloat()
-                        }
-                )*/
+        /*  mapboxMapSubject
+                  .take(1)
+                  .subscribeBy (
+                          onNext = {bearing ->
+                              compassImageView?.rotation = 360 - bearing.toFloat()
+                          }
+                  )*/
 
         cameraPosition.map { cameraPosition: CameraPosition -> cameraPosition.bearing }
 
-                .subscribeBy (
-                        onNext = {bearing ->
+                .subscribeBy(
+                        onNext = { bearing ->
                             compassImageView?.rotation = 360 - bearing.toFloat()
                         }
                 )
 
         compassImageView?.setOnClickListener {
             compassOnClickSubject.onNext(true)
+            if (followTypeSubject.value == MapBoxStore.FollowViewType.FOLLOW_ROTATE) {
+                followTypeSubject.onNext(MapBoxStore.FollowViewType.FOLLOW)
+            }
         }
     }
 

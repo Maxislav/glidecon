@@ -39,10 +39,23 @@
     <!-- compass -->
     <FrameLayout
         android:id="@+id/compass_layout"
-        android:layout_width="wrap_content"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
         android:layout_gravity="end|top"
         android:layout_marginTop="20dp"
+        android:layout_marginEnd="20dp"
+        android:layout_marginRight="20dp" />
+
+    <FrameLayout
+        android:id="@+id/follow_layout"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_gravity="end|top"
+        android:layout_marginTop="80dp"
+        android:layout_marginEnd="20dp"
         android:layout_marginRight="20dp"
-        android:layout_height="wrap_content" />
+
+        />
+
 
 </FrameLayout>

@@ -1,6 +1,11 @@
 package com.atlas.mars.glidecon.model
 
 import android.annotation.SuppressLint
+import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.Paint
 import android.location.Location
 import android.util.Log
 import android.view.MotionEvent
@@ -8,24 +13,36 @@ import android.view.View
 import com.atlas.mars.glidecon.store.MapBoxStore
 import com.atlas.mars.glidecon.store.MapBoxStore.Companion.cameraPosition
 import com.atlas.mars.glidecon.store.MapBoxStore.Companion.compassOnClickSubject
-import com.atlas.mars.glidecon.store.MapBoxStore.Companion.followSubject
+import com.atlas.mars.glidecon.store.MapBoxStore.Companion.followTypeSubject
 import com.atlas.mars.glidecon.store.MapBoxStore.Companion.locationSubject
 import com.atlas.mars.glidecon.store.MapBoxStore.Companion.mapboxMapSubject
 import com.mapbox.android.gestures.MoveGestureDetector
+import com.mapbox.geojson.Feature
+import com.mapbox.geojson.FeatureCollection
+import com.mapbox.geojson.Point
 import com.mapbox.mapboxsdk.camera.CameraPosition
 import com.mapbox.mapboxsdk.camera.CameraUpdateFactory
 import com.mapbox.mapboxsdk.geometry.LatLng
 import com.mapbox.mapboxsdk.maps.MapView
 import com.mapbox.mapboxsdk.maps.MapboxMap
 import com.mapbox.mapboxsdk.maps.Style
+import com.mapbox.mapboxsdk.plugins.annotation.SymbolManager
+import com.mapbox.mapboxsdk.plugins.markerview.MarkerView
+import com.mapbox.mapboxsdk.plugins.markerview.MarkerViewManager
+import com.mapbox.mapboxsdk.style.layers.Property
+import com.mapbox.mapboxsdk.style.layers.PropertyFactory
+import com.mapbox.mapboxsdk.style.layers.SymbolLayer
+import com.mapbox.mapboxsdk.style.sources.GeoJsonSource
 import io.reactivex.rxkotlin.Observables
 import io.reactivex.rxkotlin.subscribeBy
+import java.util.*
 import kotlin.math.pow
 
-class MapBoxModel(val mapView: MapView) {
+
+class MapBoxModel(val mapView: MapView, val context: Context) {
     private val TAG = "MapBoxModel"
     private var isSubscribed = true
-
+    lateinit var markerViewManager: MarkerViewManager
 
     init {
 
@@ -33,14 +50,16 @@ class MapBoxModel(val mapView: MapView) {
         initTouchListener()
         // mapView?.onCreate(savedInstanceState)
         mapView.getMapAsync { mapboxMap: MapboxMap ->
+
             mapboxMapSubject.onNext(mapboxMap)
+
+
             // mapboxMapSubject.onComplete()
 
-            mapboxMap.setStyle(Style.MAPBOX_STREETS) {
-                val uiSettings = mapboxMap.uiSettings
-                uiSettings
-                // mapboxMap.uiSettings.setAttributionEnabled(false)
-                // Map is set up and the style has loaded. Now you can add data or make other map adjustments
+            mapboxMap.setStyle(Style.MAPBOX_STREETS) { style: Style ->
+
+                MyPositionMarker(mapView, mapboxMap, style, context)
+
             }
         }
         mapboxMapSubject
@@ -83,6 +102,7 @@ class MapBoxModel(val mapView: MapView) {
     }
 
     private fun initMap(mapboxMap: MapboxMap) {
+
         cameraPosition.onNext(mapboxMap.cameraPosition)
         mapboxMap.addOnCameraMoveListener(object : MapboxMap.OnCameraMoveListener {
             override fun onCameraMove() {
@@ -125,19 +145,21 @@ class MapBoxModel(val mapView: MapView) {
                         }
                 )
 
-       /* followSubject
-                .withLatestFrom(locationSubject, (isSubscribed) -> isSubscribed)*/
+        /* followSubject
+                 .withLatestFrom(locationSubject, (isSubscribed) -> isSubscribed)*/
 
 
-        Observables.combineLatest(followSubject, locationSubject)
+        Observables.combineLatest(followTypeSubject, locationSubject)
                 .takeWhile { isSubscribed }
                 .filter(fun(pair): Boolean {
-                    return pair.first
+                    return pair.first != MapBoxStore.FollowViewType.TYPICAL
                 })
-                .map{pair -> pair.second}
+                .map { pair -> pair.second }
                 .subscribeBy(
                         onNext = { location ->
                             val latLng = LatLng(location.latitude, location.longitude)
+
+                            // val builder =
                             val position = CameraPosition.Builder()
                                     .target(latLng)
                                     .build()
@@ -194,17 +216,18 @@ class MapBoxModel(val mapView: MapView) {
                 when (event!!.action and MotionEvent.ACTION_MASK) {
                     MotionEvent.ACTION_DOWN -> {
                         startX = X
+                        startY = Y
                     }
                     MotionEvent.ACTION_MOVE -> {
                         val distX = startX?.minus(X!!)
                         val distY = startY?.minus(Y!!)
-
-                        val sum = distY?.let { distX?.toDouble()?.pow(2.0)?.plus(it.pow(2)) }
-                        val res = sum?.pow(0.5)
-                        if (followSubject.value && 100 < res!!) {
-                            followSubject.onNext(false)
+                        val pow1 = distX?.toDouble()?.pow(2.0)
+                        val pow2 = distY?.toDouble()?.pow(2.0)
+                        val res = (pow1!! + pow2!!).pow(0.5)
+                        Log.d(TAG, "${res}")
+                        if (followTypeSubject.value !== MapBoxStore.FollowViewType.TYPICAL && 100 < res!!) {
+                            followTypeSubject.onNext(MapBoxStore.FollowViewType.TYPICAL)
                         }
-                        Log.d(TAG, "${distX}")
                     }
                 }
 
@@ -216,6 +239,30 @@ class MapBoxModel(val mapView: MapView) {
 
     fun onDestroy() {
         isSubscribed = false
+    }
+
+    internal class DrawView(context: Context?) : View(context) {
+        var paint: Paint
+        var bitmap: Bitmap
+        override fun onDraw(canvas: Canvas) {
+            canvas.drawARGB(80, 102, 204, 255)
+            canvas.drawBitmap(bitmap, 50.5.toFloat(), 50.5.toFloat(), paint)
+        }
+
+        init {
+            paint = Paint(Paint.ANTI_ALIAS_FLAG)
+            bitmap = Bitmap.createBitmap(100, 100, Bitmap.Config.RGB_565)
+            bitmap.setPixel(20, 20, Color.RED)
+            bitmap.setPixel(70, 50, Color.RED)
+            bitmap.setPixel(30, 80, Color.RED)
+            val colors = IntArray(10 * 15)
+            Arrays.fill(colors, 0, 10 * 15, Color.GREEN)
+            bitmap.setPixels(colors, 0, 10, 40, 40, 10, 15)
+            val canvas = Canvas(bitmap)
+            val p = Paint()
+            p.setColor(Color.BLUE)
+            canvas.drawCircle(80.toFloat(), 80.toFloat(), 10.toFloat(), p)
+        }
     }
 }
 
