@@ -120,7 +120,7 @@ class MapBoxActivity : AppCompatActivity() {
         drawer.addDrawerListener(toggle)
         toggle.syncState()
         val navigationView: NavigationView = findViewById(R.id.nav_view)
-        navigationView.setNavigationItemSelectedListener { itt -> false }
+        navigationView.setNavigationItemSelectedListener { itt -> true }
     }
 
     private fun setupGpsStatusFrame() {

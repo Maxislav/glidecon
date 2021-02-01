@@ -61,7 +61,7 @@ class MapBoxModel(val mapView: MapView, val context: Context) {
                 MyPositionMarker(mapView, mapboxMap, style, context)
 
 
-            // TODO влияет на тачскрин зараза val symbolManager = SymbolManager(mapView, mapboxMap, style)
+                // TODO влияет на тачскрин зараза val symbolManager = SymbolManager(mapView, mapboxMap, style)
 
 
             }
@@ -113,7 +113,7 @@ class MapBoxModel(val mapView: MapView, val context: Context) {
                 cameraPosition.onNext(mapboxMap.cameraPosition)
             }
         })
-
+        initCameraPositionListener(mapboxMap)
         mapboxMap.addOnMoveListener(object : MapboxMap.OnMoveListener {
 
             var locationA: Location? = null
@@ -137,6 +137,7 @@ class MapBoxModel(val mapView: MapView, val context: Context) {
         })
 
 
+
         compassOnClickSubject
                 .takeWhile { isSubscribed }
                 .subscribeBy(
@@ -149,28 +150,6 @@ class MapBoxModel(val mapView: MapView, val context: Context) {
                         }
                 )
 
-        /* followSubject
-                 .withLatestFrom(locationSubject, (isSubscribed) -> isSubscribed)*/
-
-
-        Observables.combineLatest(followTypeSubject, locationSubject)
-                .takeWhile { isSubscribed }
-                .filter(fun(pair): Boolean {
-                    return pair.first != MapBoxStore.FollowViewType.TYPICAL
-                })
-                .map { pair -> pair.second }
-                .subscribeBy(
-                        onNext = { location ->
-                            val latLng = LatLng(location.latitude, location.longitude)
-
-                            // val builder =
-                            val position = CameraPosition.Builder()
-                                    .target(latLng)
-                                    .build()
-                            mapboxMap.animateCamera(CameraUpdateFactory
-                                    .newCameraPosition(position));
-                        }
-                )
         /*followSubject
                 .takeWhile { isSubscribed }
                 .withLatestFrom(locationSubject) { ignore, dialogContents -> Pair(ignore, dialogContents) }
@@ -205,6 +184,56 @@ class MapBoxModel(val mapView: MapView, val context: Context) {
 
         //CameraPosition position = new CameraPosition.Builder()
         // mapboxMap.setBe
+    }
+
+    private fun initCameraPositionListener(mapboxMap: MapboxMap) {
+        var previousLocation: Location? = null;
+        var previousTime: Long? = null// = System.currentTimeMillis()
+        Observables.combineLatest(followTypeSubject, locationSubject)
+                .takeWhile { isSubscribed }
+                .filter(fun(pair): Boolean {
+                    return pair.first != MapBoxStore.FollowViewType.TYPICAL
+                })
+                .subscribeBy(
+                        onNext = { pair ->
+                            val followViewType = pair.first;
+                            val location = pair.second
+                            val latLng = LatLng(location.latitude, location.longitude)
+                            val position: CameraPosition
+
+                            if (previousLocation != null && followViewType == MapBoxStore.FollowViewType.FOLLOW_ROTATE) {
+                                var bearing = location.bearingTo(previousLocation)//  - 180
+
+                                Log.d(TAG, "bering to $bearing")
+                                if (bearing < 0) {
+                                    bearing += 360
+                                }
+                                bearing -= 180;
+                                if (bearing < 0) {
+                                    bearing += 360
+                                }
+                                position = CameraPosition.Builder()
+                                        .bearing((bearing).toDouble())
+                                        .target(latLng)
+                                        .build()
+                            } else {
+                                position = CameraPosition.Builder()
+                                        .target(latLng)
+                                        .build()
+                            }
+
+                            //val time = previousTime?.minus(System.currentTimeMillis())?.let { Math.abs(it) }
+                            val time = previousTime?.let { previous -> System.currentTimeMillis() - previous }
+
+
+                            mapboxMap.easeCamera(CameraUpdateFactory
+                                    .newCameraPosition(position), time?.let { if (1000 < it) 1000 else it.toInt() }
+                                    ?: 1000, false);
+
+                            previousLocation = location
+                            previousTime = System.currentTimeMillis()
+                        }
+                )
     }
 
     @SuppressLint("ClickableViewAccessibility")

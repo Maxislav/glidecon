@@ -57,7 +57,7 @@ class LocationService : Service() {
         gpsListener = GPSListener()
         locationManagerGps?.requestLocationUpdates(
                 LocationManager.GPS_PROVIDER,
-                1000,
+                200,
                 0F,
                 gpsListener
 

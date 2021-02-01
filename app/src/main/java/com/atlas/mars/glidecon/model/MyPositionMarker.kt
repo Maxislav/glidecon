@@ -19,11 +19,14 @@ class MyPositionMarker(val mapView: MapView, mapboxMap: MapboxMap, val style: St
     private val MY_POSITION_MARKER_IMAGE_ID = "my_position_marker_image_id"
     private val MY_POSITION_MARKER_SOURCE_ID = "MY_POSITION_MARKER_SOURCE_ID"
     private val MY_POSITION_MARKER_LAYER_ID = "MY_POSITION_MARKER_LAYER_ID"
+    var previousLocation: Location? = null;
+    private val markerSource: GeoJsonSource
+
     init {
         val myImage = MyImage(context)
         val bitmap: Bitmap = myImage.arrow
         style.addImage(MY_POSITION_MARKER_IMAGE_ID, bitmap);
-        createSource()
+        markerSource = createSource()
         val symbolLayer = SymbolLayer(MY_POSITION_MARKER_LAYER_ID, MY_POSITION_MARKER_SOURCE_ID)
         symbolLayer.setProperties(
                 PropertyFactory.iconImage(MY_POSITION_MARKER_IMAGE_ID),
@@ -35,23 +38,32 @@ class MyPositionMarker(val mapView: MapView, mapboxMap: MapboxMap, val style: St
         MapBoxStore.locationSubject
                 .subscribeBy(
                         onNext = { location: Location ->
+
+                            previousLocation
                             val singleFeatureOne = Feature.fromGeometry(
                                     Point.fromLngLat(location.longitude,
                                             location.latitude))
-                            val dd: GeoJsonSource = style.getSource(MY_POSITION_MARKER_SOURCE_ID) as GeoJsonSource
-                            dd.setGeoJson(singleFeatureOne)
-                            symbolLayer.setProperties(
-                                    PropertyFactory.iconRotate(45.toFloat())
-                            )
+                            // val dd: GeoJsonSource = style.getSource(MY_POSITION_MARKER_SOURCE_ID) as GeoJsonSource
+
+                            markerSource.setGeoJson(singleFeatureOne)
+
+                            val bearing: Float? = previousLocation?.bearingTo(location)
+
+                            if(bearing!= null){
+                                symbolLayer.setProperties( PropertyFactory.iconRotate(bearing))
+                            }
+                            previousLocation = location
+
+                                    // previousLocation = location;
+
                         }
                 )
 
     }
 
-    fun createSource(){
-
-
+    private fun createSource(): GeoJsonSource {
         style.addSource(GeoJsonSource(MY_POSITION_MARKER_SOURCE_ID))
+        return style.getSource(MY_POSITION_MARKER_SOURCE_ID) as GeoJsonSource
     }
 
     val isSourceExist: Boolean get() = style.getSource(MY_POSITION_MARKER_SOURCE_ID) != null
