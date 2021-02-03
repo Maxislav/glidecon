@@ -4,31 +4,32 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
-import android.location.Location
+import android.graphics.Insets
+import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
+import android.util.DisplayMetrics
 import android.util.Log
 import android.view.Menu
+import android.view.MenuItem
+import android.view.WindowInsets
 import android.view.WindowManager
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
+import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.fragment.app.FragmentTransaction
+import com.atlas.mars.glidecon.dialog.DialogWindSetting
 import com.atlas.mars.glidecon.fragment.FragmentCompass
 import com.atlas.mars.glidecon.fragment.FragmentFollow
 import com.atlas.mars.glidecon.fragment.FragmentGpsStatus
+import com.atlas.mars.glidecon.fragment.FragmentWindSetting
 import com.atlas.mars.glidecon.model.MapBoxModel
 import com.atlas.mars.glidecon.service.LocationService
-import com.atlas.mars.glidecon.store.MapBoxStore.Companion.locationSubject
-import com.atlas.mars.glidecon.store.MapBoxStore.Companion.mapboxMapSubject
 import com.google.android.material.navigation.NavigationView
 import com.mapbox.mapboxsdk.Mapbox
 import com.mapbox.mapboxsdk.maps.MapView
-import com.mapbox.mapboxsdk.maps.MapboxMap
-import com.mapbox.mapboxsdk.maps.Style
-import io.reactivex.rxkotlin.Observables
-import io.reactivex.rxkotlin.subscribeBy
 
 
 class MapBoxActivity : AppCompatActivity() {
@@ -40,6 +41,22 @@ class MapBoxActivity : AppCompatActivity() {
     lateinit var toolbar: Toolbar
     lateinit var mapBoxModel: MapBoxModel
     var isSubscribed = false;
+
+
+    private val screenWidth: Int
+        get() {
+            return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                val windowMetrics = this!!.windowManager.currentWindowMetrics
+                val insets: Insets = windowMetrics.windowInsets
+                        .getInsetsIgnoringVisibility(WindowInsets.Type.systemBars())
+                windowMetrics.bounds.width() - insets.left - insets.right
+            } else {
+                val displayMetrics = DisplayMetrics()
+                this!!.windowManager.defaultDisplay.getMetrics(displayMetrics)
+                displayMetrics.widthPixels
+            }
+        }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
@@ -53,7 +70,7 @@ class MapBoxActivity : AppCompatActivity() {
         setupGpsStatusFrame()
         setupCompassFrame()
         setupFollowFrame()
-
+        screenWidth
 
         mapView = findViewById(R.id.mapView)
 
@@ -62,38 +79,6 @@ class MapBoxActivity : AppCompatActivity() {
         mapView?.onCreate(savedInstanceState)
 
         mapBoxModel = MapBoxModel(mapView!!, this as Context)
-        /* mapView?.getMapAsync { mapboxMap ->
-             mapboxMapSubject.onNext(mapboxMap)
-             mapboxMapSubject.onComplete()
-
-             mapboxMap.setStyle(Style.MAPBOX_STREETS) {
-                 // mapboxMap.uiSettings.setAttributionEnabled(false)
-                 // Map is set up and the style has loaded. Now you can add data or make other map adjustments
-             }
-         }
-         mapboxMapSubject
-                 .takeWhile { isSubscribed }
-                 .subscribeBy(
-                         onNext = { value: MapboxMap ->
-                             Log.d(TAG, "mapboxMap defined")
-                         }
-                 )
-         locationSubject
-                 .takeWhile { isSubscribed }
-                 .subscribeBy(
-                         onNext = { location: Location ->
-                             Log.d(TAG, "location ${location.toString()}")
-                         }
-                 )
-         val list = listOf(mapboxMapSubject, locationSubject)
-
-         val ff = Observables.combineLatest(mapboxMapSubject, locationSubject)
-                 .subscribeBy(
-                         onNext = { pair: Pair<MapboxMap, Location> ->
-
-
-                         }
-                 )*/
 
     }
 
@@ -120,7 +105,27 @@ class MapBoxActivity : AppCompatActivity() {
         drawer.addDrawerListener(toggle)
         toggle.syncState()
         val navigationView: NavigationView = findViewById(R.id.nav_view)
-        navigationView.setNavigationItemSelectedListener { itt -> true }
+        navigationView.setNavigationItemSelectedListener(fun(menuItem: MenuItem): Boolean {
+            drawer.closeDrawer(GravityCompat.START);
+            when (menuItem.itemId) {
+                R.id.wind_menu_item -> {
+                    val dialogWindSetting = DialogWindSetting(this)
+                    dialogWindSetting.create().show()
+                    // showWindowSettingFrame()
+                }
+            }
+            return true
+        })
+        /*navigationView.setNavigationItemSelectedListener { menuItem ->
+            {
+                when (menuItem.itemId) {
+                    R.id.wind_setting_layout -> {
+
+                    }
+                }
+                return true
+            }
+        }*/
     }
 
     private fun setupGpsStatusFrame() {
@@ -153,12 +158,30 @@ class MapBoxActivity : AppCompatActivity() {
         ft.commit();
     }
 
+    private fun showWindowSettingFrame(){
+        val fm = this.supportFragmentManager
+        val ft: FragmentTransaction = fm.beginTransaction()
+        ft.add(R.id.wind_setting_layout, FragmentWindSetting())
+        ft.commit();
+    }
+
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         // Inflate the menu; this adds items to the action bar if it is present.
-        menuInflater.inflate(R.menu.menu_main, menu)
+        menuInflater.inflate(R.menu.menu_mapbox_main, menu)
         //val actionBar: ActionBar? = supportActionBar as ActionBar?
         return true
+    }
+
+    override fun onOptionsItemSelected(menuItem: MenuItem): Boolean{
+        when(menuItem.itemId){
+            R.id.action_calc -> {
+                Log.d(TAG, "action_settings")
+                val questionIntent = Intent(this, MainActivity::class.java)
+                startActivityForResult(questionIntent, 0)
+            }
+        }
+        return super.onOptionsItemSelected(menuItem)
     }
 
     override fun onResume() {

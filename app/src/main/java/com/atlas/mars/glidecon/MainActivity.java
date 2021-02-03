@@ -43,6 +43,8 @@ public class MainActivity extends AppCompatActivity {
 
     TextView speedTextView, altitudeTextView, varioTextView, qualityTextView;
 
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -60,6 +62,8 @@ public class MainActivity extends AppCompatActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_main, menu);
         ActionBar actionBar = getSupportActionBar();
+        actionBar.setDisplayHomeAsUpEnabled(true);
+        actionBar.setHomeButtonEnabled(true);
         // actionBar.setBackgroundDrawable(ResourcesCompat.getDrawable(getResources(), R.drawable.actionbar_background, null));
         return true;
     }
@@ -72,12 +76,17 @@ public class MainActivity extends AppCompatActivity {
                 questionIntent = new Intent(this, SettingActivity.class);
                 startActivityForResult(questionIntent, 0);
                 return true;
+            case android.R.id.home: {
+                this.finish();
+                return true;
+            }
         }
         return super.onOptionsItemSelected(item);
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == 0) {
             if (resultCode == RESULT_OK) {
                 //Todo нажато сохранение

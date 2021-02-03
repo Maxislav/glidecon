@@ -7,8 +7,9 @@
             android:id="@+id/start_altitude"
             android:title="@string/set_start_altitude" />
         <item
+            android:id="@+id/wind_menu_item"
             android:icon="@drawable/ic_menu_wind"
-            android:id="@+id/wind_speed_direction"
+
             android:title="@string/set_wind_direction" />
     </group>
 </menu>

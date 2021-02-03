@@ -1,0 +1,15 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context=".MapBoxActivity">
+    <item android:id="@+id/action_calc"
+        android:icon="@drawable/ic_measure_rule"
+        android:title="Finish calc"
+        android:orderInCategory="0"
+        app:showAsAction="ifRoom" />
+    <item android:id="@+id/action_settings"
+        android:icon="@drawable/icon_settings"
+        android:title="Settings"
+        android:orderInCategory="0"
+        app:showAsAction="ifRoom" />
+</menu>

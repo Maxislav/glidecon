@@ -37,7 +37,7 @@
             10dp
         </item>
         <item name="android:background">
-            @color/blackColor
+            @color/colorPrimary
         </item>
     </style>
     <style name="textStyleHistory">
@@ -61,6 +61,7 @@
         </item>
 
     </style>
+
 
 
 

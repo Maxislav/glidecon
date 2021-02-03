@@ -57,5 +57,12 @@
 
         />
 
+    <FrameLayout
+        android:id="@+id/wind_setting_layout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="start|center"
+        />
+
 
 </FrameLayout>

@@ -6,6 +6,8 @@ import androidx.annotation.ColorRes
 import androidx.annotation.DrawableRes
 import androidx.core.content.ContextCompat
 import com.atlas.mars.glidecon.R
+import kotlin.math.cos
+import kotlin.math.sin
 
 class MyImage(var context: Context) {
     var density: Float = Density(context).density
@@ -23,10 +25,13 @@ class MyImage(var context: Context) {
         get() = createBtnZoom("+")
     val btnZoomOut: Bitmap
         get() = createBtnZoom("-")
+
     /*val btnTrack: Bitmap
         get() = createBtnTrack()*/
     val btnWind: Bitmap
         get() = createBtnWind()
+
+
 
     fun getManeuverArrow(@DrawableRes resId: Int): Bitmap {
         val bitmap = Bitmap.createBitmap(Math.round(30 * density), Math.round(30 * density), Bitmap.Config.ARGB_8888)
@@ -196,7 +201,6 @@ class MyImage(var context: Context) {
     }
 
 
-
     private fun createBtnWind(): Bitmap {
         val bitmap = Bitmap.createBitmap(54, 54, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)
@@ -214,7 +218,7 @@ class MyImage(var context: Context) {
         p = Paint()
         p.isAntiAlias = true
         p.style = Paint.Style.STROKE
-        p.color = context.resources.getColor(R.color.colorPrimaryText)
+        p.color = ContextCompat.getColor(context, R.color.colorPrimaryText)
         canvas.drawPath(path, p)
         val icon = BitmapFactory.decodeResource(context.resources,
                 R.drawable.ic_wind)
@@ -269,6 +273,44 @@ class MyImage(var context: Context) {
         p.style = Paint.Style.STROKE
         p.color = context.resources.getColor(R.color.colorPrimaryText)
         p.strokeWidth = strokeWidth
+        canvas.drawPath(path, p)
+        return bitmap
+    }
+
+    fun getWindDevice(width: Int, height: Int): Bitmap {
+        val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(bitmap)
+        val path = Path()
+        path.reset()
+        path.moveTo(width.toFloat()/2,  height.toFloat()/2)
+        path.lineTo(0f, 0f)
+        path.moveTo(width.toFloat()/2,  height.toFloat()/2)
+        path.lineTo(width.toFloat()/2, 0f)
+
+
+        val r = width* 0.8/2
+        for (i in 0..360  step 5) {
+            path.moveTo(width.toFloat()/2,  height.toFloat()/2)
+            val x = width/2 + r* sin(i*Math.PI/180)
+            val y = width/2 - r* cos(i*Math.PI/180)
+            path.lineTo(x.toFloat(), y.toFloat())
+            // sin a = x/width
+        }
+        //canvas.drawTextOnPath()
+
+        var p = Paint()
+        p.isAntiAlias = true
+        p.style = Paint.Style.STROKE
+        p.alpha = 180
+        p.color = ContextCompat.getColor(context, R.color.colorPrimaryText)
+        p.strokeWidth = density * 2
+        canvas.drawPath(path, p)
+        path.reset()
+        path.addCircle(width.toFloat()/2,  height.toFloat()/2, height.toFloat()/3, Path.Direction.CCW)
+        path.close()
+        p.style = Paint.Style.FILL
+        p.color = Color.RED
+        p.setXfermode(PorterDuffXfermode(PorterDuff.Mode.CLEAR))
         canvas.drawPath(path, p)
         return bitmap
     }
