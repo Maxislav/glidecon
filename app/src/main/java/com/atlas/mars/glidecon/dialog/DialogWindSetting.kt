@@ -16,6 +16,8 @@ import android.widget.FrameLayout
 import android.widget.ImageView
 import com.atlas.mars.glidecon.R
 import com.atlas.mars.glidecon.model.WindSettingDrawer
+import com.atlas.mars.glidecon.store.MapBoxStore
+import com.atlas.mars.glidecon.store.MapBoxStore.Companion.windSubject
 import com.atlas.mars.glidecon.view.CustomFontTextView
 import io.reactivex.rxkotlin.Observables
 import io.reactivex.rxkotlin.subscribeBy
@@ -35,10 +37,11 @@ class DialogWindSetting(val activity: Activity) : AlertDialog.Builder(activity) 
     private lateinit var windSettingDrawer: WindSettingDrawer
     lateinit var imageView: ImageView
     var isSubscribe = true;
+    var directionSpeed: Pair<Double, Double> = Pair(0.0, 0.0)
 
-    lateinit var directionView: CustomFontTextView
-    lateinit var speedView: CustomFontTextView
-    private lateinit var emergencyHandler: Handler
+    val directionView: CustomFontTextView
+    val speedView: CustomFontTextView
+    private var handler: Handler
 
     private val screenWidth: Int
         get() {
@@ -66,42 +69,56 @@ class DialogWindSetting(val activity: Activity) : AlertDialog.Builder(activity) 
         setPositiveButton("ok", object : DialogInterface.OnClickListener {
             override fun onClick(dialog: DialogInterface?, which: Int) {
                 Log.d(TAG, "ok")
+                onDestroy()
+
+                directionSpeed
+                windSubject.onNext(mapOf(MapBoxStore.Wind.DIRECTION to directionSpeed.first, MapBoxStore.Wind.SPEED to directionSpeed.second))
             }
         })
         directionView = linearLayout.findViewById(R.id.direction_view)
         speedView = linearLayout.findViewById(R.id.speed_view)
-        emergencyHandler = object : Handler(Looper.getMainLooper()) {
+        handler = object : Handler(Looper.getMainLooper()) {
             @SuppressLint("SetTextI18n")
             override fun handleMessage(msg: Message) {
-                // val decimalFormat =
-                val directionSpeed: Pair<Double, Double> = msg.obj as Pair<Double, Double>
-                val direction = DecimalFormat("#").format(directionSpeed.first)
-                val speed = DecimalFormat("#").format(directionSpeed.second)
+                directionSpeed = msg.obj as Pair<Double, Double>
+                setViewParams()
 
-                directionView.text = "$direction \u00B0"
-                speedView.text = "$speed"
                 imageView.setImageBitmap(windSettingDrawer.bitmap)
-                // this@LocationService.stopSelf()
             }
         }
 
         setNegativeButton("cancel", null)
+
+
         imageSizeSubject
                 .take(1)
-                .subscribeBy { size ->
+                .doOnNext { size ->
                     windSettingDrawer = WindSettingDrawer(context, size, MAX_WIND_SPEED)
                     imageView.setImageBitmap(windSettingDrawer.bitmap)
-
+                }
+                .flatMap { windSubject }
+                .takeWhile { isSubscribe }
+                .subscribeBy { wind ->
+                    Log.d(TAG, "")
+                    val direction = wind.get(MapBoxStore.Wind.DIRECTION)?.toDouble()
+                    val speed = wind.get(MapBoxStore.Wind.SPEED)?.toDouble()
+                    if (direction != null && speed !== null) {
+                        windSettingDrawer.draw(direction, speed)
+                        directionSpeed = Pair(direction, speed)
+                        setViewParams()
+                    }
                 }
         Observables.combineLatest(imageSizeSubject, touchPositionSubject)
                 .takeWhile { isSubscribe }
                 // .sample(100, TimeUnit.MILLISECONDS)
                 .subscribeBy { pair ->
-                    // Log.d(TAG, "${pair.first} ${pair.second}")
+
+                    // windSubject.onNext(mapOf(MapBoxStore.Wind.DIRECTION to 1, MapBoxStore.Wind.SPEED to 5))
+
                     val size = pair.first.toFloat()
                     val x = pair.second.first
                     val y = pair.second.second
-                    var a: Double = 0.0
+                    var a = 0.0
                     a = Math.toDegrees(atan((x - size / 2) / (y - size / 2)).toDouble())
                     if (size / 2 < x && y < size / 2) {
                         (-a).also { a = it };
@@ -117,37 +134,33 @@ class DialogWindSetting(val activity: Activity) : AlertDialog.Builder(activity) 
 
                     val sum = (x - x1).toDouble().pow(2.0) + (y - y1).toDouble().pow(2.0)
                     val distInPx = sum.pow(0.5)
-                    // Log.d(TAG, "dist px -> $distInPx")
-                    //val speed =  distInPx * MAX_WIND_SPEED / (size/2)
-
-                    // max - size/2
-                    // x = dist
-                    val speed: Double = distInPx * MAX_WIND_SPEED/ (size/2)
-
-                    // speed = distx*k   distx = speed/k
-                    // Log.d(TAG, "$a speed = $speed")
-                    // windSettingDrawer.drawByXy(x, y);
-                    // Log.d(TAG, "xt from dialog $x $y")
-                    //Log.d(TAG, "size=${size/2},  distInPx=$distInPx, speed = $speed, angle= $a, xy = $x $y")
-                    // Log.d(TAG, "dialog radius $distInPx ")
+                    val speed: Double = distInPx * MAX_WIND_SPEED / (size / 2)
                     Log.d(TAG, "dialog X $x")
-                     windSettingDrawer.draw(a, speed)
-                   // windSettingDrawer.drawByXy(x, y)
-                    // emergencyHandler.sendEmptyMessage(1)
-                    val msg = emergencyHandler.obtainMessage(1, Pair(a, speed))
-                    emergencyHandler.sendMessage(msg)
-                    // size = max_w
-                    // distpx = x
+                    windSettingDrawer.draw(a, speed)
+                    val msg = handler.obtainMessage(1, Pair(a, speed))
+                    handler.sendMessage(msg)
 
                 }
+    }
+
+    private fun setViewParams(){
+        val direction = DecimalFormat("#").format(directionSpeed.first)
+        val speed = DecimalFormat("#").format(directionSpeed.second)
+
+        directionView.text = "$direction \u00B0"
+        speedView.text = "$speed"
+    }
+
+    private fun onDestroy() {
+        isSubscribe = false
+        handler.removeCallbacksAndMessages(null);
     }
 
     @SuppressLint("ResourceAsColor")
     override fun create(): AlertDialog {
         alertDialog = super.create()
         alertDialog.setOnDismissListener {
-            isSubscribe = false
-            emergencyHandler.removeCallbacksAndMessages(null);
+            onDestroy()
         }
 
         imageView = linearLayout.findViewById(R.id.wind_image_view)
@@ -164,12 +177,6 @@ class DialogWindSetting(val activity: Activity) : AlertDialog.Builder(activity) 
         alertDialog.setOnShowListener(DialogInterface.OnShowListener {
             alertDialog.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(R.color.colorPrimaryText);
             alertDialog.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(R.color.colorPrimaryText);
-
-           /* val size1 = Math.max(linearLayout.width, linearLayout.height)
-            imageView.layoutParams.height = size1
-            imageView.layoutParams.width = size1*/
-
-           // initTouchListener(imageView)
         })
 
         val windowDialog: Window? = alertDialog.getWindow()
@@ -201,29 +208,9 @@ class DialogWindSetting(val activity: Activity) : AlertDialog.Builder(activity) 
                         if (X != null && Y != null) {
                             touchPositionSubject.onNext(Pair(X, Y))
                         }
-
-
-                        /* Log.d(TAG, "$X $Y")
-                         canvas.drawRect(0f, 0f, width.toFloat(), height.toFloat(), clearPaint)
-
-                         path.reset()
-                         path.moveTo(width.toFloat() / 2, height.toFloat() / 2)
-                         if (X != null && Y != null) {
-                             path.lineTo(X.toFloat(), Y.toFloat())
-                         }
-                         var p = Paint()
-                         p.isAntiAlias = true
-                         p.style = Paint.Style.STROKE
-                         p.alpha = 180
-                         p.strokeWidth = 10.0f
-                         p.color = ContextCompat.getColor(context, R.color.colorPrimaryText)
-                         canvas.drawPath(path, p)
-                         imageView.setImageBitmap(deviceBitmap)*/
                     }
                 }
-
                 return true
-
             }
         })
     }
