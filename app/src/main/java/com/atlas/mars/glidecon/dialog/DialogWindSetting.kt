@@ -85,7 +85,7 @@ class DialogWindSetting(val activity: Activity) : AlertDialog.Builder(activity) 
                 }
         Observables.combineLatest(imageSizeSubject, touchPositionSubject)
                 .takeWhile { isSubscribe }
-                .sample(200, TimeUnit.MILLISECONDS)
+                // .sample(100, TimeUnit.MILLISECONDS)
                 .subscribeBy { pair ->
                     // Log.d(TAG, "${pair.first} ${pair.second}")
                     val size = pair.first.toFloat()

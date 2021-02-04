@@ -2,10 +2,8 @@ package com.atlas.mars.glidecon.model
 
 import android.content.Context
 import android.graphics.*
-import android.util.Log
 import androidx.core.content.ContextCompat
 import com.atlas.mars.glidecon.R
-import com.atlas.mars.glidecon.dialog.DialogWindSetting
 import kotlin.math.cos
 import kotlin.math.sin
 
@@ -20,7 +18,7 @@ class WindSettingDrawer(private val context: Context, private var size: Number, 
         drawMeasurement()
     }
 
-    fun drawByXy(x: Float, y: Float){
+    fun drawByXy(x: Float, y: Float) {
         val size = this.size.toFloat()
         val clearPaint = Paint()
         clearPaint.xfermode = PorterDuffXfermode(PorterDuff.Mode.CLEAR)
@@ -37,6 +35,7 @@ class WindSettingDrawer(private val context: Context, private var size: Number, 
     }
 
     fun draw(direction: Double, speed: Double) {
+
         val size = this.size.toFloat()
         val clearPaint = Paint()
         clearPaint.xfermode = PorterDuffXfermode(PorterDuff.Mode.CLEAR)
@@ -45,35 +44,37 @@ class WindSettingDrawer(private val context: Context, private var size: Number, 
 
         val p = Paint()
         p.style = Paint.Style.STROKE
-      //  p.alpha = 180
         p.strokeWidth = density * 4
         p.color = ContextCompat.getColor(context, R.color.colorPrimaryText)
         path.reset()
-        path.moveTo(size / 2, size / 2)
+        // path.moveTo(size / 2, size / 2)
 
-        // 30  = size/2
-        // speed = x
-
-        val scale = maxSpeed / (size/2)
-
-
-
-        val r: Double =  speed * (size/2) / maxSpeed.toFloat()/// scale.toFloat()
-
-       //  Log.d(TAG, "radius $r")
-
+        val r: Double = speed * (size / 2) / maxSpeed /// scale.toFloat()
         val dx = Math.sin(Math.toRadians(direction)) * r
         val dy = Math.cos(Math.toRadians(direction)) * r
 
-        val x = (size/2 + dx).toFloat()
-        val y =  (size/2 - dy).toFloat()
-        path.lineTo(x, y)
-        // Log.d(TAG, "rxy from draw $r , - $x $y")
-       //  Log.d(TAG, "drawer radius $r")
-        Log.d(TAG, "drawer X $x")
+        val x = (size / 2 + dx)
+        val y = (size / 2 - dy)
+
+        val backX = size - x
+        val backY = size - y
 
 
+
+        path.moveTo(x.toFloat(), y.toFloat())
+        path.lineTo(backX.toFloat(), backY.toFloat())
         canvas.drawPath(path, p)
+        val matrix = Matrix()
+
+        matrix.setRotate(direction.toFloat(), size/2, size/2);
+        path.reset()
+        path.moveTo(size / 2 - 10 * density, (size / 2 - r).toFloat() + 15 * density)
+        path.lineTo(size / 2, (size / 2 - r).toFloat())
+        path.lineTo(size / 2 + 10 * density, (size / 2 - r).toFloat() + 15 * density)
+        path.transform(matrix);
+        // canvas.rotate(direction.toFloat(), size / 2, size / 2);
+        canvas.drawPath(path, p)
+        // canvas.rotate(-direction.toFloat(), size/2, size/2)
         // sin = x/r
     }
 
@@ -91,7 +92,7 @@ class WindSettingDrawer(private val context: Context, private var size: Number, 
 
         p.isAntiAlias = true
         p.style = Paint.Style.STROKE
-         p.alpha = 180
+        p.alpha = 180
         p.color = ContextCompat.getColor(context, R.color.colorPrimaryText)
         p.strokeWidth = density * 2
         canvas.drawPath(path, p)
