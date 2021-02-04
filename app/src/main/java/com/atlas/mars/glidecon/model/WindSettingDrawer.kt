@@ -92,8 +92,9 @@ class WindSettingDrawer(private val context: Context, private var size: Number, 
 
         p.isAntiAlias = true
         p.style = Paint.Style.STROKE
-        p.alpha = 180
+
         p.color = ContextCompat.getColor(context, R.color.colorPrimaryText)
+        p.alpha = 80
         p.strokeWidth = density * 2
         canvas.drawPath(path, p)
 
@@ -103,7 +104,7 @@ class WindSettingDrawer(private val context: Context, private var size: Number, 
         path.addCircle(size / 2, size / 2, size / 2 - density * 5, Path.Direction.CCW)
         path.close()
         p.style = Paint.Style.FILL
-        p.alpha = 180
+        p.alpha = 5
         p.xfermode = PorterDuffXfermode(PorterDuff.Mode.CLEAR)
         canvas.drawPath(path, p)
 
@@ -115,6 +116,7 @@ class WindSettingDrawer(private val context: Context, private var size: Number, 
             val y = size / 2 - r * cos(i * Math.PI / 180)
             path.lineTo(x.toFloat(), y.toFloat())
         }
+        p.alpha = 80
         p.strokeWidth = density * 4
         p.style = Paint.Style.STROKE
         canvas.drawPath(path, p)
@@ -126,6 +128,16 @@ class WindSettingDrawer(private val context: Context, private var size: Number, 
         path.close()
         p.style = Paint.Style.FILL
         p.xfermode = PorterDuffXfermode(PorterDuff.Mode.CLEAR)
+        canvas.drawPath(path, p)
+
+
+        path.reset()
+        p.reset()
+        path.addCircle(size / 2, size / 2, density * 10, Path.Direction.CCW)
+        path.close()
+        p.alpha = 80
+        p.strokeWidth = density * 4
+        p.style = Paint.Style.STROKE
         canvas.drawPath(path, p)
     }
 

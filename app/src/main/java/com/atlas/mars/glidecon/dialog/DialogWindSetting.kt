@@ -3,7 +3,6 @@ package com.atlas.mars.glidecon.dialog
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.AlertDialog
-import android.content.Context
 import android.content.DialogInterface
 import android.graphics.*
 import android.os.Handler
@@ -13,17 +12,15 @@ import android.util.Log
 import android.view.*
 import android.view.MotionEvent.ACTION_DOWN
 import android.view.MotionEvent.ACTION_MOVE
+import android.widget.FrameLayout
 import android.widget.ImageView
-import android.widget.RelativeLayout
-import androidx.core.content.ContextCompat
 import com.atlas.mars.glidecon.R
-import com.atlas.mars.glidecon.model.MyImage
 import com.atlas.mars.glidecon.model.WindSettingDrawer
+import com.atlas.mars.glidecon.view.CustomFontTextView
 import io.reactivex.rxkotlin.Observables
 import io.reactivex.rxkotlin.subscribeBy
 import io.reactivex.subjects.BehaviorSubject
-import java.util.Calendar.MILLISECOND
-import java.util.concurrent.TimeUnit
+import java.text.DecimalFormat
 import kotlin.math.atan
 import kotlin.math.pow
 
@@ -31,13 +28,16 @@ import kotlin.math.pow
 class DialogWindSetting(val activity: Activity) : AlertDialog.Builder(activity) {
     private val TAG = "DialogWindSetting"
     lateinit var alertDialog: AlertDialog
-    lateinit var linearLayout: RelativeLayout
+    lateinit var linearLayout: FrameLayout
     lateinit var deviceBitmap: Bitmap
     private val imageSizeSubject = BehaviorSubject.create<Number>()
     private val touchPositionSubject = BehaviorSubject.create<Pair<Float, Float>>()
     private lateinit var windSettingDrawer: WindSettingDrawer
     lateinit var imageView: ImageView
     var isSubscribe = true;
+
+    lateinit var directionView: CustomFontTextView
+    lateinit var speedView: CustomFontTextView
     private lateinit var emergencyHandler: Handler
 
     private val screenWidth: Int
@@ -61,15 +61,25 @@ class DialogWindSetting(val activity: Activity) : AlertDialog.Builder(activity) 
 
     init {
         val inflater = LayoutInflater.from(context)
-        linearLayout = inflater.inflate(R.layout.dialog_wind_setting, null, false) as RelativeLayout
+        linearLayout = inflater.inflate(R.layout.dialog_wind_setting, null, false) as FrameLayout
         setView(linearLayout)
         setPositiveButton("ok", object : DialogInterface.OnClickListener {
             override fun onClick(dialog: DialogInterface?, which: Int) {
                 Log.d(TAG, "ok")
             }
         })
+        directionView = linearLayout.findViewById(R.id.direction_view)
+        speedView = linearLayout.findViewById(R.id.speed_view)
         emergencyHandler = object : Handler(Looper.getMainLooper()) {
+            @SuppressLint("SetTextI18n")
             override fun handleMessage(msg: Message) {
+                // val decimalFormat =
+                val directionSpeed: Pair<Double, Double> = msg.obj as Pair<Double, Double>
+                val direction = DecimalFormat("#").format(directionSpeed.first)
+                val speed = DecimalFormat("#").format(directionSpeed.second)
+
+                directionView.text = "$direction \u00B0"
+                speedView.text = "$speed"
                 imageView.setImageBitmap(windSettingDrawer.bitmap)
                 // this@LocationService.stopSelf()
             }
@@ -123,8 +133,9 @@ class DialogWindSetting(val activity: Activity) : AlertDialog.Builder(activity) 
                     Log.d(TAG, "dialog X $x")
                      windSettingDrawer.draw(a, speed)
                    // windSettingDrawer.drawByXy(x, y)
-                    emergencyHandler.sendEmptyMessage(1)
-
+                    // emergencyHandler.sendEmptyMessage(1)
+                    val msg = emergencyHandler.obtainMessage(1, Pair(a, speed))
+                    emergencyHandler.sendMessage(msg)
                     // size = max_w
                     // distpx = x
 
@@ -141,17 +152,24 @@ class DialogWindSetting(val activity: Activity) : AlertDialog.Builder(activity) 
 
         imageView = linearLayout.findViewById(R.id.wind_image_view)
         val size = Math.min(screenWidth, screenHeight)
-        imageView.layoutParams.height = size
-        imageView.layoutParams.width = size
+        imageView.layoutParams.height = WindowManager.LayoutParams.WRAP_CONTENT
+        imageView.layoutParams.width = WindowManager.LayoutParams.MATCH_PARENT
+
+        imageView.post(Runnable {
+            val size1 = imageView.width
+            imageView.layoutParams.height = size1
+            imageView.layoutParams.width = size1
+            initTouchListener(imageView)
+        })
         alertDialog.setOnShowListener(DialogInterface.OnShowListener {
             alertDialog.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(R.color.colorPrimaryText);
             alertDialog.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(R.color.colorPrimaryText);
 
-            val size1 = Math.min(linearLayout.width, linearLayout.height)
+           /* val size1 = Math.max(linearLayout.width, linearLayout.height)
             imageView.layoutParams.height = size1
-            imageView.layoutParams.width = size1
+            imageView.layoutParams.width = size1*/
 
-            initTouchListener(imageView)
+           // initTouchListener(imageView)
         })
 
         val windowDialog: Window? = alertDialog.getWindow()
@@ -211,6 +229,6 @@ class DialogWindSetting(val activity: Activity) : AlertDialog.Builder(activity) 
     }
 
     companion object {
-        val MAX_WIND_SPEED = 30.0
+        val MAX_WIND_SPEED = 20.0
     }
 }

@@ -1,8 +1,51 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout  xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout  xmlns:android="http://schemas.android.com/apk/res/android"
+
     android:layout_width="match_parent" android:layout_height="wrap_content">
-    <ImageView
-        android:id="@+id/wind_image_view"
+
+    <FrameLayout
+        android:padding="20dp"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"/>
-</RelativeLayout>
+        android:layout_gravity="center"
+        android:layout_height="wrap_content">
+        <ImageView
+            android:id="@+id/wind_image_view"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+    </FrameLayout>
+
+
+    <com.atlas.mars.glidecon.view.CustomFontTextView
+        android:id="@+id/direction_view"
+        android:layout_width="91dp"
+        android:layout_height="wrap_content"
+        android:gravity="end"
+        android:background="@color/white"
+        android:text="0.0"
+        android:textSize="42sp" />
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:orientation="horizontal"
+        android:layout_gravity="end|top"
+        android:weightSum="2"
+        android:layout_height="wrap_content">
+
+        <com.atlas.mars.glidecon.view.CustomFontTextView
+            android:id="@+id/speed_view"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="end"
+            android:background="@color/white"
+            android:text="0.0"
+            android:textSize="42sp" />
+        <TextView
+            android:layout_weight="1"
+            android:textSize="20sp"
+            android:layout_width="40dp"
+            android:text="m/s"
+            android:layout_height="wrap_content"/>
+    </LinearLayout>
+
+</FrameLayout>
