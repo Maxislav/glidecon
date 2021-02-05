@@ -7,6 +7,7 @@ import android.location.Location
 import android.util.Log
 import com.atlas.mars.glidecon.R
 import com.atlas.mars.glidecon.store.MapBoxStore
+import com.atlas.mars.glidecon.store.MapBoxStore.Companion.startAltitudeSubject
 import com.atlas.mars.glidecon.util.LocationUtil
 import com.mapbox.mapboxsdk.maps.MapView
 import com.mapbox.mapboxsdk.maps.MapboxMap
@@ -18,59 +19,120 @@ import com.mapbox.mapboxsdk.style.sources.GeoJsonSource
 import io.reactivex.rxkotlin.subscribeBy
 import com.mapbox.geojson.Point
 import com.mapbox.geojson.Polygon;
+import io.reactivex.rxkotlin.Observables
 
 
 @SuppressLint("ResourceType")
 class DirectionArea(val mapView: MapView, mapboxMap: MapboxMap, val style: Style, context: Context) {
 
     private var isSubscribed = true
-    val TAG = "DirectionArea"
+
     // private val
 
+    val locationList = mutableListOf<Location>()
 
     init {
         val source = createSource()
         // style.addSource( GeoJsonSource("djdjsj"))
-        val c = context.getResources().getString(R.color.redBorderDark)
+        val c = context.resources.getString(R.color.colorPrimaryText)
         style.addLayerBelow(
                 FillLayer(LAYER_ID, SOURCE_ID)
                         .withProperties(
                                 fillColor(Color.parseColor(c)),
-                                fillOpacity(0.5f)
+                                fillOpacity(0.3f)
                         ), "settlement-label")
-        var location1: Location? = null
-        MapBoxStore.locationSubject
+        //var previousLocation: Location? = null
+
+        val ll = MapBoxStore.locationSubject
                 .takeWhile { isSubscribed }
-                // .buffer(2)
-                .subscribeBy { location2 ->
-                    // Log.d(TAG, "$list")
-
-                    //\ = list[0]
-                    // val location2 = list[1]
-                    if (location1 != null) {
-                        val bearing = location1!!.bearingTo(location2)
-                        var b1 = bearing.toDouble() - 5
-                        if (b1 < 0) {
-                            b1 = 360 + b1
-                        }
-
-                        val locationOffset1 = LocationUtil(location2).offset(2000.0, b1)
-                        val locationOffset2 = LocationUtil(location2).offset(2000.0, bearing.toDouble() + 5)
-
-                        // val locacion = LocationUtil(list.get(1))
-
-                        val POINTS = mutableListOf<Point>()
-                        POINTS.add(Point.fromLngLat(location2.longitude, location2.latitude))
-                        POINTS.add(Point.fromLngLat(locationOffset1.longitude, locationOffset1.latitude))
-                        POINTS.add(Point.fromLngLat(locationOffset2.longitude, locationOffset2.latitude))
-                        val DD = mutableListOf<MutableList<Point>>()
-                        DD.add(POINTS)
-                        source.setGeoJson(Polygon.fromLngLats(DD))
-                    }
+                .doOnNext { addLocation(it) }
+                .buffer(2, 1)
+                .filter { buff -> 1 < buff.size }
 
 
-                    location1 = location2
+        Observables.combineLatest(startAltitudeSubject, ll)
+                .subscribeBy {
+
+                    val startAltitude = it.first
+                    val locationListBuff = it.second
+                    val previousLocation = locationListBuff[0]
+                    val currentLocation = locationListBuff[1]
+
+                    val k = 25//calcDragRatio()
+
+                    Log.d(TAG, "altitude, ${currentLocation.altitude}")
+                    val dist =  (currentLocation.altitude - startAltitude) * k
+                    val bearing = previousLocation.bearingTo(currentLocation)
+                    val b1 = LocationUtil().bearingNormalize(bearing.toDouble() - 5)
+                    val b2 = LocationUtil().bearingNormalize(bearing.toDouble() + 5)
+
+
+                    val locationOffset1 = LocationUtil(currentLocation).offset(dist, b1)
+                    val locationOffset2 = LocationUtil(currentLocation).offset(dist, b2)
+                    val points = mutableListOf<Point>()
+                    points.add(Point.fromLngLat(currentLocation.longitude, currentLocation.latitude))
+                    points.add(Point.fromLngLat(locationOffset1.longitude, locationOffset1.latitude))
+                    points.add(Point.fromLngLat(locationOffset2.longitude, locationOffset2.latitude))
+                    val coordinates = mutableListOf<MutableList<Point>>()
+                    coordinates.add(points)
+                    source.setGeoJson(Polygon.fromLngLats(coordinates))
+
                 }
+        startAltitudeSubject.onNext(-300.0)
+
+        /*.subscribeBy { locationListBuff ->
+
+            val previousLocation = locationListBuff[0]
+            val currentLocation = locationListBuff[1]
+            val k = calcDragRatio()
+
+            val bearing = previousLocation.bearingTo(currentLocation)
+            val b1 = LocationUtil().bearingNormalize(bearing.toDouble() - 5)
+            val b2 = LocationUtil().bearingNormalize(bearing.toDouble() + 5)
+
+
+            val locationOffset1 = LocationUtil(currentLocation).offset(2000.0, b1)
+            val locationOffset2 = LocationUtil(currentLocation).offset(2000.0, b2)
+            val points = mutableListOf<Point>()
+            points.add(Point.fromLngLat(currentLocation.longitude, currentLocation.latitude))
+            points.add(Point.fromLngLat(locationOffset1.longitude, locationOffset1.latitude))
+            points.add(Point.fromLngLat(locationOffset2.longitude, locationOffset2.latitude))
+            val coordinates = mutableListOf<MutableList<Point>>()
+            coordinates.add(points)
+            source.setGeoJson(Polygon.fromLngLats(coordinates))
+
+        }*/
+    }
+
+    private fun calcDragRatio(): Double {
+        val kList = mutableListOf<Double>()
+        for (i in 0..locationList.size - 2) {
+            val previousLocation = locationList[i]
+            val currentLocation = locationList[i + 1]
+            val distance = previousLocation.distanceTo(currentLocation) // m
+            val dTime = currentLocation.time - previousLocation.time
+            val dAltitude = currentLocation.altitude - previousLocation.altitude
+            if (0 < dAltitude) {
+                kList.add(distance / dAltitude)
+            }
+        }
+        var kSum = 0.0
+        for (k in kList) {
+            kSum += k
+        }
+        return kSum / kList.size
+    }
+
+    private fun addLocation(location: Location) {
+        locationList.add(location)
+
+        if (0 < locationList.size) {
+
+            while (10000 < (locationList.last().time - locationList.first().time)) {
+                locationList.removeAt(0)
+            }
+        }
+
     }
 
     private fun createSource(): GeoJsonSource {
@@ -83,7 +145,8 @@ class DirectionArea(val mapView: MapView, mapboxMap: MapboxMap, val style: Style
     }
 
     companion object {
-        val SOURCE_ID = "source-direction"
+        const val SOURCE_ID = "source-direction"
         const val LAYER_ID = "layer-direction-area"
+        const val TAG = "DirectionArea"
     }
 }

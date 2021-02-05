@@ -1,9 +1,11 @@
 package com.atlas.mars.glidecon
 
+import android.Manifest
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
+import android.content.pm.PackageManager
 import android.graphics.Insets
 import android.os.Build
 import android.os.Bundle
@@ -17,6 +19,7 @@ import android.view.WindowManager
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
+import androidx.core.app.ActivityCompat
 import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.fragment.app.FragmentTransaction
@@ -46,13 +49,13 @@ class MapBoxActivity : AppCompatActivity() {
     private val screenWidth: Int
         get() {
             return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                val windowMetrics = this!!.windowManager.currentWindowMetrics
+                val windowMetrics = this.windowManager.currentWindowMetrics
                 val insets: Insets = windowMetrics.windowInsets
                         .getInsetsIgnoringVisibility(WindowInsets.Type.systemBars())
                 windowMetrics.bounds.width() - insets.left - insets.right
             } else {
                 val displayMetrics = DisplayMetrics()
-                this!!.windowManager.defaultDisplay.getMetrics(displayMetrics)
+                this.windowManager.defaultDisplay.getMetrics(displayMetrics)
                 displayMetrics.widthPixels
             }
         }
@@ -184,15 +187,49 @@ class MapBoxActivity : AppCompatActivity() {
         return super.onOptionsItemSelected(menuItem)
     }
 
-    override fun onResume() {
-        isSubscribed = true
-        super.onResume()
+    private fun requestLocationPermission() {
+        ActivityCompat.requestPermissions(
+                this, arrayOf(
+                Manifest.permission.ACCESS_FINE_LOCATION,
+                Manifest.permission.ACCESS_COARSE_LOCATION
+        ),
+                1
+        )
+    }
+
+    override fun onRequestPermissionsResult(
+            requestCode: Int,
+            permissions: Array<String>,
+            grantResults: IntArray
+    ) {
+        if (grantResults[0] == PackageManager.PERMISSION_GRANTED && grantResults[1] == PackageManager.PERMISSION_GRANTED) {
+            startBackgroundProcess()
+        }
+    }
+
+    private fun startBackgroundProcess(){
         bindService(
                 serviceIntent,
                 sCon,
                 Context.BIND_AUTO_CREATE
         )
         startService(serviceIntent)
+    }
+
+    override fun onResume() {
+        isSubscribed = true
+        super.onResume()
+
+        if (ActivityCompat.checkSelfPermission(
+                        this,
+                        Manifest.permission.ACCESS_FINE_LOCATION
+                ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            Log.d(TAG, "no location permission")
+            requestLocationPermission()
+            return
+        }
+        startBackgroundProcess()
 
     }
 

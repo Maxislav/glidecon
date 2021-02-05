@@ -69,6 +69,6 @@ class LocationUtil() : Location("A") {
     }
 
     private companion object {
-        val RADIUS = 6378137.0
+        const val RADIUS = 6378137.0
     }
 }
