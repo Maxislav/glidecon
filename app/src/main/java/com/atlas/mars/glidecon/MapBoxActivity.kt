@@ -23,6 +23,7 @@ import androidx.core.app.ActivityCompat
 import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.fragment.app.FragmentTransaction
+import com.atlas.mars.glidecon.dialog.DialogStartAltitude
 import com.atlas.mars.glidecon.dialog.DialogWindSetting
 import com.atlas.mars.glidecon.fragment.FragmentCompass
 import com.atlas.mars.glidecon.fragment.FragmentFollow
@@ -115,6 +116,9 @@ class MapBoxActivity : AppCompatActivity() {
                     val dialogWindSetting = DialogWindSetting(this)
                     dialogWindSetting.create().show()
                     // showWindowSettingFrame()
+                }
+                R.id.start_altitude -> {
+                    DialogStartAltitude(this).create().show()
                 }
             }
             return true

@@ -8,6 +8,7 @@ import io.reactivex.subjects.BehaviorSubject
 
 class MapBoxStore {
     companion object {
+        val liftToDragRatioSubject: BehaviorSubject<Double> = BehaviorSubject.create()
         val startAltitudeSubject: BehaviorSubject<Double> = BehaviorSubject.create()
         val windSubject: BehaviorSubject<Map<Wind, Number>> = BehaviorSubject.create()
         val followTypeSubject: BehaviorSubject<FollowViewType> = BehaviorSubject.createDefault(FollowViewType.TYPICAL)

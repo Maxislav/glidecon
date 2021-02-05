@@ -22,8 +22,12 @@
     <string name="server_protocol">Protocol type</string>
     <string name="navigation_drawer_open">open</string>
     <string name="server_protocol_title">Protocol use</string>
-    <string name="set_start_altitude">Start altitude</string>
+    <string name="altitude_k">Altitude &amp; Kmax</string>
     <string name="set_wind_direction">Wind setting</string>
     <string name="mapbox_access_token" translatable="false">pk.eyJ1IjoibWF4aXNsYXYiLCJhIjoiY2lxa3o3Nm9oMDAya2l3bTJ3ZDN0MDRrdSJ9.Ty19_lyeTVUu8OxxDK8Ymg</string>
+    <string name="lift_to_drag_ratio" translatable="false">Lift-to-drag ratio (max):</string>
+    <string name="current_altitude" translatable="false">Current Altitude:</string>
+    <string name="set_start_altitude" translatable="false">Start Altitude:</string>
+    <string name="set_current_start_altitude" translatable="false">current</string>
 
 </resources>

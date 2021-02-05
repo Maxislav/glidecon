@@ -5,7 +5,7 @@
         <item
             android:icon="@drawable/ic_height"
             android:id="@+id/start_altitude"
-            android:title="@string/set_start_altitude" />
+            android:title="@string/altitude_k" />
         <item
             android:id="@+id/wind_menu_item"
             android:icon="@drawable/ic_menu_wind"
