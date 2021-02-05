@@ -16,6 +16,7 @@ import com.atlas.mars.glidecon.store.MapBoxStore.Companion.compassOnClickSubject
 import com.atlas.mars.glidecon.store.MapBoxStore.Companion.followTypeSubject
 import com.atlas.mars.glidecon.store.MapBoxStore.Companion.locationSubject
 import com.atlas.mars.glidecon.store.MapBoxStore.Companion.mapboxMapSubject
+import com.atlas.mars.glidecon.util.LocationUtil
 import com.mapbox.android.gestures.MoveGestureDetector
 import com.mapbox.geojson.Feature
 import com.mapbox.geojson.FeatureCollection
@@ -44,6 +45,8 @@ class MapBoxModel(val mapView: MapView, val context: Context) {
     private var isSubscribed = true
     lateinit var markerViewManager: MarkerViewManager
 
+    lateinit var directionArea: DirectionArea
+
     init {
 
 
@@ -59,7 +62,7 @@ class MapBoxModel(val mapView: MapView, val context: Context) {
             mapboxMap.setStyle(Style.MAPBOX_STREETS) { style: Style ->
 
                 MyPositionMarker(mapView, mapboxMap, style, context)
-
+                directionArea = DirectionArea(mapView, mapboxMap, style, context)
 
                 // TODO влияет на тачскрин зараза val symbolManager = SymbolManager(mapView, mapboxMap, style)
 
@@ -202,16 +205,18 @@ class MapBoxModel(val mapView: MapView, val context: Context) {
                             val position: CameraPosition
 
                             if (previousLocation != null && followViewType == MapBoxStore.FollowViewType.FOLLOW_ROTATE) {
-                                var bearing = location.bearingTo(previousLocation)//  - 180
+                                val bearing = LocationUtil().bearingNormalize(previousLocation!!.bearingTo(location).toDouble()) //  - 180
 
-                                Log.d(TAG, "bering to $bearing")
+                                /*Log.d(TAG, "bering to $bearing")
                                 if (bearing < 0) {
                                     bearing += 360
                                 }
                                 bearing -= 180;
                                 if (bearing < 0) {
                                     bearing += 360
-                                }
+                                }*/
+
+                                Log.d(TAG, "bearing = $bearing")
                                 position = CameraPosition.Builder()
                                         .bearing((bearing).toDouble())
                                         .target(latLng)
@@ -272,6 +277,7 @@ class MapBoxModel(val mapView: MapView, val context: Context) {
 
     fun onDestroy() {
         isSubscribed = false
+        directionArea.onDestroy()
     }
 
     internal class DrawView(context: Context?) : View(context) {

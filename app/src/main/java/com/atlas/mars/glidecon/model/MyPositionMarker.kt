@@ -22,6 +22,8 @@ class MyPositionMarker(val mapView: MapView, mapboxMap: MapboxMap, val style: St
     var previousLocation: Location? = null;
     private val markerSource: GeoJsonSource
 
+    private var isSubscribe = true;
+
     init {
         val myImage = MyImage(context)
         val bitmap: Bitmap = myImage.arrow
@@ -64,6 +66,10 @@ class MyPositionMarker(val mapView: MapView, mapboxMap: MapboxMap, val style: St
     private fun createSource(): GeoJsonSource {
         style.addSource(GeoJsonSource(MY_POSITION_MARKER_SOURCE_ID))
         return style.getSource(MY_POSITION_MARKER_SOURCE_ID) as GeoJsonSource
+    }
+
+    fun onDestroy(){
+        isSubscribe = false
     }
 
     val isSourceExist: Boolean get() = style.getSource(MY_POSITION_MARKER_SOURCE_ID) != null
