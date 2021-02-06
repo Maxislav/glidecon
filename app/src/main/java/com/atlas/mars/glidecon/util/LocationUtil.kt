@@ -14,6 +14,7 @@ class LocationUtil() : Location("A") {
     constructor(location: Location) : this() {
         this.longitude = location.longitude
         this.latitude = location.latitude
+        this.altitude = location.altitude
     }
 
     fun offset(location: Location, distance: Double, bearing: Double): Location {

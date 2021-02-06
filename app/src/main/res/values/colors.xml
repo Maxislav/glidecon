@@ -13,6 +13,8 @@
     <item name="redBorderDark" type="color">#ffff0000</item>
     <item name="redTitleActive" type="color">#ff9e0003</item>
     <item name="redBorderLight" type="color">#ffffa9a7</item>
+    <item name="colorOrange" type="color">#EC5627</item>
+    <item name="safetyColor" type="color">#394659</item>
 
     <item name="borderColor" type="color">#8ca4b5</item>
 

@@ -27,7 +27,6 @@ class DirectionArea(val mapView: MapView, mapboxMap: MapboxMap, val style: Style
 
     private var isSubscribed = true
 
-    // private val
 
     val locationList = mutableListOf<Location>()
 

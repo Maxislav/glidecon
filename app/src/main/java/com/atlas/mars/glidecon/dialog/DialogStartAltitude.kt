@@ -16,6 +16,7 @@ import android.widget.TextView
 import com.atlas.mars.glidecon.R
 import com.atlas.mars.glidecon.store.MapBoxStore.Companion.liftToDragRatioSubject
 import com.atlas.mars.glidecon.store.MapBoxStore.Companion.locationSubject
+import com.atlas.mars.glidecon.store.MapBoxStore.Companion.optimalSpeedSubject
 import com.atlas.mars.glidecon.store.MapBoxStore.Companion.startAltitudeSubject
 import io.reactivex.rxkotlin.subscribeBy
 import java.lang.Exception
@@ -41,7 +42,11 @@ class DialogStartAltitude(val activity: Activity) : AlertDialog.Builder(activity
 
         val setCurrentButton: Button = linearLayout.findViewById(R.id.set_current)
         setCurrentButton.isEnabled = false
+
         val liftToDragText: EditText = linearLayout.findViewById(R.id.lift_to_drag_text)
+
+        val optimalSpeedView: EditText  = linearLayout.findViewById(R.id.optimal_speed_view)
+
         linearLayout.findViewById<Button>(R.id.cancel_button)
                 .setOnClickListener {
                     alertDialog.dismiss()
@@ -69,12 +74,17 @@ class DialogStartAltitude(val activity: Activity) : AlertDialog.Builder(activity
             override fun onClick(v: View?) {
                 var startAltitudeText = startAltitude.text.toString()
                 var liftToDragTextText = liftToDragText.text.toString()
+                var optimalSpeedViewText = optimalSpeedView.text.toString()
                 var textDouble: Double?
                 try {
                     textDouble = startAltitudeText.toDouble()
                     startAltitudeText = textDouble.let { DecimalFormat("#.#").format(it) }
                     textDouble = liftToDragTextText.toDouble()
                     liftToDragTextText = textDouble.let { DecimalFormat("#.#").format(it) }
+
+                    textDouble = optimalSpeedViewText.toDouble()
+                    optimalSpeedViewText = textDouble.let { DecimalFormat("#.#").format(it) }
+
                 } catch (e: Exception) {
                     alertDialog.dismiss()
                     return
@@ -82,11 +92,16 @@ class DialogStartAltitude(val activity: Activity) : AlertDialog.Builder(activity
 
 
                 alertDialog.dismiss()
+                optimalSpeedSubject.onNext(optimalSpeedViewText.toDouble())
                 liftToDragRatioSubject.onNext(liftToDragTextText.toDouble())
                 startAltitudeSubject.onNext(startAltitudeText.toDouble())
             }
         })
-
+        optimalSpeedSubject
+                .takeWhile { isSubscribe }
+                .subscribeBy {
+                    optimalSpeedView.setText(DecimalFormat("#.#").format(it))
+                }
         liftToDragRatioSubject
                 .takeWhile { isSubscribe }
                 .subscribeBy {
