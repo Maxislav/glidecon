@@ -10,30 +10,22 @@ import android.location.Location
 import android.util.Log
 import android.view.MotionEvent
 import android.view.View
+import com.atlas.mars.glidecon.database.MapDateBase
 import com.atlas.mars.glidecon.store.MapBoxStore
-import com.atlas.mars.glidecon.store.MapBoxStore.Companion.cameraPosition
+import com.atlas.mars.glidecon.store.MapBoxStore.Companion.cameraPositionSubject
 import com.atlas.mars.glidecon.store.MapBoxStore.Companion.compassOnClickSubject
 import com.atlas.mars.glidecon.store.MapBoxStore.Companion.followTypeSubject
 import com.atlas.mars.glidecon.store.MapBoxStore.Companion.locationSubject
 import com.atlas.mars.glidecon.store.MapBoxStore.Companion.mapboxMapSubject
 import com.atlas.mars.glidecon.util.LocationUtil
 import com.mapbox.android.gestures.MoveGestureDetector
-import com.mapbox.geojson.Feature
-import com.mapbox.geojson.FeatureCollection
-import com.mapbox.geojson.Point
 import com.mapbox.mapboxsdk.camera.CameraPosition
 import com.mapbox.mapboxsdk.camera.CameraUpdateFactory
 import com.mapbox.mapboxsdk.geometry.LatLng
 import com.mapbox.mapboxsdk.maps.MapView
 import com.mapbox.mapboxsdk.maps.MapboxMap
 import com.mapbox.mapboxsdk.maps.Style
-import com.mapbox.mapboxsdk.plugins.annotation.SymbolManager
-import com.mapbox.mapboxsdk.plugins.markerview.MarkerView
 import com.mapbox.mapboxsdk.plugins.markerview.MarkerViewManager
-import com.mapbox.mapboxsdk.style.layers.Property
-import com.mapbox.mapboxsdk.style.layers.PropertyFactory
-import com.mapbox.mapboxsdk.style.layers.SymbolLayer
-import com.mapbox.mapboxsdk.style.sources.GeoJsonSource
 import io.reactivex.rxkotlin.Observables
 import io.reactivex.rxkotlin.subscribeBy
 import java.util.*
@@ -47,12 +39,15 @@ class MapBoxModel(val mapView: MapView, val context: Context) {
 
     lateinit var directionArea: DirectionArea
     lateinit var flightRadius: FlightRadius
+    var mapboxMap: MapboxMap? = null
+    val mapDateBase: MapDateBase = MapDateBase(context)
 
     init {
 
 
         initTouchListener()
         // mapView?.onCreate(savedInstanceState)
+
         mapView.getMapAsync { mapboxMap: MapboxMap ->
 
             mapboxMapSubject.onNext(mapboxMap)
@@ -100,21 +95,30 @@ class MapBoxModel(val mapView: MapView, val context: Context) {
             }
 
         })
-
         mapboxMapSubject
+                //  .last(1)
+                .takeWhile { isSubscribed }
                 .subscribeBy(
                         onNext = { mapboxMap ->
                             initMap(mapboxMap)
+                            //   mapboxMapSubject.onComplete()
                         }
                 )
     }
 
     private fun initMap(mapboxMap: MapboxMap) {
+        this.mapboxMap = mapboxMap
 
-        cameraPosition.onNext(mapboxMap.cameraPosition)
+        val cp = mapDateBase.getCameraPosition()
+        cp?.let {
+            mapboxMap.cameraPosition = cp
+            cameraPositionSubject.onNext(cp)
+        }
+
+
         mapboxMap.addOnCameraMoveListener(object : MapboxMap.OnCameraMoveListener {
             override fun onCameraMove() {
-                cameraPosition.onNext(mapboxMap.cameraPosition)
+                cameraPositionSubject.onNext(mapboxMap.cameraPosition)
             }
         })
         initCameraPositionListener(mapboxMap)
@@ -154,40 +158,7 @@ class MapBoxModel(val mapView: MapView, val context: Context) {
                         }
                 )
 
-        /*followSubject
-                .takeWhile { isSubscribed }
-                .withLatestFrom(locationSubject) { ignore, dialogContents -> Pair(ignore, dialogContents) }
-                .filter(fun(pair): Boolean {
-                    return pair.first
-                })
-                .map{pair -> pair.second}
-                .subscribeBy(
-                        onNext = { location ->
-                            val latLng = LatLng(location.latitude, location.longitude)
-                            val position = CameraPosition.Builder()
-                                    .target(latLng)
-                                    .build()
-                            mapboxMap.animateCamera(CameraUpdateFactory
-                                    .newCameraPosition(position));
-                        }
-                )*/
 
-
-        /*locationSubject
-                .takeWhile { isSubscribed }
-                .subscribeBy(
-                        onNext = { location ->
-                            val latLng = LatLng(location.latitude, location.longitude)
-                            val position = CameraPosition.Builder()
-                                    .target(latLng)
-                                    .build()
-                            mapboxMap.animateCamera(CameraUpdateFactory
-                                    .newCameraPosition(position));
-                        }
-                )*/
-
-        //CameraPosition position = new CameraPosition.Builder()
-        // mapboxMap.setBe
     }
 
     private fun initCameraPositionListener(mapboxMap: MapboxMap) {
@@ -278,6 +249,9 @@ class MapBoxModel(val mapView: MapView, val context: Context) {
 
     fun onDestroy() {
         isSubscribed = false
+        // mapboxMapSubjectReset()
+        mapboxMap?.let { mapDateBase.saveCameraPosition(it.cameraPosition) }
+
         directionArea.onDestroy()
         flightRadius.onDestroy()
     }

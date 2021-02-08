@@ -10,10 +10,9 @@ import androidx.fragment.app.Fragment
 import com.atlas.mars.glidecon.R
 import com.atlas.mars.glidecon.model.MyImage
 import com.atlas.mars.glidecon.store.MapBoxStore
-import com.atlas.mars.glidecon.store.MapBoxStore.Companion.cameraPosition
+import com.atlas.mars.glidecon.store.MapBoxStore.Companion.cameraPositionSubject
 import com.atlas.mars.glidecon.store.MapBoxStore.Companion.compassOnClickSubject
 import com.atlas.mars.glidecon.store.MapBoxStore.Companion.followTypeSubject
-import com.atlas.mars.glidecon.store.MapBoxStore.Companion.mapboxMapSubject
 import com.mapbox.mapboxsdk.camera.CameraPosition
 import io.reactivex.rxkotlin.subscribeBy
 
@@ -43,7 +42,7 @@ class FragmentCompass : Fragment() {
                           }
                   )*/
 
-        cameraPosition.map { cameraPosition: CameraPosition -> cameraPosition.bearing }
+        cameraPositionSubject.map { cameraPosition: CameraPosition -> cameraPosition.bearing }
 
                 .subscribeBy(
                         onNext = { bearing ->

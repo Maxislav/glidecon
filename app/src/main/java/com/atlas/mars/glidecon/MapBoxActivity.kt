@@ -31,6 +31,7 @@ import com.atlas.mars.glidecon.fragment.FragmentGpsStatus
 import com.atlas.mars.glidecon.fragment.FragmentWindSetting
 import com.atlas.mars.glidecon.model.MapBoxModel
 import com.atlas.mars.glidecon.service.LocationService
+import com.atlas.mars.glidecon.store.MapBoxStore
 import com.google.android.material.navigation.NavigationView
 import com.mapbox.mapboxsdk.Mapbox
 import com.mapbox.mapboxsdk.maps.MapView
@@ -66,7 +67,7 @@ class MapBoxActivity : AppCompatActivity() {
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         serviceIntent = Intent(this, LocationService::class.java)
 
-
+        MapBoxStore()
         Mapbox.getInstance(this, getString(R.string.mapbox_access_token))
         setContentView(R.layout.activity_mapbox)
 
@@ -249,6 +250,7 @@ class MapBoxActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
+        mapView?.onDestroy()
         mapBoxModel.onDestroy()
     }
 

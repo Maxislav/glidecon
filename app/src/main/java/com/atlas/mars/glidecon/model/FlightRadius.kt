@@ -30,6 +30,13 @@ import io.reactivex.rxkotlin.Observables
 @SuppressLint("ResourceType")
 class FlightRadius(val style: Style, context: Context) {
     private var isSubscribed = true
+    companion object {
+        const val CRITICAL_SOURCE_ID = "source-flight-area"
+        const val CRITICAL_LAYER_ID = "critical-layer-flight-area"
+        const val SAFETY_SOURCE_ID = "safety-source-flight-area"
+        const val SAFETY_LAYER_ID = "safety-layer-flight-area"
+        const val TAG = "DirectionArea"
+    }
 
     init {
         val criticalSource = createSource(CRITICAL_SOURCE_ID)
@@ -37,8 +44,8 @@ class FlightRadius(val style: Style, context: Context) {
         style.addLayer(LineLayer(CRITICAL_LAYER_ID, CRITICAL_SOURCE_ID).withProperties(
                 PropertyFactory.lineCap(Property.LINE_CAP_ROUND),
                 PropertyFactory.lineJoin(Property.LINE_JOIN_ROUND),
-                PropertyFactory.lineWidth(5f),
-                PropertyFactory.lineOpacity(0.2f),
+                PropertyFactory.lineWidth(3f),
+                PropertyFactory.lineOpacity(0.35f),
                 PropertyFactory.lineColor(Color.parseColor(criticalColor)),
                /* PropertyFactory.lineGradient(
                         interpolate(
@@ -59,7 +66,7 @@ class FlightRadius(val style: Style, context: Context) {
         style.addLayer(LineLayer(SAFETY_LAYER_ID, SAFETY_SOURCE_ID).withProperties(
                 PropertyFactory.lineCap(Property.LINE_CAP_ROUND),
                 PropertyFactory.lineJoin(Property.LINE_JOIN_ROUND),
-                PropertyFactory.lineWidth(5f),
+                PropertyFactory.lineWidth(3f),
                 PropertyFactory.lineOpacity(0.5f),
                 PropertyFactory.lineColor(Color.parseColor(safetyModeColor)),
 
@@ -162,11 +169,5 @@ class FlightRadius(val style: Style, context: Context) {
     }
 
 
-    companion object {
-        const val CRITICAL_SOURCE_ID = "source-flight-area"
-        const val CRITICAL_LAYER_ID = "critical-layer-flight-area"
-        const val SAFETY_SOURCE_ID = "safety-source-flight-area"
-        const val SAFETY_LAYER_ID = "safety-layer-flight-area"
-        const val TAG = "DirectionArea"
-    }
+
 }

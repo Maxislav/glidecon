@@ -33,7 +33,7 @@ class DirectionArea(val mapView: MapView, mapboxMap: MapboxMap, val style: Style
     init {
         val source = createSource()
         // style.addSource( GeoJsonSource("djdjsj"))
-        val c = context.resources.getString(R.color.blue)
+        val c = context.resources.getString(R.color.redBorderDark)
         style.addLayerBelow(
                 FillLayer(LAYER_ID, SOURCE_ID)
                         .withProperties(
@@ -59,9 +59,9 @@ class DirectionArea(val mapView: MapView, mapboxMap: MapboxMap, val style: Style
                     val currentLocation = locationListBuff[1]
 
 
-                    val k = 25
+                    //val k = 25
                     // todo uncomment
-                    //val k = calcDragRatio()
+                    val k = calcDragRatio()
 
                     if (0 < k) {
                         Log.d(TAG, "altitude, ${currentLocation.altitude}")
