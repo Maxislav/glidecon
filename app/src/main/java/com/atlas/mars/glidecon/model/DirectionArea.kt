@@ -62,9 +62,10 @@ class DirectionArea(val mapView: MapView, mapboxMap: MapboxMap, val style: Style
                     //val k = 25
                     // todo uncomment
                     val k = calcDragRatio()
-
+                    Log.d(TAG, "altitude, ${currentLocation.altitude} k = $k")
+                    // Log.d(TAG, "altitude, ${currentLocation.altitude}")
                     if (0 < k) {
-                        Log.d(TAG, "altitude, ${currentLocation.altitude}")
+
                         val dist = (currentLocation.altitude - startAltitude) * k
                         val bearing = previousLocation.bearingTo(currentLocation)
                         val b1 = LocationUtil().bearingNormalize(bearing.toDouble() - 5)
@@ -86,19 +87,28 @@ class DirectionArea(val mapView: MapView, mapboxMap: MapboxMap, val style: Style
 
     private fun calcDragRatio(): Double {
         val kList = mutableListOf<Double>()
+        // 1 2 3 4
+        // 2 3 4 5
         for (i in 0..locationList.size - 2) {
             val previousLocation = locationList[i]
             val currentLocation = locationList[i + 1]
             val distance = previousLocation.distanceTo(currentLocation) // m
             val dTime = currentLocation.time - previousLocation.time
-            val dAltitude = currentLocation.altitude - previousLocation.altitude
-            kList.add(distance / dAltitude)
+            val dAltitude = previousLocation.altitude - currentLocation.altitude
+            if (0 < distance && dAltitude != 0.0) {
+                kList.add(distance / dAltitude)
+            }
+
         }
         var kSum = 0.0
-        for (k in kList) {
-            kSum += k
+        if (0 < kList.size) {
+            for (k in kList) {
+                kSum += k
+            }
+            return kSum / kList.size
         }
-        return kSum / kList.size
+        return 0.0
+
     }
 
     private fun addLocation(location: Location) {

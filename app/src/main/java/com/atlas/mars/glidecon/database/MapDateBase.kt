@@ -44,6 +44,7 @@ class MapDateBase(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, n
     fun initValues() {
         val query = "SELECT * FROM $TABLE_SETTING_PARAM WHERE $NAME=?"
         val sdb = readableDatabase
+        var skip: Long = 0
         var cursor: Cursor = sdb.rawQuery(query, arrayOf(WIND_DIRECTION))
         var windDirection: Double? = null
         var windSpeed: Double? = null
@@ -57,11 +58,14 @@ class MapDateBase(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, n
             cursor.moveToFirst()
             windSpeed = cursor.getDouble(cursor.getColumnIndex(VALUE))
         }
+        skip = 0
         if (windDirection != null && windSpeed != null) {
+            skip=1
             windSubject.onNext(mapOf(MapBoxStore.Wind.SPEED to windSpeed, MapBoxStore.Wind.DIRECTION to windDirection))
         }
         windSubject
                 .takeWhile { isSubscribed }
+                .skip(skip)
                 .subscribeBy(
                         onNext = {
                             saveWindParams(it)
@@ -70,13 +74,16 @@ class MapDateBase(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, n
 
 
         /** START_ALTITUDE **/
+        skip = 0
         cursor = sdb.rawQuery(query, arrayOf(START_ALTITUDE))
         if (0 < cursor.count) {
             cursor.moveToFirst()
             startAltitude = cursor.getDouble(cursor.getColumnIndex(VALUE))
             MapBoxStore.startAltitudeSubject.onNext(startAltitude)
+            skip = 1
         }
         MapBoxStore.startAltitudeSubject.takeWhile { isSubscribed }
+                .skip(skip)
                 .subscribeBy(
                         onNext = {
                             saveParam(START_ALTITUDE, it)
@@ -84,13 +91,16 @@ class MapDateBase(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, n
                 )
         /** LIFT_TO_DRAG_RATIO **/
         cursor = sdb.rawQuery(query, arrayOf(LIFT_TO_DRAG_RATIO))
+        skip = 0
         if (0 < cursor.count) {
             cursor.moveToFirst()
             val ratio = cursor.getDouble(cursor.getColumnIndex(VALUE))
             MapBoxStore.liftToDragRatioSubject.onNext(ratio)
+            skip = 1
         }
 
         MapBoxStore.liftToDragRatioSubject.takeWhile { isSubscribed }
+                .skip(skip)
                 .subscribeBy(
                         onNext = {
                             saveParam(LIFT_TO_DRAG_RATIO, it)
@@ -99,12 +109,15 @@ class MapDateBase(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, n
 
         /** OPTIMAL_SPEED **/
         cursor = sdb.rawQuery(query, arrayOf(OPTIMAL_SPEED))
+        skip = 0
         if (0 < cursor.count) {
             cursor.moveToFirst()
             val speed = cursor.getDouble(cursor.getColumnIndex(VALUE))
             MapBoxStore.optimalSpeedSubject.onNext(speed)
+            skip = 1
         }
         MapBoxStore.optimalSpeedSubject.takeWhile { isSubscribed }
+                .skip(skip)
                 .subscribeBy(
                         onNext = {
                             saveParam(OPTIMAL_SPEED, it)

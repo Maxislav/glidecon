@@ -26,10 +26,7 @@ import androidx.fragment.app.FragmentTransaction
 import com.atlas.mars.glidecon.database.MapDateBase
 import com.atlas.mars.glidecon.dialog.DialogStartAltitude
 import com.atlas.mars.glidecon.dialog.DialogWindSetting
-import com.atlas.mars.glidecon.fragment.FragmentCompass
-import com.atlas.mars.glidecon.fragment.FragmentFollow
-import com.atlas.mars.glidecon.fragment.FragmentGpsStatus
-import com.atlas.mars.glidecon.fragment.FragmentWindSetting
+import com.atlas.mars.glidecon.fragment.*
 import com.atlas.mars.glidecon.model.MapBoxModel
 import com.atlas.mars.glidecon.service.LocationService
 import com.atlas.mars.glidecon.store.MapBoxStore
@@ -80,6 +77,7 @@ class MapBoxActivity : AppCompatActivity() {
         setupGpsStatusFrame()
         setupCompassFrame()
         setupFollowFrame()
+        setupBikeComputerFrame()
         screenWidth
 
         mapView = findViewById(R.id.mapView)
@@ -155,6 +153,14 @@ class MapBoxActivity : AppCompatActivity() {
          val gpsStatusTrans = fragmentManager.beginTransaction()
          gpsStatusTrans.add(R.id.gpsStatusFrameView, gpsStatus)
          gpsStatusTrans.commit()*/
+    }
+
+    private fun setupBikeComputerFrame() {
+        val fm = this.supportFragmentManager
+        val ft: FragmentTransaction = fm.beginTransaction()
+        ft.add(R.id.bike_computer_layout, FragmentDashboard())
+        ft.commit();
+
     }
 
     private fun setupCompassFrame() {
