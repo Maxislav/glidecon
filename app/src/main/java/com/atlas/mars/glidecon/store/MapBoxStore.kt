@@ -25,12 +25,12 @@ class MapBoxStore {
         lateinit var compassOnClickSubject: BehaviorSubject<Boolean>
         lateinit var cameraPositionSubject: BehaviorSubject<CameraPosition>
         lateinit var optimalSpeedSubject: BehaviorSubject<Double>
-        var liftToDragRatioSubject: BehaviorSubject<Double> = BehaviorSubject.create()
-        var startAltitudeSubject: BehaviorSubject<Double> = BehaviorSubject.create()
-        var windSubject: BehaviorSubject<Map<Wind, Double>> = BehaviorSubject.create()
-        var followTypeSubject: BehaviorSubject<FollowViewType> = BehaviorSubject.createDefault(FollowViewType.TYPICAL)
-        var locationSubject: BehaviorSubject<Location> = BehaviorSubject.create()
-        var satelliteSubject: BehaviorSubject<Map<SatCount, Int>> = BehaviorSubject.createDefault(mapOf(SatCount.TOTAl to 0, SatCount.USED to 0))
+        lateinit var liftToDragRatioSubject: BehaviorSubject<Double>
+        lateinit var startAltitudeSubject: BehaviorSubject<Double>
+        lateinit var windSubject: BehaviorSubject<Map<Wind, Double>>
+        lateinit var followTypeSubject: BehaviorSubject<FollowViewType>
+        lateinit var locationSubject: BehaviorSubject<Location>
+        lateinit var satelliteSubject: BehaviorSubject<Map<SatCount, Int>>
     }
 
     enum class Wind {
