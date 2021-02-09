@@ -23,6 +23,7 @@ import androidx.core.app.ActivityCompat
 import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.fragment.app.FragmentTransaction
+import com.atlas.mars.glidecon.database.MapDateBase
 import com.atlas.mars.glidecon.dialog.DialogStartAltitude
 import com.atlas.mars.glidecon.dialog.DialogWindSetting
 import com.atlas.mars.glidecon.fragment.FragmentCompass
@@ -46,7 +47,7 @@ class MapBoxActivity : AppCompatActivity() {
     lateinit var toolbar: Toolbar
     lateinit var mapBoxModel: MapBoxModel
     var isSubscribed = false;
-
+    lateinit var mapDateBase: MapDateBase
 
     private val screenWidth: Int
         get() {
@@ -68,6 +69,10 @@ class MapBoxActivity : AppCompatActivity() {
         serviceIntent = Intent(this, LocationService::class.java)
 
         MapBoxStore()
+
+        mapDateBase = MapDateBase(this)
+        mapDateBase.initValues()
+
         Mapbox.getInstance(this, getString(R.string.mapbox_access_token))
         setContentView(R.layout.activity_mapbox)
 
@@ -252,6 +257,7 @@ class MapBoxActivity : AppCompatActivity() {
         super.onDestroy()
         mapView?.onDestroy()
         mapBoxModel.onDestroy()
+        mapDateBase.onUnsubscribe()
     }
 
 

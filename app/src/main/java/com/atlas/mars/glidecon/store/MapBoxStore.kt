@@ -21,10 +21,10 @@ class MapBoxStore {
     }
 
     companion object {
-        var mapboxMapSubject: BehaviorSubject<MapboxMap> = BehaviorSubject.create()
-        var compassOnClickSubject: BehaviorSubject<Boolean> = BehaviorSubject.create()
-        var cameraPositionSubject: BehaviorSubject<CameraPosition> = BehaviorSubject.create()
-        var optimalSpeedSubject: BehaviorSubject<Double> = BehaviorSubject.create()
+        lateinit var mapboxMapSubject: BehaviorSubject<MapboxMap>
+        lateinit var compassOnClickSubject: BehaviorSubject<Boolean>
+        lateinit var cameraPositionSubject: BehaviorSubject<CameraPosition>
+        lateinit var optimalSpeedSubject: BehaviorSubject<Double>
         var liftToDragRatioSubject: BehaviorSubject<Double> = BehaviorSubject.create()
         var startAltitudeSubject: BehaviorSubject<Double> = BehaviorSubject.create()
         var windSubject: BehaviorSubject<Map<Wind, Double>> = BehaviorSubject.create()
