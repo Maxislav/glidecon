@@ -30,6 +30,7 @@ import io.reactivex.rxkotlin.Observables
 @SuppressLint("ResourceType")
 class FlightRadius(val style: Style, context: Context) {
     private var isSubscribed = true
+
     companion object {
         const val CRITICAL_SOURCE_ID = "source-flight-area"
         const val CRITICAL_LAYER_ID = "critical-layer-flight-area"
@@ -47,22 +48,22 @@ class FlightRadius(val style: Style, context: Context) {
                 PropertyFactory.lineWidth(3f),
                 PropertyFactory.lineOpacity(0.35f),
                 PropertyFactory.lineColor(Color.parseColor(criticalColor)),
-               /* PropertyFactory.lineGradient(
-                        interpolate(
-                                linear(), lineProgress(),
-                                stop(0f, rgb(6, 1, 255)), // blue
-                                stop(0.1f, rgb(59, 118, 227)), // royal blue
-                                stop(0.3f, rgb(7, 238, 251)), // cyan
-                                stop(0.5f, rgb(0, 255, 42)), // lime
-                                stop(0.7f, rgb(255, 252, 0)), // yellow
-                                stop(1f, rgb(255, 30, 0)) // red
-                        ))*/
+                /* PropertyFactory.lineGradient(
+                         interpolate(
+                                 linear(), lineProgress(),
+                                 stop(0f, rgb(6, 1, 255)), // blue
+                                 stop(0.1f, rgb(59, 118, 227)), // royal blue
+                                 stop(0.3f, rgb(7, 238, 251)), // cyan
+                                 stop(0.5f, rgb(0, 255, 42)), // lime
+                                 stop(0.7f, rgb(255, 252, 0)), // yellow
+                                 stop(1f, rgb(255, 30, 0)) // red
+                         ))*/
 
 
         ))
 
         val safetySource = createSource(SAFETY_SOURCE_ID)
-        val safetyModeColor = context.resources.getString(R.color.safetyColor)
+        val safetyModeColor = context.resources.getString(R.color.redBorderDark)
         style.addLayer(LineLayer(SAFETY_LAYER_ID, SAFETY_SOURCE_ID).withProperties(
                 PropertyFactory.lineCap(Property.LINE_CAP_ROUND),
                 PropertyFactory.lineJoin(Property.LINE_JOIN_ROUND),
@@ -71,7 +72,7 @@ class FlightRadius(val style: Style, context: Context) {
                 PropertyFactory.lineColor(Color.parseColor(safetyModeColor)),
 
 
-        ))
+                ))
 
 
         Observables.combineLatest(
@@ -96,7 +97,7 @@ class FlightRadius(val style: Style, context: Context) {
                 startAltitudeSubject,
                 locationSubject
         ) { speed, ratio, wind, startAltitude, location ->
-            getCircleCoordinates(speed, ratio, wind, startAltitude+300, location)
+            getCircleCoordinates(speed, ratio, wind, startAltitude + 300, location)
         }
                 .takeWhile { isSubscribed }
                 .subscribeBy { routeCoordinates ->
@@ -155,6 +156,9 @@ class FlightRadius(val style: Style, context: Context) {
             val p = Point.fromLngLat(loc.longitude, loc.latitude)
             routeCoordinates.add(p)
         }
+        if (timeToLand < 0) {
+            return mutableListOf<Point>()
+        }
         return routeCoordinates
     }
 
@@ -167,7 +171,6 @@ class FlightRadius(val style: Style, context: Context) {
     fun onDestroy() {
         isSubscribed = false
     }
-
 
 
 }

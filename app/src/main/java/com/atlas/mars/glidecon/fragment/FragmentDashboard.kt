@@ -9,23 +9,27 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.os.Message
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import androidx.fragment.app.Fragment
 import com.atlas.mars.glidecon.R
+import com.atlas.mars.glidecon.model.DashboardAltitudeDrawer
 import com.atlas.mars.glidecon.model.DashboardSpeedDrawer
 import com.atlas.mars.glidecon.model.DashboardVarioDrawer
 import com.atlas.mars.glidecon.model.MyImage
 import com.atlas.mars.glidecon.store.MapBoxStore
 import com.atlas.mars.glidecon.view.CustomFontTextView
+import io.reactivex.rxkotlin.Observables
 import io.reactivex.rxkotlin.subscribeBy
 import java.text.DecimalFormat
 
 
 class FragmentDashboard : Fragment() {
-   //  lateinit var dashboardDrawer: DashboardSpeedDrawer
+    //  lateinit var dashboardDrawer: DashboardSpeedDrawer
+    private val TAG = "FragmentDashboard"
     private lateinit var handler: Handler
     var isSubscribed = true;
     private var speedFrame: FrameLayout? = null
@@ -34,16 +38,19 @@ class FragmentDashboard : Fragment() {
 
     private var speedView: CustomFontTextView? = null
     private var speedViewFr: CustomFontTextView? = null
-    private var ratioView: CustomFontTextView? = null
     private var varioView: CustomFontTextView? = null
+    private var altView: CustomFontTextView? = null
+    private var ratioView: CustomFontTextView? = null
     private val locationList = mutableListOf<Location>()
     private lateinit var speedDrawer: DashboardSpeedDrawer
     private lateinit var varioDrawer: DashboardVarioDrawer
+    private lateinit var altDrawer: DashboardAltitudeDrawer
 
     companion object {
         const val HANDLER_SPEED_KEY = "speed"
         const val HANDLER_RATIO_KEY = "ratio"
         const val HANDLER_VARIO_KEY = "vario"
+        const val HANDLER_ALT_KEY = "altitude"
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -56,15 +63,21 @@ class FragmentDashboard : Fragment() {
         speedView = view?.findViewById(R.id.speed_view)
         speedViewFr = view?.findViewById(R.id.speed_view_fractional)
         varioView = view?.findViewById(R.id.vario_view)
+        altView = view?.findViewById(R.id.alt_view)
+        ratioView = view?.findViewById(R.id.ratio_view)
 
         speedFrame = view?.findViewById(R.id.speed_frame)
         varioFrame = view?.findViewById(R.id.vario_frame)
         altFrame = view?.findViewById(R.id.alt_frame)
+        altFrame?.post {
+            altFrame?.let { altimeterCreated(it.width) }
+        }
+
         speedFrame?.post(Runnable {
             speedFrame?.let { speedFrameCreated(it.width) }
         })
         varioFrame?.post(Runnable {
-            varioFrame?.let{varioFrameCreated(it.width)}
+            varioFrame?.let { varioFrameCreated(it.width) }
         })
 
 
@@ -76,13 +89,24 @@ class FragmentDashboard : Fragment() {
         })
     }
 
-    private fun varioFrameCreated(size: Int){
+    private fun altimeterCreated(size: Int) {
+        altDrawer = DashboardAltitudeDrawer(activity as Context, size)
+        altDrawer.setAlt(0.0f)
+        setBackground(altDrawer.bitmap, altFrame)
+    }
+
+    private fun updateAltimeterDrawer(alt: Double) {
+        altDrawer.setAlt(alt.toFloat())
+        setBackground(altDrawer.bitmap, altFrame)
+    }
+
+    private fun varioFrameCreated(size: Int) {
         varioDrawer = DashboardVarioDrawer(activity as Context, size)
         varioDrawer.setVario(0.0f)
         setBackground(varioDrawer.bitmap, varioFrame)
     }
 
-    private fun updateVarioDrawer(vario: Double){
+    private fun updateVarioDrawer(vario: Double) {
         varioDrawer.setVario(vario.toFloat())
         setBackground(varioDrawer.bitmap, varioFrame)
     }
@@ -93,12 +117,12 @@ class FragmentDashboard : Fragment() {
         setBackground(speedDrawer.bitmap, speedFrame)
     }
 
-    private fun updateSpeedDrawer(speed: Double){
+    private fun updateSpeedDrawer(speed: Double) {
         speedDrawer.setSpeed(speed.toFloat())
         setBackground(speedDrawer.bitmap, speedFrame)
     }
 
-    private fun setBackground(bitmap: Bitmap, frameLayout: FrameLayout?){
+    private fun setBackground(bitmap: Bitmap, frameLayout: FrameLayout?) {
         val d: Drawable = BitmapDrawable(resources, bitmap)
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.JELLY_BEAN) {
             frameLayout?.background = d
@@ -111,29 +135,40 @@ class FragmentDashboard : Fragment() {
 
         handler = object : Handler(Looper.getMainLooper()) {
             override fun handleMessage(msg: Message) {
-                //  val location: Location msg.
-                val bundle = msg.data
-                val ratio = bundle.getDouble(HANDLER_RATIO_KEY)
-                val speed = bundle.getDouble(HANDLER_SPEED_KEY) * 3.6
-                val vario = bundle.getDouble(HANDLER_VARIO_KEY)
 
-                updateSpeedDrawer(speed)
-                updateVarioDrawer(vario)
-                val celoe = speed.toInt()
-                val drobnoe = ((speed - celoe) * 10).toInt()
+                when (msg.what) {
+                    1 -> {
+                        val bundle = msg.data
+                        val ratio = bundle.getDouble(HANDLER_RATIO_KEY)
+                        val speed = bundle.getDouble(HANDLER_SPEED_KEY) * 3.6
+                        val vario = bundle.getDouble(HANDLER_VARIO_KEY)
 
-                speedView?.text = celoe.toString()
-                speedViewFr?.text = drobnoe.toString()
-                if (ratio < 2000) {
-                    ratioView?.text = DecimalFormat("#.#").format(ratio)
-                }
-                varioView?.text = vario?.let {
-                    if(0<it){
-                        DecimalFormat("#.#").format(vario).let{"+$it"}
-                    }else{
-                        DecimalFormat("#.#").format(vario)
+                        updateSpeedDrawer(speed)
+                        updateVarioDrawer(vario)
+                        val celoe = speed.toInt()
+                        val drobnoe = ((speed - celoe) * 10).toInt()
+
+                        speedView?.text = celoe.toString()
+                        speedViewFr?.text = drobnoe.toString()
+                        if (ratio < 2000) {
+                            ratioView?.text = DecimalFormat("#.#").format(ratio)
+                        }
+                        varioView?.text = vario?.let {
+                            if (0 < it) {
+                                DecimalFormat("#.#").format(vario).let { "+$it" }
+                            } else {
+                                DecimalFormat("#.#").format(vario)
+                            }
+                        }
+                    }
+                    2 -> {
+                        val bundle = msg.data
+                        val altitude = bundle.getDouble(HANDLER_ALT_KEY)
+                        updateAltimeterDrawer(altitude)
+                        altView?.text = DecimalFormat("#").format(altitude)
                     }
                 }
+
 
             }
         }
@@ -166,24 +201,23 @@ class FragmentDashboard : Fragment() {
                             speedList.add(speed.toDouble())
                         }
                         /** vario **/
-                        while (3<locationListVario.size){
+                        while (3 < locationListVario.size) {
                             locationListVario.removeAt(0)
                         }
                         val varioList = mutableListOf<Double>()
 
-                        for (i in 0..locationListVario.size - 2){
+                        for (i in 0..locationListVario.size - 2) {
                             val previousLocation = locationListVario[i]
                             val currentLocation = locationListVario[i + 1]
                             val dTime = (currentLocation.time - previousLocation.time) / 1000
                             val dAlt = currentLocation.altitude - previousLocation.altitude
-                            varioList.add(dAlt/dTime)
+                            varioList.add(dAlt / dTime)
                         }
                         var varioSum = 0.0
-                        for(vario in varioList){
-                            varioSum+=vario
+                        for (vario in varioList) {
+                            varioSum += vario
                         }
-                        val vario = varioSum/varioList.size
-
+                        val vario = varioSum / varioList.size
 
 
                         var sum = 0.0
@@ -194,6 +228,7 @@ class FragmentDashboard : Fragment() {
                         if (speed < 600) {
                             val msg: Message = handler.obtainMessage()
                             val bundle = Bundle()
+                            msg.what = 1
                             bundle.putDouble(HANDLER_SPEED_KEY, speed)
                             bundle.putDouble(HANDLER_RATIO_KEY, k)
                             bundle.putDouble(HANDLER_VARIO_KEY, vario)
@@ -203,6 +238,18 @@ class FragmentDashboard : Fragment() {
 
                     }
 
+                }
+
+
+        Observables.combineLatest(MapBoxStore.locationSubject, MapBoxStore.startAltitudeSubject)
+                .takeWhile { isSubscribed }
+                .subscribeBy {
+                    val msg: Message = handler.obtainMessage()
+                    val bundle = Bundle()
+                    msg.what = 2
+                    bundle.putDouble(HANDLER_ALT_KEY, it.first.altitude - it.second)
+                    msg.data = bundle
+                    handler.sendMessage(msg);
                 }
 
     }

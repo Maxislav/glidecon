@@ -28,7 +28,7 @@ class DashboardVarioDrawer (private val context: Context, val size: Int){
         p.style = Paint.Style.STROKE
         p.color = ContextCompat.getColor(context, R.color.colorPrimaryText)
         p.alpha = 255
-        p.strokeWidth = density * 3
+        p.strokeWidth = density * 2
         val matrix = Matrix()
         val limit = (90*vario/VARIO_MAX).toInt()
         val ccv = vario<0

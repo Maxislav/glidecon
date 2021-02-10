@@ -39,6 +39,7 @@ class MapBoxModel(val mapView: MapView, val context: Context) {
 
     lateinit var directionArea: DirectionArea
     lateinit var flightRadius: FlightRadius
+    lateinit var tailTrace: TailTrace
     var mapboxMap: MapboxMap? = null
     val mapDateBase: MapDateBase = MapDateBase(context)
 
@@ -60,6 +61,8 @@ class MapBoxModel(val mapView: MapView, val context: Context) {
                 MyPositionMarker(mapView, mapboxMap, style, context)
                 directionArea = DirectionArea(mapView, mapboxMap, style, context)
                 flightRadius = FlightRadius(style, context)
+
+                tailTrace = TailTrace(style, context)
                 // TODO влияет на тачскрин зараза val symbolManager = SymbolManager(mapView, mapboxMap, style)
 
 
@@ -254,6 +257,7 @@ class MapBoxModel(val mapView: MapView, val context: Context) {
 
         directionArea.onDestroy()
         flightRadius.onDestroy()
+        tailTrace.onDestroy()
     }
 
     internal class DrawView(context: Context?) : View(context) {
