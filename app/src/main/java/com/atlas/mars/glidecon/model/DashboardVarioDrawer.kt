@@ -4,10 +4,8 @@ import android.content.Context
 import android.graphics.*
 import androidx.core.content.ContextCompat
 import com.atlas.mars.glidecon.R
-import kotlin.math.cos
-import kotlin.math.sin
 
-class DashboardDrawer (private val context: Context, val size: Int){
+class DashboardVarioDrawer (private val context: Context, val size: Int){
     var bitmap: Bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
     var canvas: Canvas = Canvas(bitmap)
     private val density: Float = Density(context).density
@@ -15,33 +13,32 @@ class DashboardDrawer (private val context: Context, val size: Int){
 
     companion object{
        const  val TAG = "DashboardDrawer"
-        const val SPEED_MAX = 200.0f
+        const val VARIO_MAX = 5.0f
     }
     init {
 
     }
 
-    fun setSpeed(speed: Float){
+    fun setVario(vario: Float){
         clear()
         drawMeasurement()
         val p = Paint()
         p.isAntiAlias = true
+
         p.style = Paint.Style.STROKE
         p.color = ContextCompat.getColor(context, R.color.colorPrimaryText)
         p.alpha = 255
-        p.strokeWidth = density * 5
+        p.strokeWidth = density * 3
         val matrix = Matrix()
-
-
-        val limit = (90*speed/SPEED_MAX).toInt()
-
-        for(i in 0..limit step 2){
+        val limit = (90*vario/VARIO_MAX).toInt()
+        val ccv = vario<0
+        for(i in 0..Math.abs(limit) step 2){
             path.reset()
-            path.moveTo(0.0f, size.toFloat())
-            path.lineTo(0.0f + density*30, size.toFloat())
+            path.moveTo(0.0f , size.toFloat()/2)
+            path.lineTo(density*30 , size.toFloat()/2  )
 
             matrix.reset()
-            matrix.setRotate(i.toFloat(), size.toFloat(), size.toFloat());
+            matrix.setRotate(ccv.let { if(it) -i.toFloat() else i.toFloat()}, size.toFloat()/2, size.toFloat()/2);
             path.transform(matrix);
             canvas.drawPath(path, p)
         }
@@ -56,22 +53,20 @@ class DashboardDrawer (private val context: Context, val size: Int){
     private fun drawMeasurement(){
         path.reset()
         val p = Paint()
-        path.moveTo(0.0f, size.toFloat())
-        path.lineTo(0.0f + density*20, size.toFloat())
         p.isAntiAlias = true
         p.style = Paint.Style.STROKE
         p.color = ContextCompat.getColor(context, R.color.colorPrimaryText)
         p.alpha = 50
-        p.strokeWidth = density * 5
+        p.strokeWidth = density * 2
         canvas.drawPath(path, p)
         val matrix = Matrix()
-        for(i in 0..90 step 2){
+        for(i in 0 until 360-1 step 5){
             path.reset()
-            path.moveTo(0.0f, size.toFloat())
-            path.lineTo(0.0f + density*30, size.toFloat())
+            path.moveTo(0.0f , size.toFloat()/2)
+            path.lineTo(density*15 , size.toFloat()/2  )
 
             matrix.reset()
-            matrix.setRotate(i.toFloat(), size.toFloat(), size.toFloat());
+            matrix.setRotate(i.toFloat(), size.toFloat()/2, size.toFloat()/2);
             path.transform(matrix);
             canvas.drawPath(path, p)
         }
