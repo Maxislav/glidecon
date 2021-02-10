@@ -81,14 +81,16 @@ class DirectionArea(val mapView: MapView, mapboxMap: MapboxMap, val style: Style
                         val coordinates = mutableListOf<MutableList<Point>>()
                         coordinates.add(points)
                         source.setGeoJson(Polygon.fromLngLats(coordinates))
+                    }else{
+                        val coordinates =  mutableListOf<MutableList<Point>>()
+                        coordinates.add( mutableListOf<Point>())
+                        source.setGeoJson(Polygon.fromLngLats(coordinates))
                     }
                 }
     }
 
     private fun calcDragRatio(): Double {
         val kList = mutableListOf<Double>()
-        // 1 2 3 4
-        // 2 3 4 5
         for (i in 0..locationList.size - 2) {
             val previousLocation = locationList[i]
             val currentLocation = locationList[i + 1]

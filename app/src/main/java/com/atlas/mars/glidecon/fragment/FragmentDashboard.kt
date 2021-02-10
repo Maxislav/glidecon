@@ -1,6 +1,5 @@
 package com.atlas.mars.glidecon.fragment
 
-import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
@@ -27,9 +26,13 @@ class FragmentDashboard : Fragment() {
     private lateinit var handler: Handler
     var isSubscribed = true;
     private var speedView: CustomFontTextView? = null
+    private var speedViewFr: CustomFontTextView? = null
+    private var ratioView: CustomFontTextView? = null
+    private val locationList = mutableListOf<Location>()
 
     companion object {
-        const val HANDLER_KEY = "speed"
+        const val HANDLER_SPEED_KEY = "speed"
+        const val HANDLER_RATIO_KEY = "ratio"
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -41,6 +44,8 @@ class FragmentDashboard : Fragment() {
         super.onActivityCreated(savedInstanceState)
 
         speedView = view?.findViewById(R.id.speed_view)
+        speedViewFr = view?.findViewById(R.id.speed_view_fractional)
+        ratioView = view?.findViewById(R.id.ratio_view)
         view?.post(Runnable {
             onViewCreated()
         })
@@ -53,33 +58,46 @@ class FragmentDashboard : Fragment() {
         val width = view?.width
         width?.let { createBitmap(it) }
         handler = object : Handler(Looper.getMainLooper()) {
-            @SuppressLint("SetTextI18n")
             override fun handleMessage(msg: Message) {
                 //  val location: Location msg.
                 val bundle = msg.data
-                val speed = bundle.getDouble(HANDLER_KEY) * 3.6
+                val ratio = bundle.getDouble(HANDLER_RATIO_KEY)
+                val speed = bundle.getDouble(HANDLER_SPEED_KEY) * 3.6
                 val speedFloat = DecimalFormat("#.#").format(speed).toFloat()
-                dashboardDrawer.draw(speedFloat)
+                dashboardDrawer.setSpeed(speedFloat)
                 setBackground()
-                speedView?.text = speedFloat.toString()
+                val celoe = speed.toInt()
+                val drobnoe = ((speed - celoe) * 10).toInt()
+
+                speedView?.text = celoe.toString()
+                speedViewFr?.text = drobnoe.toString()
+                if(ratio<2000){
+                    ratioView?.text = DecimalFormat("#.#").format(ratio)
+                }
+
             }
         }
 
-        val locationList = mutableListOf<Location>()
+        val locationListSpeed = mutableListOf<Location>()
 
         MapBoxStore.locationSubject
                 .takeWhile { isSubscribed }
-                .subscribeBy {
+                .doOnNext{
                     locationList.add(it)
+                }
+                .subscribeBy {
+                    locationListSpeed.add(it)
 
-                    if (1 < locationList.size) {
-                        while (3000 < (locationList.last().time - locationList.first().time)) {
-                            locationList.removeAt(0)
+                    if (1 < locationListSpeed.size) {
+                        val k = calcDragRatio()
+
+                        while (3000 < (locationListSpeed.last().time - locationListSpeed.first().time)) {
+                            locationListSpeed.removeAt(0)
                         }
                         val speedList = mutableListOf<Double>()
-                        for (i in 0..locationList.size - 2) {
-                            val previousLocation = locationList[i]
-                            val currentLocation = locationList[i + 1]
+                        for (i in 0..locationListSpeed.size - 2) {
+                            val previousLocation = locationListSpeed[i]
+                            val currentLocation = locationListSpeed[i + 1]
                             val dTime = (currentLocation.time - previousLocation.time) / 1000
                             val distance = previousLocation.distanceTo(currentLocation)
                             val speed = distance / dTime
@@ -93,8 +111,9 @@ class FragmentDashboard : Fragment() {
                         if (speed < 600) {
                             val msg: Message = handler.obtainMessage()
                             val bundle = Bundle()
-                            bundle.putDouble(HANDLER_KEY, speed)
-                            msg.setData(bundle)
+                            bundle.putDouble(HANDLER_SPEED_KEY, speed)
+                            bundle.putDouble(HANDLER_RATIO_KEY, k)
+                            msg.data = bundle
                             handler.sendMessage(msg);
                         }
 
@@ -106,7 +125,7 @@ class FragmentDashboard : Fragment() {
 
     private fun createBitmap(size: Int) {
         dashboardDrawer = DashboardDrawer(activity as Context, size)
-        dashboardDrawer.draw(0.0f)
+        dashboardDrawer.setSpeed(0.0f)
         setBackground()
     }
 
@@ -119,8 +138,33 @@ class FragmentDashboard : Fragment() {
         }
     }
 
+    private fun calcDragRatio(): Double {
+        val kList = mutableListOf<Double>()
+        for (i in 0..locationList.size - 2) {
+            val previousLocation = locationList[i]
+            val currentLocation = locationList[i + 1]
+            val distance = previousLocation.distanceTo(currentLocation) // m
+            val dTime = currentLocation.time - previousLocation.time
+            val dAltitude = previousLocation.altitude - currentLocation.altitude
+            if (0 < distance && dAltitude != 0.0) {
+                kList.add(distance / dAltitude)
+            }
+
+        }
+        var kSum = 0.0
+        if (0 < kList.size) {
+            for (k in kList) {
+                kSum += k
+            }
+            return kSum / kList.size
+        }
+        return 0.0
+
+    }
+
     override fun onDestroy() {
         super.onDestroy()
         isSubscribed = false
+        handler.removeCallbacksAndMessages(null);
     }
 }

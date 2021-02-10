@@ -21,7 +21,7 @@ class DashboardDrawer (private val context: Context, val size: Int){
 
     }
 
-    fun draw(speed: Float){
+    fun setSpeed(speed: Float){
         clear()
         drawMeasurement()
         val p = Paint()
@@ -31,10 +31,9 @@ class DashboardDrawer (private val context: Context, val size: Int){
         p.alpha = 255
         p.strokeWidth = density * 5
         val matrix = Matrix()
-        // 90  - 200
-        //  x   - speed
 
-        val limit = (90*speed/200).toInt()
+
+        val limit = (90*speed/SPEED_MAX).toInt()
 
         for(i in 0..limit step 2){
             path.reset()
@@ -76,7 +75,5 @@ class DashboardDrawer (private val context: Context, val size: Int){
             path.transform(matrix);
             canvas.drawPath(path, p)
         }
-
-
     }
 }
