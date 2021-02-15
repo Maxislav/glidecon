@@ -17,6 +17,7 @@ import com.atlas.mars.glidecon.store.MapBoxStore.Companion.compassOnClickSubject
 import com.atlas.mars.glidecon.store.MapBoxStore.Companion.followTypeSubject
 import com.atlas.mars.glidecon.store.MapBoxStore.Companion.locationSubject
 import com.atlas.mars.glidecon.store.MapBoxStore.Companion.mapboxMapSubject
+import com.atlas.mars.glidecon.store.MapBoxStore.Companion.tiltSubject
 import com.atlas.mars.glidecon.util.LocationUtil
 import com.mapbox.android.gestures.MoveGestureDetector
 import com.mapbox.mapboxsdk.camera.CameraPosition
@@ -117,7 +118,15 @@ class MapBoxModel(val mapView: MapView, val context: Context) {
             mapboxMap.cameraPosition = cp
             cameraPositionSubject.onNext(cp)
         }
-
+        tiltSubject.subscribeBy(
+                onNext = {
+                    val tilt: Double = (60*it/100).toDouble()
+                    val position = CameraPosition.Builder()
+                            .tilt(tilt)
+                            .build()
+                    mapboxMap.cameraPosition = position
+                }
+        )
 
         mapboxMap.addOnCameraMoveListener(object : MapboxMap.OnCameraMoveListener {
             override fun onCameraMove() {

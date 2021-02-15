@@ -28,6 +28,15 @@
         tools:layout_editor_absoluteX="8dp"
         tools:layout_editor_absoluteY="8dp" />
 
+    <FrameLayout
+        android:id="@+id/map_tilt"
+        android:layout_width="20dp"
+        android:layout_marginLeft="10dp"
+        android:layout_height="match_parent"
+        android:layout_marginTop="100dp"
+        android:layout_marginBottom="120dp"
+        />
+
     <!--    gps status-->
     <FrameLayout
         android:id="@+id/gpsStatusFrameView"

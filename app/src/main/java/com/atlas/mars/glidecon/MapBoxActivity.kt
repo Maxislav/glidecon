@@ -78,6 +78,7 @@ class MapBoxActivity : AppCompatActivity() {
         setupCompassFrame()
         setupFollowFrame()
         setupBikeComputerFrame()
+        setupTiltLayout()
         screenWidth
 
         mapView = findViewById(R.id.mapView)
@@ -103,6 +104,13 @@ class MapBoxActivity : AppCompatActivity() {
             bound = false
         }
 
+    }
+
+    private fun setupTiltLayout() {
+        val fm = this.supportFragmentManager
+        val ft: FragmentTransaction = fm.beginTransaction()
+        ft.add(R.id.map_tilt, FragmentTilt())
+        ft.commit()
     }
 
     private fun setupDrawerLayout() {
@@ -170,14 +178,14 @@ class MapBoxActivity : AppCompatActivity() {
         ft.commit();
     }
 
-    private fun setupFollowFrame(){
+    private fun setupFollowFrame() {
         val fm = this.supportFragmentManager
         val ft: FragmentTransaction = fm.beginTransaction()
         ft.add(R.id.follow_layout, FragmentFollow())
         ft.commit();
     }
 
-    private fun showWindowSettingFrame(){
+    private fun showWindowSettingFrame() {
         val fm = this.supportFragmentManager
         val ft: FragmentTransaction = fm.beginTransaction()
         ft.add(R.id.wind_setting_layout, FragmentWindSetting())
@@ -192,8 +200,8 @@ class MapBoxActivity : AppCompatActivity() {
         return true
     }
 
-    override fun onOptionsItemSelected(menuItem: MenuItem): Boolean{
-        when(menuItem.itemId){
+    override fun onOptionsItemSelected(menuItem: MenuItem): Boolean {
+        when (menuItem.itemId) {
             R.id.action_calc -> {
                 Log.d(TAG, "action_settings")
                 val questionIntent = Intent(this, MainActivity::class.java)
@@ -216,14 +224,14 @@ class MapBoxActivity : AppCompatActivity() {
     override fun onRequestPermissionsResult(
             requestCode: Int,
             permissions: Array<String>,
-            grantResults: IntArray
+            grantResults: IntArray,
     ) {
         if (grantResults[0] == PackageManager.PERMISSION_GRANTED && grantResults[1] == PackageManager.PERMISSION_GRANTED) {
             startBackgroundProcess()
         }
     }
 
-    private fun startBackgroundProcess(){
+    private fun startBackgroundProcess() {
         bindService(
                 serviceIntent,
                 sCon,

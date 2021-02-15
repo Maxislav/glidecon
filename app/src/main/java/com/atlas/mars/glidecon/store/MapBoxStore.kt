@@ -18,6 +18,8 @@ class MapBoxStore {
         followTypeSubject = BehaviorSubject.createDefault(FollowViewType.TYPICAL)
         locationSubject = BehaviorSubject.create()
         satelliteSubject = BehaviorSubject.createDefault(mapOf(SatCount.TOTAl to 0, SatCount.USED to 0))
+        tiltSubject = BehaviorSubject.create()
+
     }
 
     companion object {
@@ -31,6 +33,7 @@ class MapBoxStore {
         lateinit var followTypeSubject: BehaviorSubject<FollowViewType>
         lateinit var locationSubject: BehaviorSubject<Location>
         lateinit var satelliteSubject: BehaviorSubject<Map<SatCount, Int>>
+        lateinit var tiltSubject: BehaviorSubject<Int>
     }
 
     enum class Wind {

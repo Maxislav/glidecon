@@ -21,7 +21,7 @@ android {
         }
     }
     compileSdkVersion 30
-    buildToolsVersion "24.0.2"
+    buildToolsVersion "24.0.3"
     defaultConfig {
         applicationId "com.atlas.mars.glidecon"
         minSdkVersion 15
