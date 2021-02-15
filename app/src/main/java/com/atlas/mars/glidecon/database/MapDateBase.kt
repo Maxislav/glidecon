@@ -34,6 +34,7 @@ class MapDateBase(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, n
         private const val START_ALTITUDE = "startAltitude"
         private const val LIFT_TO_DRAG_RATIO = "liftToDragRatio"
         private const val OPTIMAL_SPEED = "optimalSpeed"
+        private const val AGREEMENT_AGREE = "agreementAgree"
 
     }
 
@@ -60,7 +61,7 @@ class MapDateBase(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, n
         }
         skip = 0
         if (windDirection != null && windSpeed != null) {
-            skip=1
+            skip = 1
             windSubject.onNext(mapOf(MapBoxStore.Wind.SPEED to windSpeed, MapBoxStore.Wind.DIRECTION to windDirection))
         }
         windSubject
@@ -126,6 +127,22 @@ class MapDateBase(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, n
 
         cursor.close()
         //sdb.close()
+    }
+
+    fun getAgreement(): Boolean {
+        val query = "SELECT * FROM $TABLE_SETTING_PARAM WHERE $NAME=?";
+        val sdb = readableDatabase
+        val cursor: Cursor = sdb.rawQuery(query, arrayOf(AGREEMENT_AGREE))
+        if (cursor.count == 0) {
+            return false
+        }
+
+        cursor.moveToFirst()
+        return 0 < cursor.getDouble(cursor.getColumnIndex(VALUE))
+    }
+
+    fun saveAgreementAgree(){
+        saveParam(AGREEMENT_AGREE, 1.0)
     }
 
     private fun saveParam(name: String, value: Double) {

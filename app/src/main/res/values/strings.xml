@@ -30,5 +30,25 @@
     <string name="current_altitude" translatable="false">Current Altitude:</string>
     <string name="set_start_altitude" translatable="false">Start Altitude:</string>
     <string name="set_current_start_altitude" translatable="false">current</string>
+    <string name="permission_ifo" translatable="false"> <![CDATA[
+    <html>
+     <style type=\"text/css\">
+     *{
+      text-align: justify;
+     }
+     p{
+        font-size: 18px;
+        text-indent: 20px;
+        margin: 0;
+        padding: 0;
+     }
+    </style>
+    <body>
+        <p>For the application work, location data is required. </p>
+        <p>It is worth noting that the application will not use your location data in the background without an explicitly open interface.</p>
+    </body>
+ </html>
+]]>
+    </string>
 
 </resources>

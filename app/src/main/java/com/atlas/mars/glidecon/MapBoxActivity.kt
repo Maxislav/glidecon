@@ -24,6 +24,7 @@ import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.fragment.app.FragmentTransaction
 import com.atlas.mars.glidecon.database.MapDateBase
+import com.atlas.mars.glidecon.dialog.DialogInfoPermission
 import com.atlas.mars.glidecon.dialog.DialogStartAltitude
 import com.atlas.mars.glidecon.dialog.DialogWindSetting
 import com.atlas.mars.glidecon.fragment.*
@@ -33,6 +34,7 @@ import com.atlas.mars.glidecon.store.MapBoxStore
 import com.google.android.material.navigation.NavigationView
 import com.mapbox.mapboxsdk.Mapbox
 import com.mapbox.mapboxsdk.maps.MapView
+import io.reactivex.rxkotlin.subscribeBy
 
 
 class MapBoxActivity : AppCompatActivity() {
@@ -109,14 +111,14 @@ class MapBoxActivity : AppCompatActivity() {
 
     }
 
-    private fun setupWindLayout(){
+    private fun setupWindLayout() {
         val fm = this.supportFragmentManager
         val ft: FragmentTransaction = fm.beginTransaction()
         ft.add(R.id.wind_layout, FragmentWind())
         ft.commit()
     }
 
-    private fun setupZoomControl(){
+    private fun setupZoomControl() {
         val fm = this.supportFragmentManager
         val ft: FragmentTransaction = fm.beginTransaction()
         ft.add(R.id.zoom_layout, FragmentZoomControl())
@@ -252,6 +254,22 @@ class MapBoxActivity : AppCompatActivity() {
         isSubscribed = true
         super.onResume()
 
+        if (mapDateBase.getAgreement()) {
+            checkPermissionAndStart()
+        } else {
+            val dialogWindSetting = DialogInfoPermission(this)
+            dialogWindSetting.create().show()
+            dialogWindSetting.onAgreeSubject
+                    .subscribeBy {
+                        if (it) {
+                            mapDateBase.saveAgreementAgree()
+                            checkPermissionAndStart()
+                        }
+                    }
+        }
+    }
+
+    private fun checkPermissionAndStart() {
         if (ActivityCompat.checkSelfPermission(
                         this,
                         Manifest.permission.ACCESS_FINE_LOCATION
@@ -262,7 +280,6 @@ class MapBoxActivity : AppCompatActivity() {
             return
         }
         startBackgroundProcess()
-
     }
 
     override fun onPause() {
