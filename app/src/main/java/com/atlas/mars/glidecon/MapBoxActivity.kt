@@ -45,6 +45,7 @@ class MapBoxActivity : AppCompatActivity() {
     lateinit var mapBoxModel: MapBoxModel
     var isSubscribed = false;
     lateinit var mapDateBase: MapDateBase
+    lateinit var mapBoxStore: MapBoxStore
 
     private val screenWidth: Int
         get() {
@@ -65,7 +66,7 @@ class MapBoxActivity : AppCompatActivity() {
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         serviceIntent = Intent(this, LocationService::class.java)
 
-        MapBoxStore()
+        mapBoxStore = MapBoxStore()
 
         mapDateBase = MapDateBase(this)
         mapDateBase.initValues()
@@ -79,6 +80,7 @@ class MapBoxActivity : AppCompatActivity() {
         setupFollowFrame()
         setupBikeComputerFrame()
         setupTiltLayout()
+        setupZoomControl()
         screenWidth
 
         mapView = findViewById(R.id.mapView)
@@ -104,6 +106,13 @@ class MapBoxActivity : AppCompatActivity() {
             bound = false
         }
 
+    }
+
+    private fun setupZoomControl(){
+        val fm = this.supportFragmentManager
+        val ft: FragmentTransaction = fm.beginTransaction()
+        ft.add(R.id.zoom_layout, FragmentZoomControl())
+        ft.commit()
     }
 
     private fun setupTiltLayout() {
@@ -135,16 +144,7 @@ class MapBoxActivity : AppCompatActivity() {
             }
             return true
         })
-        /*navigationView.setNavigationItemSelectedListener { menuItem ->
-            {
-                when (menuItem.itemId) {
-                    R.id.wind_setting_layout -> {
 
-                    }
-                }
-                return true
-            }
-        }*/
     }
 
     private fun setupGpsStatusFrame() {
@@ -272,6 +272,7 @@ class MapBoxActivity : AppCompatActivity() {
         mapView?.onDestroy()
         mapBoxModel.onDestroy()
         mapDateBase.onUnsubscribe()
+        mapBoxStore.onDestroy()
     }
 
 

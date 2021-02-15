@@ -31,7 +31,7 @@
     <FrameLayout
         android:id="@+id/map_tilt"
         android:layout_width="20dp"
-        android:layout_marginLeft="10dp"
+        android:layout_marginLeft="20dp"
         android:layout_height="match_parent"
         android:layout_marginTop="100dp"
         android:layout_marginBottom="120dp"
@@ -65,6 +65,15 @@
         android:layout_marginRight="20dp"
 
         />
+
+    <FrameLayout
+        android:id="@+id/zoom_layout"
+        android:layout_width="40dp"
+        android:layout_gravity="end|bottom"
+        android:layout_marginBottom="160dp"
+        android:layout_marginRight="20dp"
+        android:layout_height="100dp"
+        android:layout_marginEnd="20dp" />
 
     <FrameLayout
         android:id="@+id/wind_setting_layout"

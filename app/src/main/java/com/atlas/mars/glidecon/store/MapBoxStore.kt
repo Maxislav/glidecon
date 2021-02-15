@@ -19,7 +19,7 @@ class MapBoxStore {
         locationSubject = BehaviorSubject.create()
         satelliteSubject = BehaviorSubject.createDefault(mapOf(SatCount.TOTAl to 0, SatCount.USED to 0))
         tiltSubject = BehaviorSubject.create()
-
+        zoomControlSubject = BehaviorSubject.create()
     }
 
     companion object {
@@ -34,6 +34,25 @@ class MapBoxStore {
         lateinit var locationSubject: BehaviorSubject<Location>
         lateinit var satelliteSubject: BehaviorSubject<Map<SatCount, Int>>
         lateinit var tiltSubject: BehaviorSubject<Int>
+        lateinit var zoomControlSubject: BehaviorSubject<Zoom>
+    }
+
+    fun onDestroy() {
+        mapboxMapSubject.onComplete()
+        compassOnClickSubject.onComplete()
+        cameraPositionSubject.onComplete()
+        optimalSpeedSubject.onComplete()
+        liftToDragRatioSubject.onComplete()
+        startAltitudeSubject.onComplete()
+        windSubject.onComplete()
+        followTypeSubject.onComplete()
+        locationSubject.onComplete()
+        satelliteSubject.onComplete()
+        tiltSubject.onComplete()
+    }
+
+    enum class Zoom{
+        IN, OUT
     }
 
     enum class Wind {
