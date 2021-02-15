@@ -66,9 +66,9 @@ class DialogWindSetting(val activity: Activity) : AlertDialog.Builder(activity) 
         val inflater = LayoutInflater.from(context)
         linearLayout = inflater.inflate(R.layout.dialog_wind_setting, null, false) as FrameLayout
         setView(linearLayout)
-        setPositiveButton("ok", object : DialogInterface.OnClickListener {
+        setPositiveButton("Save", object : DialogInterface.OnClickListener {
             override fun onClick(dialog: DialogInterface?, which: Int) {
-                Log.d(TAG, "ok")
+                Log.d(TAG, "Save")
                 onDestroy()
 
                 directionSpeed
@@ -87,7 +87,7 @@ class DialogWindSetting(val activity: Activity) : AlertDialog.Builder(activity) 
             }
         }
 
-        setNegativeButton("cancel", null)
+        setNegativeButton("Cancel", null)
 
 
         imageSizeSubject

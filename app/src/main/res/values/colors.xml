@@ -14,7 +14,16 @@
     <item name="redTitleActive" type="color">#ff9e0003</item>
     <item name="redBorderLight" type="color">#FF5722</item>
     <item name="colorOrange" type="color">#EC5627</item>
-    <item name="safetyColor" type="color">#394659</item>
+    <item name="safetyColor" type="color">#0037FD</item>
+    <item name="criticalColor" type="color">#F30000</item>
+
+    <item name="tailTrace1" type="color">#86FFFFFF</item>
+    <item name="tailTrace2" type="color">#FF7CBBFF</item>
+    <item name="tailTrace3" type="color">#FF0059F3</item>
+    <item name="tailTrace4" type="color">#FF599BFF</item>
+    <item name="tailTrace5" type="color">#000020F3</item>
+
+
 
     <item name="borderColor" type="color">#8ca4b5</item>
 

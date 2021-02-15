@@ -63,7 +63,7 @@ class FlightRadius(val style: Style, context: Context) {
         ))
 
         val safetySource = createSource(SAFETY_SOURCE_ID)
-        val safetyModeColor = context.resources.getString(R.color.redBorderDark)
+        val safetyModeColor = context.resources.getString(R.color.criticalColor)
         style.addLayer(LineLayer(SAFETY_LAYER_ID, SAFETY_SOURCE_ID).withProperties(
                 PropertyFactory.lineCap(Property.LINE_CAP_ROUND),
                 PropertyFactory.lineJoin(Property.LINE_JOIN_ROUND),
