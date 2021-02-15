@@ -7,14 +7,18 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.*
-import android.os.Binder
-import android.os.Bundle
-import android.os.IBinder
+import android.os.*
 import android.util.Log
 import androidx.core.app.ActivityCompat
 import com.atlas.mars.glidecon.store.MapBoxStore
 import com.atlas.mars.glidecon.store.MapBoxStore.Companion.locationSubject
 import com.atlas.mars.glidecon.store.MapBoxStore.Companion.satelliteSubject
+import com.atlas.mars.glidecon.util.LocationUtil
+import io.reactivex.Observable
+import io.reactivex.rxkotlin.subscribeBy
+import java.text.DecimalFormat
+import java.util.concurrent.TimeUnit
+
 
 class LocationService : Service() {
     private val TAG = "LocationService"
@@ -118,6 +122,51 @@ class LocationService : Service() {
             locationManagerGps?.removeGpsStatusListener(gpsStatusListener)
         }
 
+    }
+
+    private fun debug(){
+        val locationList = mutableListOf<Location>()
+        var move = true
+
+        val alt = 700
+        for(a in 0..360 step 5){
+            val locat = LocationUtil()
+            locat.latitude =50.3988
+            locat.longitude = 30.0672
+            locat.time = (a*10000.0).toLong()
+
+            val radLocation = locat.offset(400.toDouble(), a.toDouble())
+            radLocation.altitude = (alt - a*0.3).toDouble()
+            radLocation.time = (a*10000.0).toLong()
+            locationList.add(radLocation)
+        }
+
+        val handler = object : Handler(Looper.getMainLooper()) {
+            @SuppressLint("SetTextI18n")
+            override fun handleMessage(msg: Message) {
+
+                val location = msg.obj as Location
+                locationSubject.onNext(location)
+            }
+        }
+
+        Observable
+                .interval(2, TimeUnit.SECONDS)
+                .takeWhile{move}
+                .subscribeBy {
+                    if(0<locationList.size){
+                        val currLocation = locationList.removeAt(0)
+                        currLocation.time = System.currentTimeMillis()
+
+                        val msg = handler.obtainMessage(1, currLocation)
+                        handler.sendMessage(msg)
+
+                    }else{
+                        move = false
+                    }
+
+
+                }
     }
 
     inner class GPSListener : LocationListener {

@@ -29,7 +29,7 @@ class TailTrace(val style: Style, val context: Context) {
     private val locationList = mutableListOf<Location>()
 
     companion object {
-        const val TAIL_LENGTH = 1000.0f
+        const val TAIL_LENGTH = 2000.0f
         const val SOURCE_ID = "source-tail-trace"
         const val LAYER_ID = "layer-tail-trace"
         const val TAG = "DirectionArea"
