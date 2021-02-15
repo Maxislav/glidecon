@@ -30,7 +30,7 @@ class FragmentTilt : Fragment() {
             view?.let {
                 val lp = seekBar?.layoutParams
                 lp?.width = it.height
-                seekBar?.setLayoutParams(lp)
+                seekBar?.layoutParams = lp
                 seekBarCreated()
             }
         })
