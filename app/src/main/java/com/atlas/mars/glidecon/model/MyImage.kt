@@ -32,7 +32,6 @@ class MyImage(var context: Context) {
         get() = createBtnWind()
 
 
-
     fun getManeuverArrow(@DrawableRes resId: Int): Bitmap {
         val bitmap = Bitmap.createBitmap(Math.round(30 * density), Math.round(30 * density), Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)
@@ -222,9 +221,15 @@ class MyImage(var context: Context) {
         canvas.drawPath(path, p)
         val icon = BitmapFactory.decodeResource(context.resources,
                 R.drawable.ic_wind)
-        canvas.translate(9f, 8f)
-        canvas.scale(0.5f, 0.5f)
-        canvas.drawBitmap(icon, Matrix(), null)
+        icon.width
+        // canvas.translate(9f, 8f)
+        //canvas.scale(54/icon.width.toFloat(), 54/icon.width.toFloat(), 0.5f, 0.5f)
+
+        val matrix = Matrix()
+        matrix.setScale(0.8f * 54 / icon.width.toFloat(), 0.8f * 54 / icon.width.toFloat())
+        val t = (54 - 54 * 0.8) / 2
+        canvas.translate(t.toFloat(), t.toFloat())
+        canvas.drawBitmap(icon, matrix, null)
         return bitmap
     }
 
@@ -282,17 +287,17 @@ class MyImage(var context: Context) {
         val canvas = Canvas(bitmap)
         val path = Path()
         path.reset()
-        path.moveTo(width.toFloat()/2,  height.toFloat()/2)
+        path.moveTo(width.toFloat() / 2, height.toFloat() / 2)
         path.lineTo(0f, 0f)
-        path.moveTo(width.toFloat()/2,  height.toFloat()/2)
-        path.lineTo(width.toFloat()/2, 0f)
+        path.moveTo(width.toFloat() / 2, height.toFloat() / 2)
+        path.lineTo(width.toFloat() / 2, 0f)
 
 
-        val r = width* 0.8/2
-        for (i in 0..360  step 5) {
-            path.moveTo(width.toFloat()/2,  height.toFloat()/2)
-            val x = width/2 + r* sin(i*Math.PI/180)
-            val y = width/2 - r* cos(i*Math.PI/180)
+        val r = width * 0.8 / 2
+        for (i in 0..360 step 5) {
+            path.moveTo(width.toFloat() / 2, height.toFloat() / 2)
+            val x = width / 2 + r * sin(i * Math.PI / 180)
+            val y = width / 2 - r * cos(i * Math.PI / 180)
             path.lineTo(x.toFloat(), y.toFloat())
             // sin a = x/width
         }
@@ -306,7 +311,7 @@ class MyImage(var context: Context) {
         p.strokeWidth = density * 2
         canvas.drawPath(path, p)
         path.reset()
-        path.addCircle(width.toFloat()/2,  height.toFloat()/2, height.toFloat()/3, Path.Direction.CCW)
+        path.addCircle(width.toFloat() / 2, height.toFloat() / 2, height.toFloat() / 3, Path.Direction.CCW)
         path.close()
         p.style = Paint.Style.FILL
         p.color = Color.RED

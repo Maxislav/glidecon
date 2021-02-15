@@ -49,6 +49,7 @@ class MapBoxStore {
         locationSubject.onComplete()
         satelliteSubject.onComplete()
         tiltSubject.onComplete()
+        zoomControlSubject.onComplete()
     }
 
     enum class Zoom{

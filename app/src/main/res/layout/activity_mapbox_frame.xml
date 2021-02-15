@@ -27,7 +27,7 @@
         mapbox:mapbox_uiLogo="true"
         tools:layout_editor_absoluteX="8dp"
         tools:layout_editor_absoluteY="8dp" />
-
+    <!--    map tilt -->
     <FrameLayout
         android:id="@+id/map_tilt"
         android:layout_width="20dp"
@@ -44,6 +44,16 @@
         android:layout_height="20dp"
         android:layout_gravity="center_horizontal|top"
         android:gravity="center" />
+    <!--    wind-->
+
+    <FrameLayout
+        android:id="@+id/wind_layout"
+        android:layout_width="40dp"
+        android:layout_marginTop="20dp"
+        android:layout_marginLeft="20dp"
+        android:layout_gravity="start"
+        android:layout_height="40dp"
+        android:layout_marginStart="20dp" />
 
     <!-- compass -->
     <FrameLayout
@@ -54,7 +64,7 @@
         android:layout_marginTop="20dp"
         android:layout_marginEnd="20dp"
         android:layout_marginRight="20dp" />
-
+    <!-- follow btn    -->
     <FrameLayout
         android:id="@+id/follow_layout"
         android:layout_width="40dp"

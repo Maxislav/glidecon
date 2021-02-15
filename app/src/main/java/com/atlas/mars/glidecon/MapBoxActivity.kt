@@ -81,6 +81,7 @@ class MapBoxActivity : AppCompatActivity() {
         setupBikeComputerFrame()
         setupTiltLayout()
         setupZoomControl()
+        setupWindLayout()
         screenWidth
 
         mapView = findViewById(R.id.mapView)
@@ -106,6 +107,13 @@ class MapBoxActivity : AppCompatActivity() {
             bound = false
         }
 
+    }
+
+    private fun setupWindLayout(){
+        val fm = this.supportFragmentManager
+        val ft: FragmentTransaction = fm.beginTransaction()
+        ft.add(R.id.wind_layout, FragmentWind())
+        ft.commit()
     }
 
     private fun setupZoomControl(){
