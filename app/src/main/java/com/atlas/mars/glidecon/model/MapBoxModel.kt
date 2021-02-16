@@ -59,12 +59,12 @@ class MapBoxModel(val mapView: MapView, val context: Context) {
             // mapboxMapSubject.onComplete()
 
             mapboxMap.setStyle(Style.MAPBOX_STREETS) { style: Style ->
-
+                tailTrace = TailTrace(style, context)
                 MyPositionMarker(mapView, mapboxMap, style, context)
                 directionArea = DirectionArea(mapView, mapboxMap, style, context)
                 flightRadius = FlightRadius(style, context)
 
-                tailTrace = TailTrace(style, context)
+
                 // TODO влияет на тачскрин зараза val symbolManager = SymbolManager(mapView, mapboxMap, style)
 
 

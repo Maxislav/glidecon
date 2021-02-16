@@ -27,6 +27,7 @@ class LocationService : Service() {
     private lateinit var gpsListener: GPSListener
     var mGnssStatusCallback: GnssStatus.Callback? = null
     var gpsStatusListener: GpsStatus.Listener? = null
+    var isDebug = false
 
     override fun onBind(intent: Intent?): IBinder {
         return localBinder
@@ -34,6 +35,7 @@ class LocationService : Service() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         Log.d(TAG, "onStartCommand")
+        // debug()
         return super.onStartCommand(intent, flags, startId)
     }
 
@@ -125,10 +127,11 @@ class LocationService : Service() {
     }
 
     private fun debug(){
+        isDebug = true
         val locationList = mutableListOf<Location>()
         var move = true
 
-        val alt = 700
+        var alt = 700.0
         for(a in 0..360 step 5){
             val locat = LocationUtil()
             locat.latitude =50.3988
@@ -136,7 +139,18 @@ class LocationService : Service() {
             locat.time = (a*10000.0).toLong()
 
             val radLocation = locat.offset(400.toDouble(), a.toDouble())
-            radLocation.altitude = (alt - a*0.3).toDouble()
+          //  radLocation.altitude = (alt - a*0.3).toDouble()
+
+            if(a<90){
+              alt-=2
+            }else if(a<120){
+                alt +=2
+            }else if(a < 180){
+                alt+=2.5
+            } else if(a<270) {
+                alt +=1
+            }
+            radLocation.altitude = alt.toDouble()
             radLocation.time = (a*10000.0).toLong()
             locationList.add(radLocation)
         }
@@ -151,7 +165,7 @@ class LocationService : Service() {
         }
 
         Observable
-                .interval(2, TimeUnit.SECONDS)
+                .interval(1, TimeUnit.SECONDS)
                 .takeWhile{move}
                 .subscribeBy {
                     if(0<locationList.size){
@@ -171,7 +185,10 @@ class LocationService : Service() {
 
     inner class GPSListener : LocationListener {
         override fun onLocationChanged(location: Location) {
-            locationSubject.onNext(location)
+            if(!isDebug){
+                locationSubject.onNext(location)
+            }
+
         }
         override fun onProviderEnabled(provider: String) {}
         override fun onProviderDisabled(provider: String) {}
