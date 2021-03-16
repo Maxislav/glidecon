@@ -31,6 +31,10 @@ class MyImage(var context: Context) {
     val btnWind: Bitmap
         get() = createBtnWind()
 
+    val iconPlane: Bitmap
+     get() = createGlider()
+
+
 
     fun getManeuverArrow(@DrawableRes resId: Int): Bitmap {
         val bitmap = Bitmap.createBitmap(Math.round(30 * density), Math.round(30 * density), Bitmap.Config.ARGB_8888)
@@ -70,6 +74,7 @@ class MyImage(var context: Context) {
         }
         return bitmap
     }
+
 
     private fun createArrow(@ColorRes colorId: Int): Bitmap {
         val bitmapArrow = Bitmap.createBitmap(Math.round(density * 36), Math.round(density * 36), Bitmap.Config.ARGB_8888)
@@ -232,6 +237,21 @@ class MyImage(var context: Context) {
         canvas.drawBitmap(icon, matrix, null)
         return bitmap
     }
+
+    private fun createGlider(): Bitmap{
+
+        val icon = BitmapFactory.decodeResource(context.resources,
+                R.drawable.ic_plane_origin)
+        val bitmapWidth = 60*density
+        val bitmapHeight = bitmapWidth*icon.height/icon.width
+        val bitmap = Bitmap.createBitmap(bitmapWidth.toInt(), bitmapHeight.toInt(), Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(bitmap)
+        val matrix = Matrix()
+        matrix.setScale(bitmapWidth/icon.width, bitmapWidth/icon.width  )
+        canvas.drawBitmap(icon, matrix, null)
+        return bitmap
+    }
+
 
     fun getNextBikeIcon(@DrawableRes resId: Int): Bitmap {
         val icon = BitmapFactory.decodeResource(context.resources, resId)

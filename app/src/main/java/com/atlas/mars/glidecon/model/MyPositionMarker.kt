@@ -26,7 +26,7 @@ class MyPositionMarker(val mapView: MapView, mapboxMap: MapboxMap, val style: St
 
     init {
         val myImage = MyImage(context)
-        val bitmap: Bitmap = myImage.arrow
+        val bitmap: Bitmap = myImage.iconPlane
         style.addImage(MY_POSITION_MARKER_IMAGE_ID, bitmap);
         markerSource = createSource()
         val symbolLayer = SymbolLayer(MY_POSITION_MARKER_LAYER_ID, MY_POSITION_MARKER_SOURCE_ID)

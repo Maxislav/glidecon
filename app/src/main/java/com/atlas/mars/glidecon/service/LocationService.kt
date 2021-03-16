@@ -35,7 +35,7 @@ class LocationService : Service() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         Log.d(TAG, "onStartCommand")
-        // debug()
+        debug()
         return super.onStartCommand(intent, flags, startId)
     }
 
