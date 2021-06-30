@@ -37,7 +37,6 @@ class DialogLendingBox(val activity: AppCompatActivity, val ololo: Ololo) : Aler
     private val imageSizeSubject = BehaviorSubject.create<Int>()
     private lateinit var landingBoxDrawer: LandingBoxDrawer
     private var myViewModel: LandingBoxViewModel
-    var i = 0
     var job: Job? = null
     var isSubscribe = true;
 
@@ -45,20 +44,29 @@ class DialogLendingBox(val activity: AppCompatActivity, val ololo: Ololo) : Aler
 
     private var initialStartA: Double? = 0.0
 
+    private var startPoint = false
+
     init {
+        startPoint = false
         val binding: DialogLandingBoxBinding = DataBindingUtil.inflate(LayoutInflater.from(context), R.layout.dialog_landing_box, null, false)
         setView(binding.root);
 
         myViewModel = ViewModelProviders.of(activity, MyViewModelFactory(0.0)).get(LandingBoxViewModel::class.java)
         imageView = binding.imageView
-
+        binding.buttonPanel.setOnClickListener {
+            startPoint = true
+            alertDialog.dismiss()
+        }
         binding.landingBoxViewModel = myViewModel
         myViewModel.ratioFly.observe(activity, {
             Log.d(TAG, "$it")
         })
+
         binding.lifecycleOwner = activity
 
         setPositiveButton("Save") { dialog: DialogInterface, which: Int ->
+
+            myViewModel.angle.value?.let { MapBoxStore.landingBoxAngleSubject.onNext(it) }
             onDestroy()
         }
         setNegativeButton("Cancel", null)
@@ -86,6 +94,10 @@ class DialogLendingBox(val activity: AppCompatActivity, val ololo: Ololo) : Aler
                     center = Pair(size.toFloat() / 2, size.toFloat() / 2)
                     landingBoxDrawer = LandingBoxDrawer(context, size)
                     imageView.setImageBitmap(landingBoxDrawer.bitmap)
+                    myViewModel.angle.observe(activity, {
+                        landingBoxDrawer.draw(it)
+                        imageView.setImageBitmap(landingBoxDrawer.bitmap)
+                    })
                 }
                 .concatMap {
                     windSubject
@@ -124,12 +136,6 @@ class DialogLendingBox(val activity: AppCompatActivity, val ololo: Ololo) : Aler
         alertDialog.setOnDismissListener {
             onDestroy()
         }
-        myViewModel.setAngle(MapBoxStore.landingBoxAngleSubject.value)
-        /* MapBoxStore.landingBoxAngleSubject.
-                 .take(1)
-                 .subscribeBy {
-
-                 }*/
         return alertDialog
     }
 
@@ -200,6 +206,16 @@ class DialogLendingBox(val activity: AppCompatActivity, val ololo: Ololo) : Aler
 
     private fun onDestroy() {
         isSubscribe = false
+        if(!startPoint){
+            MapBoxStore.landingBoxAngleSubject
+                    .take(1)
+                    .subscribeBy {
+                        myViewModel.setAngle(it)
+                    }
+          //  myViewModel.setAngle(MapBoxStore.landingBoxAngleSubject.value)
+        }
+
+
     }
 
     companion object {
