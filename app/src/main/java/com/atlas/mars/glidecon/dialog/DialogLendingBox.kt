@@ -1,50 +1,115 @@
 package com.atlas.mars.glidecon.dialog
 
 import android.annotation.SuppressLint
-import android.app.Activity
 import android.app.AlertDialog
 import android.content.DialogInterface
 import android.util.Log
-import android.view.LayoutInflater
-import android.view.MotionEvent
-import android.view.View
-import android.view.WindowManager
+import android.view.*
 import android.widget.ImageView
+import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModelProviders
 import com.atlas.mars.glidecon.Ololo
 import com.atlas.mars.glidecon.R
 import com.atlas.mars.glidecon.databinding.DialogLandingBoxBinding
-import io.reactivex.Observable
-import io.reactivex.rxkotlin.Observables
+import com.atlas.mars.glidecon.model.LandingBoxDrawer
+import com.atlas.mars.glidecon.model.LandingBoxViewModel
+import com.atlas.mars.glidecon.store.MapBoxStore
+import com.atlas.mars.glidecon.store.MapBoxStore.Companion.windSubject
 import io.reactivex.rxkotlin.subscribeBy
+import io.reactivex.rxkotlin.withLatestFrom
 import io.reactivex.subjects.BehaviorSubject
-import io.reactivex.subjects.PublishSubject
 import kotlinx.coroutines.*
+import java.lang.Math.toDegrees
 import java.lang.Runnable
-import java.util.concurrent.TimeUnit
-import kotlin.coroutines.suspendCoroutine
+import kotlin.math.atan
 
 
-class DialogLendingBox(val activity: Activity, val ololo: Ololo) : AlertDialog.Builder(activity) {
+class DialogLendingBox(val activity: AppCompatActivity, val ololo: Ololo) : AlertDialog.Builder(activity) {
     lateinit var alertDialog: AlertDialog
     val imageView: ImageView
 
     private val touchStartSubject: BehaviorSubject<Pair<Float, Float>> = BehaviorSubject.create()
     private val touchMoveSubject: BehaviorSubject<Pair<Float, Float>> = BehaviorSubject.create()
     private val myThrottle: BehaviorSubject<Pair<Pair<Float, Float>, Pair<Float, Float>>> = BehaviorSubject.create()
+    private val imageSizeSubject = BehaviorSubject.create<Int>()
+    private lateinit var landingBoxDrawer: LandingBoxDrawer
+    private var myViewModel: LandingBoxViewModel
     var i = 0
     var job: Job? = null
+    var isSubscribe = true;
+
+    var center: Pair<Float, Float> = Pair(0.0f, 0.0f)
+
+    private var initialStartA: Double? = 0.0
 
     init {
         val binding: DialogLandingBoxBinding = DataBindingUtil.inflate(LayoutInflater.from(context), R.layout.dialog_landing_box, null, false)
         setView(binding.root);
+
+        myViewModel = ViewModelProviders.of(activity, MyViewModelFactory(0.0)).get(LandingBoxViewModel::class.java)
         imageView = binding.imageView
+
+        binding.landingBoxViewModel = myViewModel
+        myViewModel.ratioFly.observe(activity, {
+            Log.d(TAG, "$it")
+        })
+        binding.lifecycleOwner = activity
+
         setPositiveButton("Save") { dialog: DialogInterface, which: Int ->
-            Log.d(TAG, "")
+            onDestroy()
         }
         setNegativeButton("Cancel", null)
+        myThrottle.subscribeBy {
+            //   Log.d(TAG, "coroutine ${it.second.first}")
+            val startXY = it.first
+            val dx = startXY.first - imageSizeSubject.value / 2
+            val dy = imageSizeSubject.value / 2 - startXY.second
+            val aStart = getStartAngle(dx, dy)
+
+            val moveXY = it.second
+            val dx2 = moveXY.first - imageSizeSubject.value / 2
+            val dy2 = imageSizeSubject.value / 2 - moveXY.second
+            val aMove = getStartAngle(dx2, dy2)
+
+            Log.d(TAG, "start-move ${aMove - aStart}")
+            if (initialStartA != null) {
+                myViewModel.setAngle(initialStartA!! + aMove - aStart)
+            }
+
+        }
+        imageSizeSubject
+                .take(1)
+                .doOnNext { size ->
+                    center = Pair(size.toFloat() / 2, size.toFloat() / 2)
+                    landingBoxDrawer = LandingBoxDrawer(context, size)
+                    imageView.setImageBitmap(landingBoxDrawer.bitmap)
+                }
+                .concatMap {
+                    windSubject
+                }
+                .subscribeBy {
+
+                }
+
     }
 
+    private fun getStartAngle(dx: Float, dy: Float): Double {
+        val a = toDegrees(atan(dx / dy).toDouble())
+        return if (0 < dy && 0 < dx) {
+            a
+        } else if (0 < dx && dy <= 0) {
+            a + 180
+        } else if (dx <= 0 && dy <= 0) {
+            a + 180
+        } else {
+            a + 360
+        }
+    }
+
+    @DelicateCoroutinesApi
     override fun create(): AlertDialog {
         alertDialog = super.create()
         imageView.layoutParams.height = WindowManager.LayoutParams.WRAP_CONTENT
@@ -54,13 +119,24 @@ class DialogLendingBox(val activity: Activity, val ololo: Ololo) : AlertDialog.B
             imageView.layoutParams.width = imageView.width
             initTouchListener(imageView)
         })
+        alertDialog.window?.setGravity(Gravity.TOP or Gravity.CENTER_HORIZONTAL)
+
+        alertDialog.setOnDismissListener {
+            onDestroy()
+        }
+        myViewModel.setAngle(MapBoxStore.landingBoxAngleSubject.value)
+        /* MapBoxStore.landingBoxAngleSubject.
+                 .take(1)
+                 .subscribeBy {
+
+                 }*/
         return alertDialog
     }
 
     @DelicateCoroutinesApi
-    private fun start(n: Pair<Pair<Float, Float>, Pair<Float, Float>>) = GlobalScope.launch {
-        job?.cancelAndJoin()
-        job = launch {
+    private fun start(n: Pair<Pair<Float, Float>, Pair<Float, Float>>) {
+        //job?.cancelAndJoin()
+        job = GlobalScope.launch {
             coroutine(n)
             job = null
         }
@@ -77,18 +153,25 @@ class DialogLendingBox(val activity: Activity, val ololo: Ololo) : AlertDialog.B
         val width = imageView.layoutParams.width
         val height = imageView.layoutParams.height
 
-        // imageSizeSubject.onNext(Math.min(width, height))
+
+        imageSizeSubject.onNext(Math.min(width, height))
         fun a(): Boolean {
             return true
         }
-        myThrottle.subscribeBy {
-            Log.d(TAG, "coroutine $it")
-        }
-        Observables.combineLatest(touchStartSubject, touchMoveSubject)
-                .filter{ job == null }
-                .subscribeBy { pair: Pair<Pair<Float, Float>, Pair<Float, Float>> ->
-                    start(pair)
+        /// touchStartSubject
+        touchMoveSubject
+                .withLatestFrom(touchStartSubject)
+                .filter { job == null }
+                .subscribeBy {
+                    start(Pair(it.second, it.first))
                 }
+
+
+        /* Observables.combineLatest(touchStartSubject, touchMoveSubject)
+                 .filter { job == null }
+                 .subscribeBy { pair: Pair<Pair<Float, Float>, Pair<Float, Float>> ->
+                  //   start(pair)
+                 }*/
         imageView.setOnTouchListener { v: View?, event: MotionEvent? ->
             val X: Float? = event?.x
             val Y: Float? = event?.y
@@ -96,8 +179,10 @@ class DialogLendingBox(val activity: Activity, val ololo: Ololo) : AlertDialog.B
                 MotionEvent.ACTION_DOWN -> {
                     Log.d(TAG, "action down $X $Y")
                     if (X != null && Y != null) {
+                        initialStartA = myViewModel.angle.value
                         touchStartSubject.onNext(Pair(X, Y))
                     }
+
 
                 }
 
@@ -113,51 +198,18 @@ class DialogLendingBox(val activity: Activity, val ololo: Ololo) : AlertDialog.B
         }
     }
 
-    suspend fun tttt() {
-         delay(10000)
-        return suspendCoroutine {
-            Log.d(TAG, "ollol")
-            // it.resume("")
-        }
-    }
-
-
-    @DelicateCoroutinesApi
-    private fun createSubscriber(): BehaviorSubject<Boolean> {
-        val source = BehaviorSubject.create<Boolean>()
-
-        val s = suspend {
-            delay(1000)
-            source.onNext(true)
-            source.onComplete()
-            Log.d(TAG, "word") //
-            source
-
-        }
-
-        GlobalScope.launch {
-            s()
-        }
-
-        /*runBlocking { // this: CoroutineScope
-            launch { // launch a new coroutine and continue
-                s() // non-blocking delay for 1 second (default time unit is ms)
-            }
-            Log.d(TAG, "word")// main coroutine continues while a previous one is delayed
-        }*/
-        return source
-    }
-
-    private suspend fun coroutine2(): Unit {
-        delay(500)
-        return suspendCoroutine {
-            Log.d(TAG, "ollol")
-            // it.resume("")
-        }
+    private fun onDestroy() {
+        isSubscribe = false
     }
 
     companion object {
         const val TAG = "DialogLendingBox"
+    }
+
+    class MyViewModelFactory(private val mParam: Double) : ViewModelProvider.Factory {
+        override fun <T : ViewModel?> create(modelClass: Class<T>): T {
+            return LandingBoxViewModel(mParam) as T
+        }
     }
 
 }

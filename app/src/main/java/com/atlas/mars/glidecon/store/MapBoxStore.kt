@@ -20,6 +20,8 @@ class MapBoxStore {
         satelliteSubject = BehaviorSubject.createDefault(mapOf(SatCount.TOTAl to 0, SatCount.USED to 0))
         tiltSubject = BehaviorSubject.create()
         zoomControlSubject = BehaviorSubject.create()
+        landingLiftToDragRatioSubject = BehaviorSubject.create()
+        landingBoxAngleSubject = BehaviorSubject.createDefault(0.0)
     }
 
     companion object {
@@ -35,6 +37,8 @@ class MapBoxStore {
         lateinit var satelliteSubject: BehaviorSubject<Map<SatCount, Int>>
         lateinit var tiltSubject: BehaviorSubject<Int>
         lateinit var zoomControlSubject: BehaviorSubject<Zoom>
+        lateinit var landingLiftToDragRatioSubject: BehaviorSubject<Map<LandingLiftToDragRatio, Double>>
+        lateinit var landingBoxAngleSubject: BehaviorSubject<Double>
     }
 
     fun onDestroy() {
@@ -50,6 +54,8 @@ class MapBoxStore {
         satelliteSubject.onComplete()
         tiltSubject.onComplete()
         zoomControlSubject.onComplete()
+        landingLiftToDragRatioSubject.onComplete()
+        landingBoxAngleSubject.onComplete()
     }
 
     enum class Zoom{
@@ -66,5 +72,8 @@ class MapBoxStore {
 
     enum class FollowViewType {
         TYPICAL, FOLLOW, FOLLOW_ROTATE
+    }
+    enum class LandingLiftToDragRatio {
+        FLY, FINAL
     }
 }

@@ -31,6 +31,8 @@
     <string name="current_altitude" translatable="false">Current Altitude:</string>
     <string name="set_start_altitude" translatable="false">Start Altitude:</string>
     <string name="set_current_start_altitude" translatable="false">current</string>
+    <string name="ratio_landing_fly" translatable="false">fly landing ratio</string>
+    <string name="ratio_landing_final" translatable="false">final landing ratio</string>
     <string name="permission_ifo" translatable="false"> <![CDATA[
     <html>
      <style type=\"text/css\">

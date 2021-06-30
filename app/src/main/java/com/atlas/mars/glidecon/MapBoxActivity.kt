@@ -32,7 +32,7 @@ import com.atlas.mars.glidecon.dialog.DialogStartAltitude
 import com.atlas.mars.glidecon.dialog.DialogWindSetting
 import com.atlas.mars.glidecon.fragment.*
 import com.atlas.mars.glidecon.model.MapBoxModel
-import com.atlas.mars.glidecon.model.MyViewModel
+import com.atlas.mars.glidecon.model.LandingBoxViewModel
 import com.atlas.mars.glidecon.service.LocationService
 import com.atlas.mars.glidecon.store.MapBoxStore
 import com.google.android.material.navigation.NavigationView
@@ -107,7 +107,7 @@ class MapBoxActivity : AppCompatActivity(), Ololo {
 
         mapBoxModel = MapBoxModel(mapView!!, this as Context)
 
-      val model = ViewModelProviders.of(this).get(MyViewModel::class.java)
+      // val model = ViewModelProviders.of(this).get(LandingBoxViewModel::class.java)
 
     }
 
