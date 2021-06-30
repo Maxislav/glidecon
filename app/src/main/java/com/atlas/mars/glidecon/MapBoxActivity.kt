@@ -22,13 +22,17 @@ import androidx.appcompat.widget.Toolbar
 import androidx.core.app.ActivityCompat
 import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
+import androidx.fragment.app.FragmentActivity
 import androidx.fragment.app.FragmentTransaction
+import androidx.lifecycle.ViewModelProviders
 import com.atlas.mars.glidecon.database.MapDateBase
 import com.atlas.mars.glidecon.dialog.DialogInfoPermission
+import com.atlas.mars.glidecon.dialog.DialogLendingBox
 import com.atlas.mars.glidecon.dialog.DialogStartAltitude
 import com.atlas.mars.glidecon.dialog.DialogWindSetting
 import com.atlas.mars.glidecon.fragment.*
 import com.atlas.mars.glidecon.model.MapBoxModel
+import com.atlas.mars.glidecon.model.MyViewModel
 import com.atlas.mars.glidecon.service.LocationService
 import com.atlas.mars.glidecon.store.MapBoxStore
 import com.google.android.material.navigation.NavigationView
@@ -36,8 +40,11 @@ import com.mapbox.mapboxsdk.Mapbox
 import com.mapbox.mapboxsdk.maps.MapView
 import io.reactivex.rxkotlin.subscribeBy
 
+interface Ololo {
+    val ll: FragmentActivity
+}
 
-class MapBoxActivity : AppCompatActivity() {
+class MapBoxActivity : AppCompatActivity(), Ololo {
     private val TAG = "MapBoxActivity"
     private var mapView: MapView? = null
     private var bound: Boolean = false;
@@ -62,9 +69,15 @@ class MapBoxActivity : AppCompatActivity() {
                 displayMetrics.widthPixels
             }
         }
+    override val ll: FragmentActivity
+        get() {
+            return this
+        }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        //a.
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         serviceIntent = Intent(this, LocationService::class.java)
 
@@ -93,6 +106,8 @@ class MapBoxActivity : AppCompatActivity() {
         mapView?.onCreate(savedInstanceState)
 
         mapBoxModel = MapBoxModel(mapView!!, this as Context)
+
+      val model = ViewModelProviders.of(this).get(MyViewModel::class.java)
 
     }
 
@@ -150,6 +165,9 @@ class MapBoxActivity : AppCompatActivity() {
                 }
                 R.id.start_altitude -> {
                     DialogStartAltitude(this).create().show()
+                }
+                R.id.rectangular_landing_pattern -> {
+                    DialogLendingBox(this, this). create().show()
                 }
             }
             return true

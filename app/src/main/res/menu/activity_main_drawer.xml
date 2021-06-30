@@ -9,7 +9,10 @@
         <item
             android:id="@+id/wind_menu_item"
             android:icon="@drawable/ic_menu_wind"
-
             android:title="@string/set_wind_direction" />
+        <item
+            android:id="@+id/rectangular_landing_pattern"
+            android:icon="@drawable/ic_icons8_airplane_landing_64"
+            android:title="@string/rectangular_landing_pattern" />
     </group>
 </menu>

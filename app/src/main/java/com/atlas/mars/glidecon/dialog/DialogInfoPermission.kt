@@ -32,6 +32,7 @@ class DialogInfoPermission(val activity: Activity) : AlertDialog.Builder(activit
         setPositiveButton("Agree", object : DialogInterface.OnClickListener {
             override fun onClick(dialog: DialogInterface?, which: Int) {
                 onAgreeSubject.onNext(true)
+                onAgreeSubject.onComplete()
             }
         })
     }
@@ -40,6 +41,7 @@ class DialogInfoPermission(val activity: Activity) : AlertDialog.Builder(activit
         alertDialog = super.create()
         alertDialog.setOnDismissListener {
             onAgreeSubject.onNext(false)
+            onAgreeSubject.onComplete()
         }
         return alertDialog
     }

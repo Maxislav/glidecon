@@ -24,6 +24,7 @@
     <string name="server_protocol_title">Protocol use</string>
     <string name="altitude_k">Altitude &amp; Kmax</string>
     <string name="set_wind_direction">Wind setting</string>
+    <string name="rectangular_landing_pattern">rectangular landing pattern</string>
     <string name="mapbox_access_token" translatable="false">pk.eyJ1IjoibWF4aXNsYXYiLCJhIjoiY2lxa3o3Nm9oMDAya2l3bTJ3ZDN0MDRrdSJ9.Ty19_lyeTVUu8OxxDK8Ymg</string>
     <string name="lift_to_drag_ratio" translatable="false">Lift-to-drag ratio (max):</string>
     <string name="optimal_speed" translatable="false">Speed K(max):</string>

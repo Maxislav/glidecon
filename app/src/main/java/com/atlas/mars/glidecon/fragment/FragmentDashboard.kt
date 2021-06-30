@@ -16,6 +16,7 @@ import android.view.ViewGroup
 import android.widget.FrameLayout
 import androidx.fragment.app.Fragment
 import com.atlas.mars.glidecon.R
+import com.atlas.mars.glidecon.databinding.FragmentDashboardBinding
 import com.atlas.mars.glidecon.model.DashboardAltitudeDrawer
 import com.atlas.mars.glidecon.model.DashboardSpeedDrawer
 import com.atlas.mars.glidecon.model.DashboardVarioDrawer
@@ -40,11 +41,12 @@ class FragmentDashboard : Fragment() {
     private var speedViewFr: CustomFontTextView? = null
     private var varioView: CustomFontTextView? = null
     private var altView: CustomFontTextView? = null
-    private var ratioView: CustomFontTextView? = null
+    // private var ratioView: CustomFontTextView? = null
     private val locationList = mutableListOf<Location>()
     private lateinit var speedDrawer: DashboardSpeedDrawer
     private lateinit var varioDrawer: DashboardVarioDrawer
     private lateinit var altDrawer: DashboardAltitudeDrawer
+    private lateinit var binding: FragmentDashboardBinding
 
     companion object {
         const val HANDLER_SPEED_KEY = "speed"
@@ -55,7 +57,9 @@ class FragmentDashboard : Fragment() {
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         // return super.onCreateView(inflater, container, savedInstanceState)
-        return inflater.inflate(R.layout.fragment_dashboard, null)
+        binding =FragmentDashboardBinding.inflate(inflater, container, false)
+        // return inflater.inflate(R.layout.fragment_dashboard, null)
+        return binding.root;
     }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
@@ -64,7 +68,7 @@ class FragmentDashboard : Fragment() {
         speedViewFr = view?.findViewById(R.id.speed_view_fractional)
         varioView = view?.findViewById(R.id.vario_view)
         altView = view?.findViewById(R.id.alt_view)
-        ratioView = view?.findViewById(R.id.ratio_view)
+       // ratioView = view?.findViewById(R.id.ratio_view)
 
         speedFrame = view?.findViewById(R.id.speed_frame)
         varioFrame = view?.findViewById(R.id.vario_frame)
@@ -151,8 +155,10 @@ class FragmentDashboard : Fragment() {
                         speedView?.text = celoe.toString()
                         speedViewFr?.text = drobnoe.toString()
                         if (ratio < 2000) {
-                            ratioView?.text = DecimalFormat("#.#").format(ratio)
+                            //ratioView?.text = DecimalFormat("#.#").format(ratio)
+                            binding.myRatio = DecimalFormat("#.#").format(ratio)
                         }
+
                         varioView?.text = vario?.let {
                             if (0 < it) {
                                 DecimalFormat("#.#").format(vario).let { "+$it" }
