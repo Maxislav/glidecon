@@ -1,6 +1,7 @@
 package com.atlas.mars.glidecon
 
 import android.Manifest
+import android.app.AlertDialog
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
@@ -24,6 +25,8 @@ import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.fragment.app.FragmentActivity
 import androidx.fragment.app.FragmentTransaction
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelProviders
 import com.atlas.mars.glidecon.database.MapDateBase
 import com.atlas.mars.glidecon.dialog.DialogInfoPermission
@@ -55,6 +58,8 @@ class MapBoxActivity : AppCompatActivity(), Ololo {
     var isSubscribed = false;
     lateinit var mapDateBase: MapDateBase
     lateinit var mapBoxStore: MapBoxStore
+
+    var dialogLendingBox: AlertDialog? = null
 
     private val screenWidth: Int
         get() {
@@ -105,10 +110,14 @@ class MapBoxActivity : AppCompatActivity(), Ololo {
 
         mapView?.onCreate(savedInstanceState)
 
-        mapBoxModel = MapBoxModel(mapView!!, this as Context)
 
-      // val model = ViewModelProviders.of(this).get(LandingBoxViewModel::class.java)
-
+        val myViewModel = ViewModelProviders.of(this).get(LandingBoxViewModel::class.java)
+        mapBoxModel = MapBoxModel(mapView!!, this as Context, myViewModel)
+        myViewModel.startLatLng.observe(this, {
+            if (it != null && dialogLendingBox?.isShowing == false) {
+                dialogLendingBox?.show()
+            }
+        })
     }
 
     val sCon = object : ServiceConnection {
@@ -167,7 +176,13 @@ class MapBoxActivity : AppCompatActivity(), Ololo {
                     DialogStartAltitude(this).create().show()
                 }
                 R.id.rectangular_landing_pattern -> {
-                    DialogLendingBox(this, this). create().show()
+                    if (dialogLendingBox == null) {
+                        dialogLendingBox = DialogLendingBox(this, this).create()
+                    }
+
+                    dialogLendingBox?.show()
+
+
                 }
             }
             return true
@@ -317,6 +332,10 @@ class MapBoxActivity : AppCompatActivity(), Ololo {
         mapDateBase.onUnsubscribe()
         mapBoxStore.onDestroy()
     }
-
+    /* class MyViewModelFactory(private val mParam: Double) : ViewModelProvider.Factory {
+         override fun <T : ViewModel?> create(modelClass: Class<T>): T {
+             return LandingBoxViewModel(mParam) as T
+         }
+     }*/
 
 }

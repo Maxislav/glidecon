@@ -34,6 +34,13 @@ class MapDateBase(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, n
         private const val START_ALTITUDE = "startAltitude"
         private const val LIFT_TO_DRAG_RATIO = "liftToDragRatio"
         private const val OPTIMAL_SPEED = "optimalSpeed"
+        private const val LANDING_BOX_ANGLE = "landingBoxAngle"
+        private const val LANDING_START_POINT_LNG = "landingStartPointLng"
+        private const val LANDING_START_POINT_LAT = "landingStartPointLat"
+        private const val LANDING_RATIO_FLY = "landingRatioFly"
+        private const val LANDING_RATIO_FINAL = "landingRatioFinal"
+
+
         private const val AGREEMENT_AGREE = "agreementAgree"
 
     }
@@ -99,7 +106,6 @@ class MapDateBase(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, n
             MapBoxStore.liftToDragRatioSubject.onNext(ratio)
             skip = 1
         }
-
         MapBoxStore.liftToDragRatioSubject.takeWhile { isSubscribed }
                 .skip(skip)
                 .subscribeBy(
@@ -124,6 +130,81 @@ class MapDateBase(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, n
                             saveParam(OPTIMAL_SPEED, it)
                         }
                 )
+        /** STARTING POINT DIRECTION **/
+        cursor = sdb.rawQuery(query, arrayOf(LANDING_BOX_ANGLE))
+        skip = 0
+        if (0 < cursor.count) {
+            cursor.moveToFirst()
+            val angle = cursor.getDouble(cursor.getColumnIndex(VALUE))
+            MapBoxStore.landingBoxAngleSubject.onNext(angle)
+            skip = 1
+        }
+        MapBoxStore.landingBoxAngleSubject.takeWhile { isSubscribed }
+                .skip(skip)
+                .subscribeBy(
+                        onNext = {
+                            saveParam(LANDING_BOX_ANGLE, it)
+                        }
+                )
+
+        /** STARl PoINT LAT LNG**/
+        cursor = sdb.rawQuery(query, arrayOf(LANDING_START_POINT_LAT))
+        skip = 0
+        var startLat: Double? = null
+        var startLng: Double? = null
+        if (0 < cursor.count) {
+            cursor.moveToFirst()
+            startLat = cursor.getDouble(cursor.getColumnIndex(VALUE))
+        }
+
+        cursor = sdb.rawQuery(query, arrayOf(LANDING_START_POINT_LNG))
+        if (0 < cursor.count) {
+            cursor.moveToFirst()
+            startLng = cursor.getDouble(cursor.getColumnIndex(VALUE))
+        }
+        if (startLat != null && startLng != null) {
+            skip = 1
+            val lngLat  = LatLng(startLat, startLng)
+            MapBoxStore.landingStartPointSubject.onNext(lngLat)
+        }
+
+        MapBoxStore.landingStartPointSubject.takeWhile { isSubscribed }
+                .skip(skip)
+                .subscribeBy(
+                        onNext = {
+                            saveParam(LANDING_START_POINT_LAT, it.latitude)
+                            saveParam(LANDING_START_POINT_LNG, it.longitude)
+                        }
+                )
+        /** landing ratio */
+        cursor = sdb.rawQuery(query, arrayOf(LANDING_RATIO_FLY))
+        skip = 0
+        var landingRatioFly: Double? = null
+        var landingRatioFinal: Double? = null
+        if(0<cursor.count){
+            cursor.moveToFirst()
+            landingRatioFly = cursor.getDouble(cursor.getColumnIndex(VALUE))
+        }
+        cursor = sdb.rawQuery(query, arrayOf(LANDING_RATIO_FINAL))
+        if(0<cursor.count) {
+            cursor.moveToFirst()
+            landingRatioFinal = cursor.getDouble(cursor.getColumnIndex(VALUE))
+        }
+        if(landingRatioFly!= null && landingRatioFinal != null){
+            MapBoxStore.landingLiftToDragRatioSubject.onNext(
+                    mapOf(
+                            MapBoxStore.LandingLiftToDragRatio.FLY to landingRatioFly,
+                            MapBoxStore.LandingLiftToDragRatio.FINAL to landingRatioFinal
+                    )
+            )
+            skip = 1
+        }
+        MapBoxStore.landingLiftToDragRatioSubject.takeWhile { isSubscribed }
+                .skip(skip)
+                .subscribeBy {
+                    it[MapBoxStore.LandingLiftToDragRatio.FLY]?.let { ratio -> saveParam(LANDING_RATIO_FLY, ratio) }
+                    it[MapBoxStore.LandingLiftToDragRatio.FINAL]?.let { ratio -> saveParam(LANDING_RATIO_FINAL, ratio) }
+                }
 
         cursor.close()
         //sdb.close()
@@ -141,7 +222,7 @@ class MapDateBase(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, n
         return 0 < cursor.getDouble(cursor.getColumnIndex(VALUE))
     }
 
-    fun saveAgreementAgree(){
+    fun saveAgreementAgree() {
         saveParam(AGREEMENT_AGREE, 1.0)
     }
 

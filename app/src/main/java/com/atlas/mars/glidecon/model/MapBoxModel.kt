@@ -11,6 +11,7 @@ import android.util.Log
 import android.view.MotionEvent
 import android.view.View
 import com.atlas.mars.glidecon.database.MapDateBase
+import com.atlas.mars.glidecon.dialog.DialogWindSetting
 import com.atlas.mars.glidecon.store.MapBoxStore
 import com.atlas.mars.glidecon.store.MapBoxStore.Companion.cameraPositionSubject
 import com.atlas.mars.glidecon.store.MapBoxStore.Companion.compassOnClickSubject
@@ -34,7 +35,7 @@ import java.util.*
 import kotlin.math.pow
 
 
-class MapBoxModel(val mapView: MapView, val context: Context) {
+class MapBoxModel(val mapView: MapView, val context: Context, val myViewModel: LandingBoxViewModel) {
     private val TAG = "MapBoxModel"
     private var isSubscribed = true
     lateinit var markerViewManager: MarkerViewManager
@@ -42,8 +43,10 @@ class MapBoxModel(val mapView: MapView, val context: Context) {
     lateinit var directionArea: DirectionArea
     lateinit var flightRadius: FlightRadius
     lateinit var tailTrace: TailTrace
+    lateinit var landingPatternBox: LandingPatternBox
     var mapboxMap: MapboxMap? = null
     val mapDateBase: MapDateBase = MapDateBase(context)
+    var defineStartingPoint: DefineStartingPoint? = null
 
     init {
 
@@ -60,6 +63,7 @@ class MapBoxModel(val mapView: MapView, val context: Context) {
 
             mapboxMap.setStyle(Style.MAPBOX_STREETS) { style: Style ->
                 tailTrace = TailTrace(style, context)
+                landingPatternBox = LandingPatternBox(style, context)
                 MyPositionMarker(mapView, mapboxMap, style, context)
                 directionArea = DirectionArea(mapView, mapboxMap, style, context)
                 flightRadius = FlightRadius(style, context)
@@ -109,10 +113,20 @@ class MapBoxModel(val mapView: MapView, val context: Context) {
                             //   mapboxMapSubject.onComplete()
                         }
                 )
+
+
     }
 
     private fun initMap(mapboxMap: MapboxMap) {
         this.mapboxMap = mapboxMap
+
+        MapBoxStore.defineStartingPointClickSubject
+                .takeWhile { isSubscribed }
+                .filter{defineStartingPoint == null}
+                .subscribeBy {
+                    defineStartingPoint = DefineStartingPoint()
+                    mapboxMap.addOnMapLongClickListener(defineStartingPoint!!)
+                }
 
         val cp = mapDateBase.getCameraPosition()
         cp?.let {
@@ -135,15 +149,15 @@ class MapBoxModel(val mapView: MapView, val context: Context) {
                 .takeWhile { isSubscribed }
                 .subscribeBy { zoom: MapBoxStore.Zoom ->
                     var currentZoom = mapboxMap.cameraPosition.zoom
-                            when (zoom){
-                                MapBoxStore.Zoom.IN -> {
-                                    currentZoom+=0.5
+                    when (zoom) {
+                        MapBoxStore.Zoom.IN -> {
+                            currentZoom += 0.5
 
-                                }
-                                MapBoxStore.Zoom.OUT -> {
-                                    currentZoom-=0.5
-                                }
-                            }
+                        }
+                        MapBoxStore.Zoom.OUT -> {
+                            currentZoom -= 0.5
+                        }
+                    }
                     val position = CameraPosition.Builder()
                             .zoom(currentZoom)
                             .build()
@@ -291,6 +305,7 @@ class MapBoxModel(val mapView: MapView, val context: Context) {
         directionArea.onDestroy()
         flightRadius.onDestroy()
         tailTrace.onDestroy()
+        landingPatternBox.onDestroy()
     }
 
     internal class DrawView(context: Context?) : View(context) {
@@ -316,5 +331,23 @@ class MapBoxModel(val mapView: MapView, val context: Context) {
             canvas.drawCircle(80.toFloat(), 80.toFloat(), 10.toFloat(), p)
         }
     }
+
+    inner class DefineStartingPoint : MapboxMap.OnMapLongClickListener {
+        override fun onMapLongClick(point: LatLng): Boolean {
+            defineStartingPoint?.let {
+                mapboxMap?.removeOnMapLongClickListener (it)
+                defineStartingPoint = null
+            }
+
+            myViewModel.setStartLatLng(point)
+            /*val dialogWindSetting = DialogWindSetting(context)
+            dialogWindSetting.create().show()*/
+            return true
+        }
+    }
+
+    /*override fun onMapLongClick(point: LatLng): Boolean {
+        TODO("Not yet implemented")
+    }*/
 }
 

@@ -2,7 +2,9 @@
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools">
+
     <data>
+
         <variable
             name="landingBoxViewModel"
             type="com.atlas.mars.glidecon.model.LandingBoxViewModel" />
@@ -34,61 +36,95 @@
             <com.atlas.mars.glidecon.view.CustomFontTextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:gravity="end"
                 android:background="@color/white"
+                android:gravity="end"
                 android:text="@{landingBoxViewModel.angleToView}"
                 android:textSize="42sp" />
         </FrameLayout>
 
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:orientation="horizontal"
-            android:weightSum="3"
-            android:layout_height="wrap_content">
-            <TextView
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:gravity="end"
-                android:padding="10dp"
-                android:text="@string/ratio_landing_fly"
-                tools:ignore="NestedWeights" />
-            <EditText
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_weight="2"
-                android:padding="10dp"
-                android:inputType="numberDecimal|numberSigned"
-                android:selectAllOnFocus="true"
-                android:text="@={landingBoxViewModel.ratioFly}" />
-        </LinearLayout>
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:orientation="horizontal"
-            android:weightSum="3"
-            android:layout_height="wrap_content">
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:gravity="end"
-                android:padding="10dp"
-                android:text="@string/ratio_landing_final"
-                tools:ignore="NestedWeights" />
-            <EditText
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_weight="2"
-                android:padding="10dp"
-                android:inputType="numberDecimal|numberSigned"
-                android:selectAllOnFocus="true"
-                android:text="@={landingBoxViewModel.ratioFlyFinal}" />
-        </LinearLayout>
-        <Button
-            android:id="@+id/buttonPanel"
-            android:text="Define start point"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"/>
+                android:focusable="true"
+                android:focusableInTouchMode="true"
+                android:orientation="vertical">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:weightSum="3">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:gravity="end"
+                        android:padding="10dp"
+                        android:text="@string/ratio_landing_fly"
+                        tools:ignore="NestedWeights" />
+
+                    <EditText
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="2"
+                        android:inputType="numberDecimal|numberSigned"
+                        android:padding="10dp"
+                        android:selectAllOnFocus="true"
+                        android:text="@={landingBoxViewModel.ratioFly}" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:weightSum="3">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:gravity="end"
+                        android:padding="10dp"
+                        android:text="@string/ratio_landing_final"
+                        tools:ignore="NestedWeights" />
+
+                    <EditText
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="2"
+                        android:inputType="numberDecimal|numberSigned"
+                        android:padding="10dp"
+                        android:selectAllOnFocus="true"
+                        android:text="@={landingBoxViewModel.ratioFlyFinal}" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:padding="10dp"
+                        android:text="@{landingBoxViewModel.startLatLngToView}" />
+                </LinearLayout>
+
+                <Button
+                    android:id="@+id/buttonPanel"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Define start point" />
+            </LinearLayout>
+        </ScrollView>
+
+
     </LinearLayout>
+
+
 </layout>

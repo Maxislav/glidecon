@@ -2,6 +2,7 @@ package com.atlas.mars.glidecon.store
 
 import android.location.Location
 import com.mapbox.mapboxsdk.camera.CameraPosition
+import com.mapbox.mapboxsdk.geometry.LatLng
 import com.mapbox.mapboxsdk.maps.MapboxMap
 import io.reactivex.subjects.BehaviorSubject
 
@@ -22,6 +23,8 @@ class MapBoxStore {
         zoomControlSubject = BehaviorSubject.create()
         landingLiftToDragRatioSubject = BehaviorSubject.create()
         landingBoxAngleSubject = BehaviorSubject.createDefault(0.0)
+        landingStartPointSubject = BehaviorSubject.create()
+        defineStartingPointClickSubject = BehaviorSubject.create()
     }
 
     companion object {
@@ -39,6 +42,8 @@ class MapBoxStore {
         lateinit var zoomControlSubject: BehaviorSubject<Zoom>
         lateinit var landingLiftToDragRatioSubject: BehaviorSubject<Map<LandingLiftToDragRatio, Double>>
         lateinit var landingBoxAngleSubject: BehaviorSubject<Double>
+        lateinit var landingStartPointSubject: BehaviorSubject<LatLng>
+        lateinit var defineStartingPointClickSubject:  BehaviorSubject<Boolean>
     }
 
     fun onDestroy() {
@@ -56,6 +61,8 @@ class MapBoxStore {
         zoomControlSubject.onComplete()
         landingLiftToDragRatioSubject.onComplete()
         landingBoxAngleSubject.onComplete()
+        defineStartingPointClickSubject.onComplete()
+        landingStartPointSubject.onComplete()
     }
 
     enum class Zoom{

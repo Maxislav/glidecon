@@ -4,6 +4,7 @@
     <item name="iron" type="color">#ffeff1de</item>
     <item name="blue" type="color">#4fa5d5</item>
     <item name="green" type="color">#ff3f9834</item>
+    <item name="aerodrome_field" type="color">#25CD54</item>
     <item name="red" type="color">#ffb9060e</item>
     <item name="shadow" type="color">#22000000</item>
     <item name="blackColor" type="color">#ff000000</item>
@@ -16,6 +17,7 @@
     <item name="colorOrange" type="color">#EC5627</item>
     <item name="safetyColor" type="color">#0037FD</item>
     <item name="criticalColor" type="color">#F30000</item>
+    <item name="landingPatternColor" type="color">#0004FF</item>
 
     <item name="tailTrace1" type="color">#86FFFFFF</item>
     <item name="tailTrace2" type="color">#FF7CBBFF</item>

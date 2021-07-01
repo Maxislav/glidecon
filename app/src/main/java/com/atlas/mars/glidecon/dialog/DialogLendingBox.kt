@@ -11,13 +11,16 @@ import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelProviders
+import com.atlas.mars.glidecon.MapBoxActivity
 import com.atlas.mars.glidecon.Ololo
 import com.atlas.mars.glidecon.R
 import com.atlas.mars.glidecon.databinding.DialogLandingBoxBinding
 import com.atlas.mars.glidecon.model.LandingBoxDrawer
 import com.atlas.mars.glidecon.model.LandingBoxViewModel
 import com.atlas.mars.glidecon.store.MapBoxStore
+import com.atlas.mars.glidecon.store.MapBoxStore.Companion.defineStartingPointClickSubject
 import com.atlas.mars.glidecon.store.MapBoxStore.Companion.windSubject
+import com.atlas.mars.glidecon.util.LocationUtil
 import io.reactivex.rxkotlin.subscribeBy
 import io.reactivex.rxkotlin.withLatestFrom
 import io.reactivex.subjects.BehaviorSubject
@@ -50,24 +53,24 @@ class DialogLendingBox(val activity: AppCompatActivity, val ololo: Ololo) : Aler
         startPoint = false
         val binding: DialogLandingBoxBinding = DataBindingUtil.inflate(LayoutInflater.from(context), R.layout.dialog_landing_box, null, false)
         setView(binding.root);
-
-        myViewModel = ViewModelProviders.of(activity, MyViewModelFactory(0.0)).get(LandingBoxViewModel::class.java)
+        /** with some init
+         * myViewModel = ViewModelProviders.of(activity, MapBoxActivity.MyViewModelFactory(0.0)).get(LandingBoxViewModel::class.java)
+         * params*/
+        myViewModel = ViewModelProviders.of(activity).get(LandingBoxViewModel::class.java)
         imageView = binding.imageView
         binding.buttonPanel.setOnClickListener {
             startPoint = true
+            defineStartingPointClickSubject.onNext(true)
             alertDialog.dismiss()
         }
         binding.landingBoxViewModel = myViewModel
         myViewModel.ratioFly.observe(activity, {
             Log.d(TAG, "$it")
         })
-
         binding.lifecycleOwner = activity
 
-        setPositiveButton("Save") { dialog: DialogInterface, which: Int ->
-
-            myViewModel.angle.value?.let { MapBoxStore.landingBoxAngleSubject.onNext(it) }
-            onDestroy()
+        setPositiveButton("Save") { _, _->
+            onSave()
         }
         setNegativeButton("Cancel", null)
         myThrottle.subscribeBy {
@@ -108,6 +111,26 @@ class DialogLendingBox(val activity: AppCompatActivity, val ololo: Ololo) : Aler
 
     }
 
+
+
+    private fun onSave() {
+        val ratioFly = myViewModel.ratioFly.value?.toDouble()
+        val ratioFlyFinal = myViewModel.ratioFlyFinal.value?.toDouble()
+        if(0< ratioFly!! && 0< ratioFlyFinal!!){
+            val map = mapOf(MapBoxStore.LandingLiftToDragRatio.FLY to ratioFly,MapBoxStore.LandingLiftToDragRatio.FINAL to  ratioFlyFinal)
+            MapBoxStore.landingLiftToDragRatioSubject.onNext(map)
+        }
+
+        myViewModel.angle.value?.let {
+            MapBoxStore.landingBoxAngleSubject.onNext(LocationUtil().bearingNormalize(it))
+        }
+        myViewModel.startLatLng.value?.let {
+            MapBoxStore.landingStartPointSubject.onNext(it)
+        }
+
+        onDestroy()
+    }
+
     private fun getStartAngle(dx: Float, dy: Float): Double {
         val a = toDegrees(atan(dx / dy).toDouble())
         return if (0 < dy && 0 < dx) {
@@ -136,13 +159,30 @@ class DialogLendingBox(val activity: AppCompatActivity, val ololo: Ololo) : Aler
         alertDialog.setOnDismissListener {
             onDestroy()
         }
+
+        alertDialog.setOnShowListener {
+            initViewModel()
+        }
+       //  initViewModel()
         return alertDialog
+    }
+    private fun initViewModel(){
+
+        if( MapBoxStore.landingStartPointSubject.hasValue()) {
+            myViewModel.setStartLatLng(MapBoxStore.landingStartPointSubject.value)
+        }
+        if(MapBoxStore.landingLiftToDragRatioSubject.hasValue()){
+            val v = MapBoxStore.landingLiftToDragRatioSubject.value
+            myViewModel.setRatio(v[MapBoxStore.LandingLiftToDragRatio.FLY].toString(), v[MapBoxStore.LandingLiftToDragRatio.FINAL].toString())
+        }
+         myViewModel.setAngle(MapBoxStore.landingBoxAngleSubject.value)
+
     }
 
     @DelicateCoroutinesApi
-    private fun start(n: Pair<Pair<Float, Float>, Pair<Float, Float>>) {
+    private fun start(n: Pair<Pair<Float, Float>, Pair<Float, Float>>) = runBlocking {
         //job?.cancelAndJoin()
-        job = GlobalScope.launch {
+        job = launch {
             coroutine(n)
             job = null
         }
@@ -205,16 +245,8 @@ class DialogLendingBox(val activity: AppCompatActivity, val ololo: Ololo) : Aler
     }
 
     private fun onDestroy() {
-        isSubscribe = false
-        if(!startPoint){
-            MapBoxStore.landingBoxAngleSubject
-                    .take(1)
-                    .subscribeBy {
-                        myViewModel.setAngle(it)
-                    }
-          //  myViewModel.setAngle(MapBoxStore.landingBoxAngleSubject.value)
-        }
 
+        isSubscribe = false
 
     }
 
@@ -222,10 +254,5 @@ class DialogLendingBox(val activity: AppCompatActivity, val ololo: Ololo) : Aler
         const val TAG = "DialogLendingBox"
     }
 
-    class MyViewModelFactory(private val mParam: Double) : ViewModelProvider.Factory {
-        override fun <T : ViewModel?> create(modelClass: Class<T>): T {
-            return LandingBoxViewModel(mParam) as T
-        }
-    }
 
 }

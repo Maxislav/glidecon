@@ -141,7 +141,7 @@ class LandingBoxDrawer(private val context: Context, private var size: Number) {
         path.reset()
         path.addCircle(size / 2, size / 2, size / 2, Path.Direction.CCW)
         path.close()
-        p.color = ContextCompat.getColor(context, R.color.green)
+        p.color = ContextCompat.getColor(context, R.color.aerodrome_field)
         p.style = Paint.Style.FILL
         //p.alpha = 5
         //p.xfermode = PorterDuffXfermode(PorterDuff.Mode.CLEAR)
@@ -165,7 +165,7 @@ class LandingBoxDrawer(private val context: Context, private var size: Number) {
         p.reset()
         path.addCircle(size / 2, size / 2, size / 2 - density * 20, Path.Direction.CCW)
         path.close()
-        p.color = ContextCompat.getColor(context, R.color.green)
+        p.color = ContextCompat.getColor(context, R.color.aerodrome_field)
         p.style = Paint.Style.FILL
         // p.xfermode = PorterDuffXfermode(PorterDuff.Mode.CLEAR)
         canvas.drawPath(path, p)

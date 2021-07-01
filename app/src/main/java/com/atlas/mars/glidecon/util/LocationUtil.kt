@@ -1,5 +1,6 @@
 package com.atlas.mars.glidecon.util
 
+import com.mapbox.geojson.Point
 import android.location.Location
 import java.lang.Math.toDegrees
 import java.lang.Math.toRadians
@@ -17,7 +18,7 @@ class LocationUtil() : Location("A") {
         this.altitude = location.altitude
     }
 
-    fun offset(location: Location, distance: Double, bearing: Double): Location {
+    fun offset(location: Location, distance: Double, bearing: Double): LocationUtil {
         //var lat1 = toRadians(c1[1]);
         var bearing = toRadians(bearing)
         val lat1 = toRadians(location.latitude)
@@ -36,13 +37,14 @@ class LocationUtil() : Location("A") {
                                 Math.cos(dByR) - Math.sin(lat1) * Math.sin(lat)
                         );
 
-        val location2 = Location("B")
+        val location2 = LocationUtil()
         location2.longitude = lon
+
         location2.latitude = lat
         return location2
     }
 
-    fun offset(distance: Double, bearing: Double): Location {
+    fun offset(distance: Double, bearing: Double): LocationUtil {
         val bearing1 = toRadians(bearing)
         val lat1 = toRadians(this.latitude)
         val lon1 = toRadians(this.longitude);
@@ -57,10 +59,14 @@ class LocationUtil() : Location("A") {
                                 cos(dByR) - sin(lat1) * sin(lat)
                         );
 
-        val location2 = Location("B")
+        val location2 = LocationUtil()
         location2.longitude = toDegrees(lon)
         location2.latitude = toDegrees(lat)
         return location2
+    }
+
+    fun toPoint(): Point{
+        return Point.fromLngLat(this.longitude, this.latitude)
     }
 
     fun bearingNormalize(bearing: Double): Double {
