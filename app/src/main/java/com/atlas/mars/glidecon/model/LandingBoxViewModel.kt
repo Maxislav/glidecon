@@ -18,6 +18,7 @@ class LandingBoxViewModel : ViewModel() {
 
     val startLatLngToView = MutableLiveData<String>()
 
+    var definePointClick = false
 
     init {
         ratioFly.value = 0.0.toString()

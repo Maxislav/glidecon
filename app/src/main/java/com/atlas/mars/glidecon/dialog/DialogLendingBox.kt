@@ -47,10 +47,9 @@ class DialogLendingBox(val activity: AppCompatActivity, val ololo: Ololo) : Aler
 
     private var initialStartA: Double? = 0.0
 
-    private var startPoint = false
+   // private var startPoint = false
 
     init {
-        startPoint = false
         val binding: DialogLandingBoxBinding = DataBindingUtil.inflate(LayoutInflater.from(context), R.layout.dialog_landing_box, null, false)
         setView(binding.root);
         /** with some init
@@ -59,7 +58,7 @@ class DialogLendingBox(val activity: AppCompatActivity, val ololo: Ololo) : Aler
         myViewModel = ViewModelProviders.of(activity).get(LandingBoxViewModel::class.java)
         imageView = binding.imageView
         binding.buttonPanel.setOnClickListener {
-            startPoint = true
+            myViewModel.definePointClick = true
             defineStartingPointClickSubject.onNext(true)
             alertDialog.dismiss()
         }
@@ -69,7 +68,7 @@ class DialogLendingBox(val activity: AppCompatActivity, val ololo: Ololo) : Aler
         })
         binding.lifecycleOwner = activity
 
-        setPositiveButton("Save") { _, _->
+        setPositiveButton("Save") { _, _ ->
             onSave()
         }
         setNegativeButton("Cancel", null)
@@ -112,12 +111,11 @@ class DialogLendingBox(val activity: AppCompatActivity, val ololo: Ololo) : Aler
     }
 
 
-
     private fun onSave() {
         val ratioFly = myViewModel.ratioFly.value?.toDouble()
         val ratioFlyFinal = myViewModel.ratioFlyFinal.value?.toDouble()
-        if(0< ratioFly!! && 0< ratioFlyFinal!!){
-            val map = mapOf(MapBoxStore.LandingLiftToDragRatio.FLY to ratioFly,MapBoxStore.LandingLiftToDragRatio.FINAL to  ratioFlyFinal)
+        if (0 < ratioFly!! && 0 < ratioFlyFinal!!) {
+            val map = mapOf(MapBoxStore.LandingLiftToDragRatio.FLY to ratioFly, MapBoxStore.LandingLiftToDragRatio.FINAL to ratioFlyFinal)
             MapBoxStore.landingLiftToDragRatioSubject.onNext(map)
         }
 
@@ -163,19 +161,24 @@ class DialogLendingBox(val activity: AppCompatActivity, val ololo: Ololo) : Aler
         alertDialog.setOnShowListener {
             initViewModel()
         }
-       //  initViewModel()
+        //  initViewModel()
         return alertDialog
     }
-    private fun initViewModel(){
 
-        if( MapBoxStore.landingStartPointSubject.hasValue()) {
-            myViewModel.setStartLatLng(MapBoxStore.landingStartPointSubject.value)
+    private fun initViewModel() {
+
+        if(!myViewModel.definePointClick){
+            if (MapBoxStore.landingStartPointSubject.hasValue()) {
+                myViewModel.setStartLatLng(MapBoxStore.landingStartPointSubject.value)
+            }
+            if (MapBoxStore.landingLiftToDragRatioSubject.hasValue()) {
+                val v = MapBoxStore.landingLiftToDragRatioSubject.value
+                myViewModel.setRatio(v[MapBoxStore.LandingLiftToDragRatio.FLY].toString(), v[MapBoxStore.LandingLiftToDragRatio.FINAL].toString())
+            }
+            myViewModel.setAngle(MapBoxStore.landingBoxAngleSubject.value)
         }
-        if(MapBoxStore.landingLiftToDragRatioSubject.hasValue()){
-            val v = MapBoxStore.landingLiftToDragRatioSubject.value
-            myViewModel.setRatio(v[MapBoxStore.LandingLiftToDragRatio.FLY].toString(), v[MapBoxStore.LandingLiftToDragRatio.FINAL].toString())
-        }
-         myViewModel.setAngle(MapBoxStore.landingBoxAngleSubject.value)
+
+        myViewModel.definePointClick = false
 
     }
 
