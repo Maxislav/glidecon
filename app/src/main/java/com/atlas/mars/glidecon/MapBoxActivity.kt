@@ -105,10 +105,15 @@ class MapBoxActivity : AppCompatActivity(), Ololo {
         screenWidth
 
         mapView = findViewById(R.id.mapView)
+        mapView?.onCreate(savedInstanceState ?: Bundle())
+        /*if(savedInstanceState === null){
+            val b = Bundle()
+            mapView?.onCreate(b)
+        }else{
+            mapView?.onCreate(savedInstanceState)
+        }*/
 
 
-
-        mapView?.onCreate(savedInstanceState)
 
 
         val myViewModel = ViewModelProviders.of(this).get(LandingBoxViewModel::class.java)

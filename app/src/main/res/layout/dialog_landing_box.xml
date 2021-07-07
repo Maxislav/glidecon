@@ -119,7 +119,7 @@
                     android:id="@+id/buttonPanel"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Define start point" />
+                    android:text="@string/define_starting_point" />
             </LinearLayout>
         </ScrollView>
 
