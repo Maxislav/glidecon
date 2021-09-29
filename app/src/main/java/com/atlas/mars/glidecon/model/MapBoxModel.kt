@@ -44,6 +44,8 @@ class MapBoxModel(val mapView: MapView, val context: Context, val myViewModel: L
     lateinit var flightRadius: FlightRadius
     lateinit var tailTrace: TailTrace
     lateinit var landingPatternBox: LandingPatternBox
+    lateinit var mapRoute: MapRoute
+
     var mapboxMap: MapboxMap? = null
     val mapDateBase: MapDateBase = MapDateBase(context)
     var defineStartingPoint: DefineStartingPoint? = null
@@ -64,6 +66,8 @@ class MapBoxModel(val mapView: MapView, val context: Context, val myViewModel: L
             mapboxMap.setStyle(Style.MAPBOX_STREETS) { style: Style ->
                 tailTrace = TailTrace(style, context)
                 landingPatternBox = LandingPatternBox(style, context)
+                mapRoute = MapRoute(style, context)
+
                 MyPositionMarker(mapView, mapboxMap, style, context)
                 directionArea = DirectionArea(mapView, mapboxMap, style, context)
                 flightRadius = FlightRadius(style, context)
