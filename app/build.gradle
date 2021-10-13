@@ -6,6 +6,9 @@ apply plugin: 'kotlin-kapt'
 apply plugin: 'com.google.firebase.crashlytics'
 
 android {
+    lintOptions {
+        disable "ResourceType"
+    }
     useLibrary  'org.apache.http.legacy'
     packagingOptions {
         exclude 'META-INF/LICENSE.txt'

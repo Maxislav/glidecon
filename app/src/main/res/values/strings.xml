@@ -2,6 +2,7 @@
 <resources>
 
     <string name="app_name">GlideCalc</string>
+    <string name="list_saved_track">List saved track</string>
     <string name="app_settings">Settings</string>
     <string name="title_activity_maps">Map</string>
 
@@ -23,6 +24,7 @@
     <string name="navigation_drawer_open">open</string>
     <string name="server_protocol_title">Protocol use</string>
     <string name="altitude_k">Altitude &amp; Kmax</string>
+    <string name="track_list">Track List</string>
     <string name="set_wind_direction">Wind setting</string>
     <string name="rectangular_landing_pattern">rectangular landing pattern</string>
     <string name="mapbox_access_token" translatable="false">pk.eyJ1IjoibWF4aXNsYXYiLCJhIjoiY2lxa3o3Nm9oMDAya2l3bTJ3ZDN0MDRrdSJ9.Ty19_lyeTVUu8OxxDK8Ymg</string>

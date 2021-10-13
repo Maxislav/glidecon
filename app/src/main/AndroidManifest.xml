@@ -51,6 +51,14 @@
             android:screenOrientation="portrait">
 
         </activity>
+        <activity
+           android:theme="@style/AppTheme.Primary"
+            android:name=".ListSavedTrack"
+            android:label="@string/list_saved_track"
+            android:screenOrientation="portrait"
+            >
+
+        </activity>
 
 
         <activity

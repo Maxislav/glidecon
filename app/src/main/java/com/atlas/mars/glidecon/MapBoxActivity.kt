@@ -81,8 +81,7 @@ class MapBoxActivity : AppCompatActivity(), Ololo {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        //a.
+        isSubscribed = true
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         serviceIntent = Intent(this, LocationService::class.java)
 
@@ -186,8 +185,11 @@ class MapBoxActivity : AppCompatActivity(), Ololo {
                     }
 
                     dialogLendingBox?.show()
-
-
+                }
+                R.id.list_saved_track -> {
+                    val intent = Intent(this, ListSavedTrack::class.java)
+                    startActivityForResult(intent, 0)
+                    Log.d(TAG, "list saved track clicked")
                 }
             }
             return true
@@ -289,7 +291,7 @@ class MapBoxActivity : AppCompatActivity(), Ololo {
     }
 
     override fun onResume() {
-        isSubscribed = true
+
         super.onResume()
 
         if (mapDateBase.getAgreement()) {
@@ -321,7 +323,7 @@ class MapBoxActivity : AppCompatActivity(), Ololo {
     }
 
     override fun onPause() {
-        isSubscribed = false
+
         super.onPause()
         Log.d(TAG, "onPause")
         if (bound) {
@@ -332,6 +334,7 @@ class MapBoxActivity : AppCompatActivity(), Ololo {
 
     override fun onDestroy() {
         super.onDestroy()
+        isSubscribed = false
         mapView?.onDestroy()
         mapBoxModel.onDestroy()
         mapDateBase.onUnsubscribe()
