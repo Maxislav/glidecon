@@ -113,8 +113,6 @@ class MapBoxActivity : AppCompatActivity(), Ololo {
         }*/
 
 
-
-
         val myViewModel = ViewModelProviders.of(this).get(LandingBoxViewModel::class.java)
         mapBoxModel = MapBoxModel(mapView!!, this as Context, myViewModel)
         myViewModel.startLatLng.observe(this, {
@@ -255,7 +253,7 @@ class MapBoxActivity : AppCompatActivity(), Ololo {
             R.id.action_calc -> {
                 Log.d(TAG, "action_settings")
                 val questionIntent = Intent(this, MainActivity::class.java)
-                startActivityForResult(questionIntent, 0)
+                startActivityForResult(questionIntent, LIST_SAVED_TRACK_CODE)
             }
         }
         return super.onOptionsItemSelected(menuItem)
@@ -346,4 +344,16 @@ class MapBoxActivity : AppCompatActivity(), Ololo {
          }
      }*/
 
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        when(requestCode){
+            LIST_SAVED_TRACK_CODE -> {
+                Log.d(TAG, "returned from list saved track")
+            }
+        }
+    }
+
+    companion object {
+        val LIST_SAVED_TRACK_CODE = 0
+    }
 }

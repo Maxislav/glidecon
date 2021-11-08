@@ -7,6 +7,7 @@
     <string name="title_activity_maps">Map</string>
 
     <string name="save_and_close">Save and close</string>
+    <string name="back">Back</string>
 
     <string name="web" translatable="false"><![CDATA[<html><meta charset=\"utf-8\"><body><p style=\"color:#A0A0A0;text-indent: 20px; text-align: justify;\">{content}</p></body></html> ]]></string>
     <string name="multiple_send_help">Allows you to select multiple commands</string>
