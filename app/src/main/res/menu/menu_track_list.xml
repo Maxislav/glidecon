@@ -1,0 +1,9 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    >
+    <item android:id="@+id/item_delete"
+        android:title="Delete" />
+    <item android:id="@+id/item_rename"
+        android:title="Rename" />
+</menu>

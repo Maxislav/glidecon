@@ -18,7 +18,12 @@
 
     <group>
         <item
+            android:icon="@drawable/ic_track_list"
             android:id="@+id/list_saved_track"
-            android:title="@string/track_list" />
+            android:title="@string/list_saved_track" />
+        <item
+            android:icon="@drawable/ic_track_build"
+            android:id="@+id/track_build"
+            android:title="@string/build_track" />
     </group>
 </menu>

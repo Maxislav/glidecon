@@ -20,14 +20,28 @@ class MapDateBase(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, n
     companion object {
         private const val TAG = "MapDateBase"
 
-        private const val DATABASE_VERSION = 1
+        private const val DATABASE_VERSION = 2
         private const val DATABASE_NAME = "mapSettingDataBase"
         private const val TABLE_SETTING_MAP = "settingMap"
         private const val TABLE_SETTING_PARAM = "settingFlyParam"
 
+        private const val TABLE_ROUTE_NAME = "routeName"
+        private const val TABLE_ROUTE_POINT = "routePoint"
+
         private const val UID = "id"
         private const val NAME = "name"
         private const val VALUE = "value"
+        private const val NAME_ID = "nameId"
+
+        private const val DISTANCE = "distance"
+        private const val DATE_TIME = "dateTime"
+        private const val ACTIVE = "active"
+        private const val PROPS = "props"
+
+        /**
+         * default | turning
+         */
+        private const val POINT_TYPE = "pointType"
 
         private const val WIND_DIRECTION = "windDirection"
         private const val WIND_SPEED = "windSpeed"
@@ -43,10 +57,73 @@ class MapDateBase(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, n
 
         private const val AGREEMENT_AGREE = "agreementAgree"
 
+
     }
 
     init {
 
+    }
+
+    override fun onCreate(db: SQLiteDatabase?) {
+        createTableSetting(db)
+        createTableRoutes(db)
+    }
+
+    override fun onUpgrade(db: SQLiteDatabase?, oldVersion: Int, newVersion: Int) {
+        if (oldVersion < 2) {
+            createTableRoutes(db)
+        }
+    }
+
+    private fun createTableSetting(db: SQLiteDatabase?) {
+        val createTableSettingMap = "CREATE TABLE if not exists $TABLE_SETTING_MAP" +
+                " (" +
+                "$UID INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                "lat DOUBLE, " +
+                "lon DOUBLE, " +
+                "zoom DOUBLE, " +
+                "bearing DOUBLE, " +
+                "tilt DOUBLE" +
+                ");"
+        db?.execSQL(createTableSettingMap)
+
+        val createTableFlyParams = "CREATE TABLE if not exists $TABLE_SETTING_PARAM" +
+                " (" +
+                " $UID INTEGER PRIMARY KEY AUTOINCREMENT," +
+                " $NAME VARCHAR(255)," +
+                " $VALUE DOUBLE" +
+                ");"
+        db?.execSQL(createTableFlyParams)
+
+    }
+
+    private fun createTableRoutes(db: SQLiteDatabase?) {
+        val createTRouteName = "CREATE TABLE if not exists $TABLE_ROUTE_NAME" +
+                " (" +
+                " $UID INTEGER PRIMARY KEY AUTOINCREMENT," +
+                " $NAME VARCHAR(255)," +
+                " $DISTANCE DOUBLE," +
+                " $DATE_TIME TEXT," +
+                " $ACTIVE BOOLEAN NOT NULL DEFAULT 0," +
+                " $PROPS VARCHAR(255) DEFAULT NULL" +
+                ");"
+        db?.execSQL(createTRouteName)
+        /**
+         * type
+         */
+
+        val createTRouePoint = "CREATE TABLE if not exists $TABLE_ROUTE_POINT" +
+                " (" +
+                " $UID INTEGER PRIMARY KEY AUTOINCREMENT," +
+                " $NAME_ID INTEGER," +
+                " lat DOUBLE," +
+                " lon DOUBLE," +
+                " alt DOUBLE," +
+                " $POINT_TYPE VARCHAR(12) DEFAULT `point`," +
+                " marker VARCHAR" +
+                ");"
+        db?.execSQL(createTRouePoint)
+        Log.d(TAG, "createTableRoutes complete")
     }
 
     fun initValues() {
@@ -164,7 +241,7 @@ class MapDateBase(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, n
         }
         if (startLat != null && startLng != null) {
             skip = 1
-            val lngLat  = LatLng(startLat, startLng)
+            val lngLat = LatLng(startLat, startLng)
             MapBoxStore.landingStartPointSubject.onNext(lngLat)
         }
 
@@ -181,16 +258,16 @@ class MapDateBase(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, n
         skip = 0
         var landingRatioFly: Double? = null
         var landingRatioFinal: Double? = null
-        if(0<cursor.count){
+        if (0 < cursor.count) {
             cursor.moveToFirst()
             landingRatioFly = cursor.getDouble(cursor.getColumnIndex(VALUE))
         }
         cursor = sdb.rawQuery(query, arrayOf(LANDING_RATIO_FINAL))
-        if(0<cursor.count) {
+        if (0 < cursor.count) {
             cursor.moveToFirst()
             landingRatioFinal = cursor.getDouble(cursor.getColumnIndex(VALUE))
         }
-        if(landingRatioFly!= null && landingRatioFinal != null){
+        if (landingRatioFly != null && landingRatioFinal != null) {
             MapBoxStore.landingLiftToDragRatioSubject.onNext(
                     mapOf(
                             MapBoxStore.LandingLiftToDragRatio.FLY to landingRatioFly,
@@ -282,24 +359,6 @@ class MapDateBase(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, n
         isSubscribed = false
     }
 
-    override fun onCreate(db: SQLiteDatabase?) {
-        val createTableSettingMap = "CREATE TABLE if not exists $TABLE_SETTING_MAP (" +
-                "$UID INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                "lat DOUBLE, " +
-                "lon DOUBLE, " +
-                "zoom DOUBLE, " +
-                "bearing DOUBLE, " +
-                "tilt DOUBLE" +
-                ");"
-        db?.execSQL(createTableSettingMap)
-
-        val createTableFlyParams = "CREATE TABLE if not exists $TABLE_SETTING_PARAM ($UID INTEGER PRIMARY KEY AUTOINCREMENT, $NAME VARCHAR(255), $VALUE  DOUBLE );"
-        db?.execSQL(createTableFlyParams)
-    }
-
-    override fun onUpgrade(db: SQLiteDatabase?, oldVersion: Int, newVersion: Int) {
-        //
-    }
 
     fun saveCameraPosition(cameraPosition: CameraPosition) {
         cameraPosition.bearing

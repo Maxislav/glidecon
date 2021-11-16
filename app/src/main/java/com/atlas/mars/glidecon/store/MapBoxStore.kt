@@ -25,6 +25,7 @@ class MapBoxStore {
         landingBoxAngleSubject = BehaviorSubject.createDefault(0.0)
         landingStartPointSubject = BehaviorSubject.create()
         defineStartingPointClickSubject = BehaviorSubject.create()
+        routeBuildProgress = BehaviorSubject.createDefault(false)
     }
 
     companion object {
@@ -44,6 +45,8 @@ class MapBoxStore {
         lateinit var landingBoxAngleSubject: BehaviorSubject<Double>
         lateinit var landingStartPointSubject: BehaviorSubject<LatLng>
         lateinit var defineStartingPointClickSubject:  BehaviorSubject<Boolean>
+        lateinit var routeBuildProgress: BehaviorSubject<Boolean>
+        lateinit var activeRoutes: BehaviorSubject<Array<Double>>
     }
 
     fun onDestroy() {
@@ -63,6 +66,8 @@ class MapBoxStore {
         landingBoxAngleSubject.onComplete()
         defineStartingPointClickSubject.onComplete()
         landingStartPointSubject.onComplete()
+        routeBuildProgress.onComplete()
+        activeRoutes.onComplete()
     }
 
     enum class Zoom{

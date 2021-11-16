@@ -3,20 +3,24 @@ package com.atlas.mars.glidecon
 import android.content.Context
 import android.os.Bundle
 import android.util.Log
-import android.view.LayoutInflater
-import android.view.Menu
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import android.widget.ArrayAdapter
 import android.widget.ListView
+import android.widget.PopupMenu
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import com.atlas.mars.glidecon.databinding.ActivityListSavedTrackBinding
 import com.atlas.mars.glidecon.databinding.TrackListItemBinding
+import com.atlas.mars.glidecon.model.ListTrackItem
+import com.atlas.mars.glidecon.model.MyHandler
 
 
 class ListSavedTrack : AppCompatActivity() {
     private val TAG = "ListSavedTrack_tag"
+
+    public fun ololo(){
+
+    }
 
     private lateinit var binding: ActivityListSavedTrackBinding
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -26,6 +30,15 @@ class ListSavedTrack : AppCompatActivity() {
         // binding =  DataBindingUtil.setContentView(this, R.layout.action_bar_list_saved_track)
         //setView(binding.root);
         val listView: ListView = binding.listView;
+
+
+        val trackList = arrayListOf<ListTrackItem>(ListTrackItem("Бразилия", 27))
+        //trackList[0].name = "4"
+        val t = object {
+            var name: String = ""
+            var distance: String = ""
+        }
+
         val countries = arrayListOf<String>(
                 "Бразилия",
                 "Аргентина",
@@ -88,7 +101,12 @@ class ListSavedTrack : AppCompatActivity() {
                 "Уругвай"
         )
 
-        val adapter = MyListAdapter(this, countries)
+        for(item in countries){
+            // println(i)
+            trackList.add(ListTrackItem(item, 0.0))
+        }
+
+        val adapter = MyListAdapter(this, trackList)
         listView.adapter = adapter;
         Helper.getListViewSize(listView);
     }
@@ -106,8 +124,23 @@ class ListSavedTrack : AppCompatActivity() {
         return true
     }
 
+    inner class MyClick(private val context: Context, private val item: ListTrackItem): View.OnLongClickListener{
+        override fun onLongClick(v: View?): Boolean {
+            Log.d(TAG, "click ${item.name}")
+            val popup = PopupMenu(context, v)
+            popup.inflate(R.menu.menu_track_list)
+            popup.setOnMenuItemClickListener { menuItem: MenuItem ->
+                // Respond to menu item click.
+                return@setOnMenuItemClickListener true
+            }
+            popup.show()
+            return true
+        }
 
-    inner class MyListAdapter(context: Context, private val items: ArrayList<String>) : ArrayAdapter<String>(context, 0, items) {
+    }
+
+
+    inner class MyListAdapter(context: Context, private val items: ArrayList<ListTrackItem>) : ArrayAdapter<ListTrackItem>(context, 0, items), View.OnLongClickListener {
         lateinit var view: View
         lateinit var binding: TrackListItemBinding
 
@@ -119,7 +152,21 @@ class ListSavedTrack : AppCompatActivity() {
 
             }
 
-            binding.textView1.text = items[position]
+            binding.textView1.text = items[position].name
+            binding.linearRow.setOnLongClickListener(MyClick(context, items[position]))
+            /*binding.linearRow.setOnLongClickListener { view ->
+                Log.d(TAG, "click ${items[position].name}")
+                val popup = PopupMenu(context, view)
+                popup.inflate(R.menu.menu_track_list)
+                popup.setOnMenuItemClickListener { menuItem: MenuItem ->
+                    // Respond to menu item click.
+                    return@setOnMenuItemClickListener true
+                }
+                popup.show()
+
+                true
+            }*/
+            binding.trackItem = ListTrackItem(items[position].name, 50)
             return binding.root
         }
 
@@ -128,6 +175,10 @@ class ListSavedTrack : AppCompatActivity() {
         }
         override fun getItemId(position: Int): Long {
             return position.toLong()
+        }
+
+        override fun onLongClick(v: View?): Boolean {
+            return true
         }
 
 
