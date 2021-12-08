@@ -12,15 +12,15 @@ import androidx.appcompat.app.AppCompatActivity
 import com.atlas.mars.glidecon.databinding.ActivityListSavedTrackBinding
 import com.atlas.mars.glidecon.databinding.TrackListItemBinding
 import com.atlas.mars.glidecon.model.ListTrackItem
-import com.atlas.mars.glidecon.model.MyHandler
 
+
+interface IVehicle {
+    val name: String
+    val make: String
+}
 
 class ListSavedTrack : AppCompatActivity() {
-    private val TAG = "ListSavedTrack_tag"
-
-    public fun ololo(){
-
-    }
+    // private val TAG = "ListSavedTrack_tag"
 
     private lateinit var binding: ActivityListSavedTrackBinding
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -101,7 +101,7 @@ class ListSavedTrack : AppCompatActivity() {
                 "Уругвай"
         )
 
-        for(item in countries){
+        for (item in countries) {
             // println(i)
             trackList.add(ListTrackItem(item, 0.0))
         }
@@ -124,7 +124,7 @@ class ListSavedTrack : AppCompatActivity() {
         return true
     }
 
-    inner class MyClick(private val context: Context, private val item: ListTrackItem): View.OnLongClickListener{
+    inner class MyClick(private val context: Context, private val item: ListTrackItem) : View.OnLongClickListener {
         override fun onLongClick(v: View?): Boolean {
             Log.d(TAG, "click ${item.name}")
             val popup = PopupMenu(context, v)
@@ -146,7 +146,7 @@ class ListSavedTrack : AppCompatActivity() {
 
         override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
 
-            if(!this::view.isInitialized){
+            if (!this::view.isInitialized) {
                 binding = TrackListItemBinding.inflate(
                         LayoutInflater.from(parent.context), parent, false)
 
@@ -173,6 +173,7 @@ class ListSavedTrack : AppCompatActivity() {
         override fun getCount(): Int {
             return items.size
         }
+
         override fun getItemId(position: Int): Long {
             return position.toLong()
         }
@@ -182,6 +183,10 @@ class ListSavedTrack : AppCompatActivity() {
         }
 
 
+    }
+
+    companion object {
+        const val TAG = "ListSavedTrack_tag"
     }
 
     object Helper {

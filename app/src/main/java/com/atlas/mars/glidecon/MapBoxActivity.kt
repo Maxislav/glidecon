@@ -23,6 +23,7 @@ import androidx.appcompat.widget.Toolbar
 import androidx.core.app.ActivityCompat
 import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
+import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import androidx.fragment.app.FragmentTransaction
 import androidx.lifecycle.ViewModel
@@ -42,10 +43,14 @@ import com.google.android.material.navigation.NavigationView
 import com.mapbox.mapboxsdk.Mapbox
 import com.mapbox.mapboxsdk.maps.MapView
 import io.reactivex.rxkotlin.subscribeBy
+import io.reactivex.subjects.AsyncSubject
+import io.reactivex.subjects.BehaviorSubject
+import io.reactivex.subjects.Subject
 
 interface Ololo {
     val ll: FragmentActivity
 }
+
 
 class MapBoxActivity : AppCompatActivity(), Ololo {
     private val TAG = "MapBoxActivity"
@@ -58,6 +63,9 @@ class MapBoxActivity : AppCompatActivity(), Ololo {
     var isSubscribed = false;
     lateinit var mapDateBase: MapDateBase
     lateinit var mapBoxStore: MapBoxStore
+    private var fragmentTrackBuild: FragmentTrackBuild? = null
+    private var fragmentDashboard: FragmentDashboard? = null
+    private val _onDestroy = AsyncSubject.create<Boolean>();
 
     var dialogLendingBox: AlertDialog? = null
 
@@ -93,11 +101,11 @@ class MapBoxActivity : AppCompatActivity(), Ololo {
         Mapbox.getInstance(this, getString(R.string.mapbox_access_token))
         setContentView(R.layout.activity_mapbox)
 
+        setupStoreSubscribers()
         setupDrawerLayout()
         setupGpsStatusFrame()
         setupCompassFrame()
         setupFollowFrame()
-        setupBikeComputerFrame()
         setupTiltLayout()
         setupZoomControl()
         setupWindLayout()
@@ -189,10 +197,39 @@ class MapBoxActivity : AppCompatActivity(), Ololo {
                     startActivityForResult(intent, 0)
                     Log.d(TAG, "list saved track clicked")
                 }
+                R.id.track_build -> {
+                    MapBoxStore.routeBuildProgress.onNext(true)
+                }
             }
             return true
         })
 
+    }
+
+    private fun setupStoreSubscribers() {
+        MapBoxStore.routeBuildProgress
+                .takeUntil(_onDestroy)
+                .subscribeBy {
+                    if (it) {
+                        showBuildTrackFrame()
+                        hideBikeComputerFrame()
+                    } else {
+                        hideBuildTrackFrame()
+                        showBikeComputerFrame()
+                    }
+                }
+    }
+
+    private fun showBuildTrackFrame() {
+        val fm = this.supportFragmentManager
+        val ft: FragmentTransaction = fm.beginTransaction()
+        fragmentTrackBuild = FragmentTrackBuild()
+        fragmentTrackBuild?.let { fr -> ft.add(R.id.track_build_layout, fr).commit() }
+
+    }
+
+    private fun hideBuildTrackFrame() {
+        fragmentTrackBuild?.let { fr -> this.supportFragmentManager.beginTransaction().remove(fr).commit() }
     }
 
     private fun setupGpsStatusFrame() {
@@ -211,13 +248,19 @@ class MapBoxActivity : AppCompatActivity(), Ololo {
          gpsStatusTrans.commit()*/
     }
 
-    private fun setupBikeComputerFrame() {
+    private fun showBikeComputerFrame(){
         val fm = this.supportFragmentManager
         val ft: FragmentTransaction = fm.beginTransaction()
-        ft.add(R.id.bike_computer_layout, FragmentDashboard())
-        ft.commit();
+        fragmentDashboard = FragmentDashboard()
+        fragmentDashboard?.let { fr ->  ft.add(R.id.bike_computer_layout, fr).commit()}
 
     }
+
+    private fun hideBikeComputerFrame(){
+        fragmentDashboard?.let { fr -> this.supportFragmentManager.beginTransaction().remove(fr).commit() }
+    }
+
+
 
     private fun setupCompassFrame() {
         val fm = this.supportFragmentManager
@@ -337,16 +380,13 @@ class MapBoxActivity : AppCompatActivity(), Ololo {
         mapBoxModel.onDestroy()
         mapDateBase.onUnsubscribe()
         mapBoxStore.onDestroy()
+        this._onDestroy.onNext(true)
+        this._onDestroy.onComplete()
     }
-    /* class MyViewModelFactory(private val mParam: Double) : ViewModelProvider.Factory {
-         override fun <T : ViewModel?> create(modelClass: Class<T>): T {
-             return LandingBoxViewModel(mParam) as T
-         }
-     }*/
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        when(requestCode){
+        when (requestCode) {
             LIST_SAVED_TRACK_CODE -> {
                 Log.d(TAG, "returned from list saved track")
             }

@@ -100,5 +100,13 @@
         android:layout_marginBottom="20dp"
         />
 
+    <FrameLayout
+        android:id="@+id/track_build_layout"
+        android:layout_gravity="bottom|center"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="20dp"
+        />
+
 
 </FrameLayout>

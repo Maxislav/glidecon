@@ -26,6 +26,7 @@ class MapBoxStore {
         landingStartPointSubject = BehaviorSubject.create()
         defineStartingPointClickSubject = BehaviorSubject.create()
         routeBuildProgress = BehaviorSubject.createDefault(false)
+        activeRoutes = BehaviorSubject.create()
     }
 
     companion object {
@@ -44,7 +45,7 @@ class MapBoxStore {
         lateinit var landingLiftToDragRatioSubject: BehaviorSubject<Map<LandingLiftToDragRatio, Double>>
         lateinit var landingBoxAngleSubject: BehaviorSubject<Double>
         lateinit var landingStartPointSubject: BehaviorSubject<LatLng>
-        lateinit var defineStartingPointClickSubject:  BehaviorSubject<Boolean>
+        lateinit var defineStartingPointClickSubject: BehaviorSubject<Boolean>
         lateinit var routeBuildProgress: BehaviorSubject<Boolean>
         lateinit var activeRoutes: BehaviorSubject<Array<Double>>
     }
@@ -70,7 +71,7 @@ class MapBoxStore {
         activeRoutes.onComplete()
     }
 
-    enum class Zoom{
+    enum class Zoom {
         IN, OUT
     }
 
@@ -85,7 +86,13 @@ class MapBoxStore {
     enum class FollowViewType {
         TYPICAL, FOLLOW, FOLLOW_ROTATE
     }
+
     enum class LandingLiftToDragRatio {
         FLY, FINAL
+    }
+
+    enum class ROUTE_TYPE {
+        ROUTE,
+        LINEAR
     }
 }
