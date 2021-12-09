@@ -1,9 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout xmlns:tools="http://schemas.android.com/tools"
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
     <data>
-        <import type="com.atlas.mars.glidecon.store.MapBoxStore.ROUTE_TYPE"/>
+
+        <import type="com.atlas.mars.glidecon.store.MapBoxStore.RouteType" />
+        <import type="com.atlas.mars.glidecon.R" />
+
+        <import type="androidx.core.content.ContextCompat" />
+
         <variable
             name="fragmentTrackBuild"
             type="com.atlas.mars.glidecon.fragment.FragmentTrackBuild" />
@@ -17,42 +23,49 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:gravity="center_vertical"
-            app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent">
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
 
             <ImageView
-                android:layout_margin="5dp"
                 android:layout_width="30dp"
                 android:layout_height="30dp"
-                android:padding="5dp"
-                android:onClick="@{(view)->fragmentTrackBuild.onClickRouteType(ROUTE_TYPE.LINEAR)}"
-                android:background="@{fragmentTrackBuild.routeType == 0 ? fragmentTrackBuild.buttonColor : 0}"
-                app:srcCompat="@drawable/ic_route_line"
-                />
-
-            <ImageView
-                android:layout_margin="5dp"
-                android:layout_width="30dp"
-                android:layout_height="30dp"
-                android:padding="5dp"
-                android:onClick="@{(view)->fragmentTrackBuild.onClickRouteType(ROUTE_TYPE.ROUTE)}"
-                android:background="@{fragmentTrackBuild.routeType == 1 ? fragmentTrackBuild.buttonColor : 0}"
-                app:srcCompat="@drawable/ic_track_build"
-                 />
-
-            <ImageView
-                android:layout_width="33dp"
-                android:padding="5dp"
-                android:layout_height="30dp"
-                android:layout_margin="5dp"
+                android:layout_margin="10dp"
                 android:onClick="@{(view)->fragmentTrackBuild.onClickClose()}"
+                android:padding="5dp"
                 app:srcCompat="@drawable/ic_close" />
+            <ImageView
+
+
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:background="@{fragmentTrackBuild.routeType == RouteType.PLANE ? fragmentTrackBuild.buttonColor : null}"
+                android:onClick="@{(view)->fragmentTrackBuild.onClickRouteType(RouteType.PLANE)}"
+                android:padding="5dp"
+                app:srcCompat="@drawable/ic_glider_top" />
+            <ImageView
+
+
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:background="@{fragmentTrackBuild.routeType == RouteType.BIKE ? fragmentTrackBuild.buttonColor : null}"
+                android:onClick="@{(view)->fragmentTrackBuild.onClickRouteType(RouteType.BIKE)}"
+                android:padding="5dp"
+                app:srcCompat="@drawable/ic_motorcycle" />
+
+
+            <ImageView
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_margin="5dp"
+                android:background="@{fragmentTrackBuild.routeType == RouteType.CAR ? fragmentTrackBuild.buttonColor : null}"
+                android:onClick="@{(view)->fragmentTrackBuild.onClickRouteType(RouteType.CAR)}"
+                android:padding="5dp"
+                app:srcCompat="@drawable/ic_car" />
+
 
         </LinearLayout>
-
-
 
 
     </androidx.constraintlayout.widget.ConstraintLayout>

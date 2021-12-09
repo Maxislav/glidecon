@@ -209,6 +209,7 @@ class MapBoxActivity : AppCompatActivity(), Ololo {
     private fun setupStoreSubscribers() {
         MapBoxStore.routeBuildProgress
                 .takeUntil(_onDestroy)
+                .distinctUntilChanged()
                 .subscribeBy {
                     if (it) {
                         showBuildTrackFrame()
@@ -229,7 +230,9 @@ class MapBoxActivity : AppCompatActivity(), Ololo {
     }
 
     private fun hideBuildTrackFrame() {
-        fragmentTrackBuild?.let { fr -> this.supportFragmentManager.beginTransaction().remove(fr).commit() }
+        fragmentTrackBuild?.let { fr ->
+            this.supportFragmentManager.beginTransaction().remove(fr).commit(); fragmentTrackBuild = null
+        }
     }
 
     private fun setupGpsStatusFrame() {
@@ -374,7 +377,6 @@ class MapBoxActivity : AppCompatActivity(), Ololo {
     }
 
     override fun onDestroy() {
-        super.onDestroy()
         isSubscribed = false
         mapView?.onDestroy()
         mapBoxModel.onDestroy()
@@ -382,6 +384,7 @@ class MapBoxActivity : AppCompatActivity(), Ololo {
         mapBoxStore.onDestroy()
         this._onDestroy.onNext(true)
         this._onDestroy.onComplete()
+        super.onDestroy()
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {

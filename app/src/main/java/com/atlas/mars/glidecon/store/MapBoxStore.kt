@@ -27,6 +27,7 @@ class MapBoxStore {
         defineStartingPointClickSubject = BehaviorSubject.create()
         routeBuildProgress = BehaviorSubject.createDefault(false)
         activeRoutes = BehaviorSubject.create()
+        routeType = BehaviorSubject.create()
     }
 
     companion object {
@@ -48,6 +49,7 @@ class MapBoxStore {
         lateinit var defineStartingPointClickSubject: BehaviorSubject<Boolean>
         lateinit var routeBuildProgress: BehaviorSubject<Boolean>
         lateinit var activeRoutes: BehaviorSubject<Array<Double>>
+        lateinit var routeType: BehaviorSubject<RouteType>
     }
 
     fun onDestroy() {
@@ -69,6 +71,7 @@ class MapBoxStore {
         landingStartPointSubject.onComplete()
         routeBuildProgress.onComplete()
         activeRoutes.onComplete()
+        routeType.onComplete()
     }
 
     enum class Zoom {
@@ -90,9 +93,23 @@ class MapBoxStore {
     enum class LandingLiftToDragRatio {
         FLY, FINAL
     }
+    enum class Color(val rgb: Int) {
+        RED(0xFF0000),
+        GREEN(0x00FF00),
+        BLUE(0x0000FF)
+    }
 
-    enum class ROUTE_TYPE {
-        ROUTE,
-        LINEAR
+    enum class RouteType( var routeType: Int) {
+        PLANE(0),
+        BIKE(1),
+        CAR(2);
+        companion object{
+            fun from(value: Int): RouteType{
+                var dd = values().find {v -> v.routeType == value }
+                return dd!!
+            }
+        }
+
+
     }
 }

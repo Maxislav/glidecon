@@ -53,6 +53,7 @@ class MapDateBase(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, n
         private const val LANDING_START_POINT_LAT = "landingStartPointLat"
         private const val LANDING_RATIO_FLY = "landingRatioFly"
         private const val LANDING_RATIO_FINAL = "landingRatioFinal"
+        private const val ROUTE_TYPE = "routeType"
 
 
         private const val AGREEMENT_AGREE = "agreementAgree"
@@ -281,6 +282,25 @@ class MapDateBase(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, n
                 .subscribeBy {
                     it[MapBoxStore.LandingLiftToDragRatio.FLY]?.let { ratio -> saveParam(LANDING_RATIO_FLY, ratio) }
                     it[MapBoxStore.LandingLiftToDragRatio.FINAL]?.let { ratio -> saveParam(LANDING_RATIO_FINAL, ratio) }
+                }
+
+        var initRouteType = false;
+        cursor = sdb.rawQuery(query, arrayOf(ROUTE_TYPE))
+        if (0 < cursor.count) {
+            initRouteType = true
+            cursor.moveToFirst()
+            val routeType = cursor.getDouble(cursor.getColumnIndex(VALUE))
+            val rr: MapBoxStore.RouteType = MapBoxStore.RouteType.from(routeType.toInt())
+            MapBoxStore.routeType.onNext(rr)
+            initRouteType = false
+        } else {
+            val rr: MapBoxStore.RouteType = MapBoxStore.RouteType.CAR
+            MapBoxStore.routeType.onNext(rr)
+        }
+        MapBoxStore.routeType.takeWhile { isSubscribed }
+                .filter { !initRouteType }
+                .subscribeBy {
+                    saveParam(ROUTE_TYPE, it.routeType.toDouble())
                 }
 
         cursor.close()
