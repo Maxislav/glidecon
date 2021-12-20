@@ -4,7 +4,9 @@ import android.location.Location
 import com.mapbox.mapboxsdk.camera.CameraPosition
 import com.mapbox.mapboxsdk.geometry.LatLng
 import com.mapbox.mapboxsdk.maps.MapboxMap
+import io.reactivex.subjects.AsyncSubject
 import io.reactivex.subjects.BehaviorSubject
+import io.reactivex.subjects.PublishSubject
 
 class MapBoxStore {
 
@@ -26,8 +28,10 @@ class MapBoxStore {
         landingStartPointSubject = BehaviorSubject.create()
         defineStartingPointClickSubject = BehaviorSubject.create()
         routeBuildProgress = BehaviorSubject.createDefault(false)
-        activeRoutes = BehaviorSubject.create()
+        activeRoute = BehaviorSubject.create()
         routeType = BehaviorSubject.create()
+        routeButtonClick = PublishSubject.create()
+       //  routeSave = PublishSubject.create()
     }
 
     companion object {
@@ -48,8 +52,9 @@ class MapBoxStore {
         lateinit var landingStartPointSubject: BehaviorSubject<LatLng>
         lateinit var defineStartingPointClickSubject: BehaviorSubject<Boolean>
         lateinit var routeBuildProgress: BehaviorSubject<Boolean>
-        lateinit var activeRoutes: BehaviorSubject<Array<Double>>
+        lateinit var activeRoute: BehaviorSubject<Double>
         lateinit var routeType: BehaviorSubject<RouteType>
+        lateinit var routeButtonClick: PublishSubject<RouteAction>
     }
 
     fun onDestroy() {
@@ -70,8 +75,9 @@ class MapBoxStore {
         defineStartingPointClickSubject.onComplete()
         landingStartPointSubject.onComplete()
         routeBuildProgress.onComplete()
-        activeRoutes.onComplete()
+        activeRoute.onComplete()
         routeType.onComplete()
+        routeButtonClick.onComplete()
     }
 
     enum class Zoom {
@@ -93,23 +99,30 @@ class MapBoxStore {
     enum class LandingLiftToDragRatio {
         FLY, FINAL
     }
-    enum class Color(val rgb: Int) {
-        RED(0xFF0000),
-        GREEN(0x00FF00),
-        BLUE(0x0000FF)
-    }
 
-    enum class RouteType( var routeType: Int) {
-        PLANE(0),
-        BIKE(1),
-        CAR(2);
-        companion object{
-            fun from(value: Int): RouteType{
-                var dd = values().find {v -> v.routeType == value }
+    enum class RouteAction(var routeAction: String) {
+        BACK("back"),
+        SAVE("save"),
+        CLOSE("close");
+
+        companion object {
+            fun from(value: String): RouteAction {
+                val dd = values().find { v -> v.routeAction == value }
                 return dd!!
             }
         }
+    }
 
+    enum class RouteType(var routeType: Int) {
+        PLANE(0),
+        BIKE(1),
+        CAR(2);
 
+        companion object {
+            fun from(value: Int): RouteType {
+                val dd = values().find { v -> v.routeType == value }
+                return dd!!
+            }
+        }
     }
 }

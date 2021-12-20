@@ -4,22 +4,39 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Color
 import android.location.Location
+import android.util.Log
 import com.atlas.mars.glidecon.R
+import com.atlas.mars.glidecon.store.MapBoxStore
 import com.atlas.mars.glidecon.util.LocationUtil
 import com.mapbox.geojson.Feature
 import com.mapbox.geojson.FeatureCollection
 import com.mapbox.geojson.LineString
 import com.mapbox.geojson.Point
+import com.mapbox.mapboxsdk.geometry.LatLng
+import com.mapbox.mapboxsdk.maps.MapboxMap
 import com.mapbox.mapboxsdk.maps.Style
 import com.mapbox.mapboxsdk.style.layers.LineLayer
 import com.mapbox.mapboxsdk.style.layers.Property
 import com.mapbox.mapboxsdk.style.layers.PropertyFactory
 import com.mapbox.mapboxsdk.style.sources.GeoJsonSource
+import io.reactivex.rxkotlin.subscribeBy
+import io.reactivex.subjects.AsyncSubject
+import io.reactivex.subjects.BehaviorSubject
 
 @SuppressLint("ResourceType")
 class MapRoute(val style: Style, val context: Context) {
 
+    private val TAG = "MapRoute";
+
     private val density: Float = Density(context).density
+
+    private val _onDestroy = AsyncSubject.create<Boolean>()
+    private val routePointSubject = BehaviorSubject.create<Array<Feature>>()
+    private val routeTurnPointList = mutableListOf<LatLng>()
+    private val routeFullPointList = mutableListOf<LatLng>()
+    private val steps = mutableListOf<Int>()
+    private val areaSource = createSource(SOURCE_AREA_POINT_ID)
+    private val routeSource = createSource(SOURCE_ID)
 
     companion object {
         const val SOURCE_ID = "route_source"
@@ -31,7 +48,7 @@ class MapRoute(val style: Style, val context: Context) {
     }
 
     init {
-        val routeSource = createSource(SOURCE_ID)
+
         val routeLineColor = context.resources.getString(R.color.mapRouteColor)
 
 
@@ -44,12 +61,12 @@ class MapRoute(val style: Style, val context: Context) {
                 PropertyFactory.lineColor(Color.parseColor(routeLineColor)),
         ))
 
-        val routeCoordinates = getRouteCoordinates()
-        routeSource.setGeoJson(FeatureCollection.fromFeatures(arrayOf(
+        //val routeCoordinates = getRouteCoordinates()
+        /*routeSource.setGeoJson(FeatureCollection.fromFeatures(arrayOf(
                 Feature.fromGeometry(LineString.fromLngLats(routeCoordinates))
-        )))
+        )))*/
 
-        val areaSource = createSource(SOURCE_AREA_POINT_ID)
+
         val areaColor = context.resources.getString(R.color.mapRoutePointAreaColor)
 
         style.addLayer(LineLayer(LAYER_AREA_POINT_ID, SOURCE_AREA_POINT_ID).withProperties(
@@ -59,38 +76,110 @@ class MapRoute(val style: Style, val context: Context) {
                 PropertyFactory.lineOpacity(0.5f),
                 PropertyFactory.lineColor(Color.parseColor(areaColor)),
         ))
-        val center1: Location = Location("A")
-        center1.longitude = 30.0561
-        center1.latitude = 50.4014
 
-        val center2: Location = Location("A")
-        center2.longitude = 29.8328
-        center2.latitude = 50.5520
+        MapBoxStore.mapboxMapSubject
+                .takeUntil(_onDestroy)
+                .take(1)
+                .subscribe {
+                    mapDefined(it)
+                }
+        MapBoxStore.routeButtonClick
+                .takeUntil(_onDestroy)
+                .subscribeBy {
+                    Log.d(TAG, it.routeAction)
+                    when(it){
+                        MapBoxStore.RouteAction.BACK -> {
+                            stepBack()
+                        }
+                    }
+                }
+    }
 
-        val center3: Location = Location("A")
-        center3.longitude = 29.473
-        center3.latitude = 50.3346
+    private fun mapDefined(mapBoxMap: MapboxMap) {
+        var defineRoutePoint: DefineRoutePoint? = null
+        MapBoxStore.routeBuildProgress
+                .takeUntil(_onDestroy)
+                .subscribeBy {
+                    if (it) {
+                        defineRoutePoint = DefineRoutePoint()
+                        mapBoxMap.addOnMapLongClickListener(defineRoutePoint!!)
+                    } else {
+                        defineRoutePoint?.let {
+                            mapBoxMap.removeOnMapLongClickListener(defineRoutePoint!!)
+                        }
+                    }
+                }
+    }
 
 
-        areaSource.setGeoJson(FeatureCollection.fromFeatures(
-                arrayOf(
-                        Feature.fromGeometry(LineString.fromLngLats( getPointArea(center1))),
-                        Feature.fromGeometry(LineString.fromLngLats( getPointArea(center2))),
-                        Feature.fromGeometry(LineString.fromLngLats( getPointArea(center3)))
-                )
-        ))
+    inner class DefineRoutePoint : MapboxMap.OnMapLongClickListener {
+        override fun onMapLongClick(point: LatLng): Boolean {
+            Log.d(TAG, "map click")
+            MapBoxStore.routeType
+                    .takeUntil(_onDestroy)
+                    .take(1)
+                    .subscribeBy {
+                        when (it!!) {
+                            MapBoxStore.RouteType.PLANE -> {
+                                routeTurnPointList.add(point)
+                                routeFullPointList.add(point)
+
+                                setAreaSource()
+                                setLineSource()
+                                steps.add(1)
+                            }
+                            MapBoxStore.RouteType.BIKE -> {
+
+                            }
+                            MapBoxStore.RouteType.CAR -> {
+
+                            }
+                        }
+                    }
+            return true
+        }
 
     }
 
-    private fun getRouteCoordinates(): MutableList<Point> {
-        val routeCoordinates = mutableListOf<Point>()
+    private fun stepBack(){
+        if(0<steps.size){
+            val n = steps.removeLast()
+            routeTurnPointList.removeLast()
+            for(i in 1..n){
+                routeFullPointList.removeLast()
+            }
+            setAreaSource()
+            setLineSource()
+           // routeFullPointList.sc
+        }
 
-        routeCoordinates.add(Point.fromLngLat(30.0561, 50.4014))
-        routeCoordinates.add(Point.fromLngLat(29.8328, 50.5520))
-        routeCoordinates.add(Point.fromLngLat(29.4736, 50.3346))
-        routeCoordinates.add(Point.fromLngLat(30.0561, 50.4014))
-        return routeCoordinates
+
     }
+
+    private fun setAreaSource() {
+        val featureList = mutableListOf<Feature>()
+        routeTurnPointList.forEach { latLng ->
+            val c = Location("A")
+            c.longitude = latLng.longitude
+            c.latitude = latLng.latitude
+            val feature = Feature.fromGeometry(LineString.fromLngLats(getPointArea(c)))
+            featureList.add(feature)
+        }
+        areaSource.setGeoJson(FeatureCollection.fromFeatures(featureList))
+    }
+
+    private fun setLineSource() {
+        val pointList = mutableListOf<Point>()
+        routeFullPointList.forEach { latLng ->
+            val p = Point.fromLngLat(latLng.longitude, latLng.latitude)
+            pointList.add(p)
+        }
+
+        routeSource.setGeoJson(FeatureCollection.fromFeatures(arrayOf(
+                Feature.fromGeometry(LineString.fromLngLats(pointList))
+        )))
+    }
+
 
     private fun getPointArea(center1: Location): MutableList<Point> {
         val routeCoordinates = mutableListOf<Point>()
@@ -109,5 +198,10 @@ class MapRoute(val style: Style, val context: Context) {
     private fun createSource(sourceId: String): GeoJsonSource {
         style.addSource(GeoJsonSource(sourceId))
         return style.getSource(sourceId) as GeoJsonSource
+    }
+
+    fun onDestroy() {
+        _onDestroy.onNext(true)
+        _onDestroy.onComplete()
     }
 }

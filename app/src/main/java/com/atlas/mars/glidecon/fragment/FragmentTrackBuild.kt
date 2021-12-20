@@ -56,11 +56,6 @@ class FragmentTrackBuild : Fragment() {
                     routeType.set(it)
                 }
 
-        /*myViewModel =  ViewModelProviders.of(this).get(ViewModelBuildTrack::class.java)
-        myViewModel.routeType.set(-1)
-
-        myViewModel.routeType*/
-        //val v = routeType
     }
 
     fun onClickRouteType(r: MapBoxStore.RouteType) {
@@ -69,6 +64,16 @@ class FragmentTrackBuild : Fragment() {
 
     fun onClickClose() {
         MapBoxStore.routeBuildProgress.onNext(false)
+    }
+
+    fun onClickSave() {
+        MapBoxStore.routeButtonClick.onNext(MapBoxStore.RouteAction.SAVE)
+        MapBoxStore.routeButtonClick.onNext(MapBoxStore.RouteAction.CLOSE)
+        onClickClose()
+    }
+
+    fun onClickBack() {
+        MapBoxStore.routeButtonClick.onNext(MapBoxStore.RouteAction.BACK)
     }
 
     override fun onDestroy() {

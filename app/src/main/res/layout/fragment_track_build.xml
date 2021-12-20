@@ -20,35 +20,65 @@
         android:layout_height="wrap_content">
 
         <LinearLayout
+            android:id="@+id/linearLayoutTop"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            app:layout_constraintBottom_toTopOf="@+id/linearLayoutBottom"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent">
+
+            <ImageView
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_margin="5dp"
+                android:onClick="@{(view)->fragmentTrackBuild.onClickClose()}"
+                android:padding="15dp"
+                app:srcCompat="@drawable/ic_close" />
+
+            <ImageView
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_margin="5dp"
+                android:onClick="@{(view)->fragmentTrackBuild.onClickSave()}"
+                android:padding="5dp"
+                app:srcCompat="@drawable/ic_save" />
+
+            <ImageView
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_margin="5dp"
+                android:onClick="@{(view)->fragmentTrackBuild.onClickBack()}"
+                android:padding="5dp"
+                app:srcCompat="@drawable/ic_go_back" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/linearLayoutBottom"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:gravity="center_vertical"
-            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/linearLayoutTop"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent">
+            >
+
 
             <ImageView
-                android:layout_width="30dp"
-                android:layout_height="30dp"
-                android:layout_margin="10dp"
-                android:onClick="@{(view)->fragmentTrackBuild.onClickClose()}"
-                android:padding="5dp"
-                app:srcCompat="@drawable/ic_close" />
-            <ImageView
-
 
                 android:layout_width="50dp"
                 android:layout_height="50dp"
+                android:layout_margin="5dp"
                 android:background="@{fragmentTrackBuild.routeType == RouteType.PLANE ? fragmentTrackBuild.buttonColor : null}"
                 android:onClick="@{(view)->fragmentTrackBuild.onClickRouteType(RouteType.PLANE)}"
                 android:padding="5dp"
                 app:srcCompat="@drawable/ic_glider_top" />
-            <ImageView
 
+            <ImageView
 
                 android:layout_width="50dp"
                 android:layout_height="50dp"
+                android:layout_margin="5dp"
                 android:background="@{fragmentTrackBuild.routeType == RouteType.BIKE ? fragmentTrackBuild.buttonColor : null}"
                 android:onClick="@{(view)->fragmentTrackBuild.onClickRouteType(RouteType.BIKE)}"
                 android:padding="5dp"

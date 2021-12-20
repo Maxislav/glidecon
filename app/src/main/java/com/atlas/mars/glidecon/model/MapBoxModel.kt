@@ -310,6 +310,7 @@ class MapBoxModel(val mapView: MapView, val context: Context, val myViewModel: L
         flightRadius.onDestroy()
         tailTrace.onDestroy()
         landingPatternBox.onDestroy()
+        mapRoute.onDestroy()
     }
 
     internal class DrawView(context: Context?) : View(context) {

@@ -54,6 +54,7 @@ class MapDateBase(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, n
         private const val LANDING_RATIO_FLY = "landingRatioFly"
         private const val LANDING_RATIO_FINAL = "landingRatioFinal"
         private const val ROUTE_TYPE = "routeType"
+        private const val ROUTE_ID = "routeId"
 
 
         private const val AGREEMENT_AGREE = "agreementAgree"
@@ -284,6 +285,9 @@ class MapDateBase(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, n
                     it[MapBoxStore.LandingLiftToDragRatio.FINAL]?.let { ratio -> saveParam(LANDING_RATIO_FINAL, ratio) }
                 }
 
+        /**
+         * Route type
+         */
         var initRouteType = false;
         cursor = sdb.rawQuery(query, arrayOf(ROUTE_TYPE))
         if (0 < cursor.count) {
@@ -301,6 +305,24 @@ class MapDateBase(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, n
                 .filter { !initRouteType }
                 .subscribeBy {
                     saveParam(ROUTE_TYPE, it.routeType.toDouble())
+                }
+
+        /**
+         * Route selected
+         */
+        var initRouteId = false;
+        cursor = sdb.rawQuery(query, arrayOf(ROUTE_ID))
+        if (0 < cursor.count) {
+            initRouteId = true
+            cursor.moveToFirst()
+            val routeID = cursor.getDouble(cursor.getColumnIndex(VALUE))
+            MapBoxStore.activeRoute.onNext(routeID)
+            initRouteId = false
+        }
+        MapBoxStore.activeRoute.takeWhile { isSubscribed }
+                .filter { !initRouteId }
+                .subscribeBy{
+                    saveParam(ROUTE_ID, it)
                 }
 
         cursor.close()
