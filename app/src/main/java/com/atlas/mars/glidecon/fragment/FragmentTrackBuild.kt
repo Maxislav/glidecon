@@ -2,6 +2,7 @@ package com.atlas.mars.glidecon.fragment
 
 import android.app.Activity
 import android.graphics.drawable.Drawable
+import android.icu.util.TimeUnit
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -10,15 +11,15 @@ import android.view.ViewGroup
 import androidx.core.content.ContextCompat
 import androidx.databinding.*
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.ViewModelProviders
 import com.atlas.mars.glidecon.R
 import com.atlas.mars.glidecon.databinding.FragmentTrackBuildBinding
-import com.atlas.mars.glidecon.model.LandingBoxViewModel
-import com.atlas.mars.glidecon.model.ViewModelBuildTrack
 import com.atlas.mars.glidecon.store.MapBoxStore
+// import io.reactivex.Flowable.interval
+import io.reactivex.Observable
 import io.reactivex.rxkotlin.subscribeBy
+// import io.reactivex.Observable
 import io.reactivex.subjects.AsyncSubject
-import io.reactivex.subjects.BehaviorSubject
+//import java.util.concurrent
 
 class FragmentTrackBuild : Fragment() {
 
@@ -46,6 +47,12 @@ class FragmentTrackBuild : Fragment() {
 
         //  activity?.let { buttonColor = ContextCompat.getColor(it.applicationContext, R.color.blue) }
         activity?.let { buttonColor = ContextCompat.getDrawable(it, R.drawable.corner) }
+
+       Observable.interval(1, java.util.concurrent.TimeUnit.SECONDS)
+               .takeUntil(_onDestroy)
+               .subscribeBy {
+                   Log.d(TAG, "second go")
+               }
         // binding.imageClose.setOnClickListener (this)
     }
 
@@ -68,8 +75,8 @@ class FragmentTrackBuild : Fragment() {
 
     fun onClickSave() {
         MapBoxStore.routeButtonClick.onNext(MapBoxStore.RouteAction.SAVE)
-        MapBoxStore.routeButtonClick.onNext(MapBoxStore.RouteAction.CLOSE)
-        onClickClose()
+       // MapBoxStore.routeButtonClick.onNext(MapBoxStore.RouteAction.CLOSE)
+        // onClickClose()
     }
 
     fun onClickBack() {
@@ -81,7 +88,6 @@ class FragmentTrackBuild : Fragment() {
             MapBoxStore.routeBuildProgress.onNext(false)
         }
 
-        _onDestroy.onNext(true)
         _onDestroy.onComplete()
         super.onDestroy()
     }

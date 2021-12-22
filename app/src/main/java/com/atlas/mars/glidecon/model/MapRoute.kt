@@ -5,7 +5,11 @@ import android.content.Context
 import android.graphics.Color
 import android.location.Location
 import android.util.Log
+import androidx.appcompat.app.AppCompatActivity
 import com.atlas.mars.glidecon.R
+import com.atlas.mars.glidecon.dialog.DialogLendingBox
+import com.atlas.mars.glidecon.dialog.DialogSaveTrack
+import com.atlas.mars.glidecon.dialog.DialogSaveTrackAction
 import com.atlas.mars.glidecon.store.MapBoxStore
 import com.atlas.mars.glidecon.util.LocationUtil
 import com.mapbox.geojson.Feature
@@ -22,7 +26,9 @@ import com.mapbox.mapboxsdk.style.sources.GeoJsonSource
 import io.reactivex.rxkotlin.subscribeBy
 import io.reactivex.subjects.AsyncSubject
 import io.reactivex.subjects.BehaviorSubject
+import kotlinx.coroutines.*
 
+@ObsoleteCoroutinesApi
 @SuppressLint("ResourceType")
 class MapRoute(val style: Style, val context: Context) {
 
@@ -37,6 +43,9 @@ class MapRoute(val style: Style, val context: Context) {
     private val steps = mutableListOf<Int>()
     private val areaSource = createSource(SOURCE_AREA_POINT_ID)
     private val routeSource = createSource(SOURCE_ID)
+
+    @ObsoleteCoroutinesApi
+    private val scope = CoroutineScope(newSingleThreadContext(TAG))
 
     companion object {
         const val SOURCE_ID = "route_source"
@@ -91,9 +100,32 @@ class MapRoute(val style: Style, val context: Context) {
                         MapBoxStore.RouteAction.BACK -> {
                             stepBack()
                         }
+                        MapBoxStore.RouteAction.SAVE -> {
+                            val d = DialogSaveTrack(context) { dialogSaveAction ->
+                                Log.d(TAG, dialogSaveAction.toString())
+                                when(dialogSaveAction){
+                                    DialogSaveTrackAction.SAVE -> {
+                                        MapBoxStore.routeBuildProgress.onNext(false)
+                                        runBlocking{
+                                            scope.launch {
+                                                onSave()
+                                            }
+                                        }
+                                    }
+                                    else -> {
+
+                                    }
+                                }
+                            }
+                            d.create().show()
+                        }
+                        else -> {
+
+                        }
                     }
                 }
     }
+
 
     private fun mapDefined(mapBoxMap: MapboxMap) {
         var defineRoutePoint: DefineRoutePoint? = null
@@ -139,6 +171,11 @@ class MapRoute(val style: Style, val context: Context) {
             return true
         }
 
+    }
+
+    private suspend fun onSave(){
+        delay(5000)
+        Log.d(TAG, "Ololo ")
     }
 
     private fun stepBack(){
