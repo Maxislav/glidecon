@@ -56,6 +56,8 @@ class MapBoxModel(val mapView: MapView, val context: Context, val myViewModel: L
         initTouchListener()
         // mapView?.onCreate(savedInstanceState)
 
+        context.applicationContext
+
         mapView.getMapAsync { mapboxMap: MapboxMap ->
 
             mapboxMapSubject.onNext(mapboxMap)

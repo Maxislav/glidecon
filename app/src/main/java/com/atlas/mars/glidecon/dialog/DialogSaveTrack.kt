@@ -1,37 +1,44 @@
 package com.atlas.mars.glidecon.dialog
 
+import android.annotation.SuppressLint
 import android.app.AlertDialog
 import android.content.Context
+import android.text.Editable
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.Window
 import android.view.WindowManager
-import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
 import com.atlas.mars.glidecon.R
 import com.atlas.mars.glidecon.databinding.DialogSaveTrackBinding
+import java.text.SimpleDateFormat
+import java.util.*
 
-enum class DialogSaveTrackAction {
-    SAVE,
-    CANCEL
-}
 
-class DialogSaveTrack(val c: Context, val cb: (action: DialogSaveTrackAction) -> Unit) : AlertDialog.Builder(c) {
+@SuppressLint("SimpleDateFormat")
+class DialogSaveTrack(ctx: Context, val cb: (trackName: String) -> Unit) : AlertDialog.Builder(ctx) {
     lateinit var alertDialog: AlertDialog
+    var binding: DialogSaveTrackBinding = DataBindingUtil.inflate(LayoutInflater.from(ctx), R.layout.dialog_save_track, null, false)
+
     init {
-        val binding: DialogSaveTrackBinding = DataBindingUtil.inflate(LayoutInflater.from(c), R.layout.dialog_save_track, null, false)
         binding.dialogSaveTrack = this
         setView(binding.root);
+        val df = SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        df.format(Date())
+        binding.routeNameText.text = Editable.Factory.getInstance().newEditable(df.format(Date())) // Editable(df.format(Date()))
+
+        binding.routeNameText.post {
+            binding.routeNameText.selectAll()
+        }
 
     }
 
     fun onClickSave() {
-        cb(DialogSaveTrackAction.SAVE)
+        cb(binding.routeNameText.text.toString())
         onDestroy()
     }
 
     fun onClickCancel() {
-        cb(DialogSaveTrackAction.CANCEL)
         onDestroy()
     }
 

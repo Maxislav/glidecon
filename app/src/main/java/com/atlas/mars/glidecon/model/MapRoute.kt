@@ -7,6 +7,7 @@ import android.location.Location
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import com.atlas.mars.glidecon.R
+import com.atlas.mars.glidecon.database.MapDateBase
 import com.atlas.mars.glidecon.dialog.DialogLendingBox
 import com.atlas.mars.glidecon.dialog.DialogSaveTrack
 import com.atlas.mars.glidecon.dialog.DialogSaveTrackAction
@@ -33,6 +34,7 @@ import kotlinx.coroutines.*
 class MapRoute(val style: Style, val context: Context) {
 
     private val TAG = "MapRoute";
+    val mapDateBase = MapDateBase(context)
 
     private val density: Float = Density(context).density
 
@@ -92,6 +94,17 @@ class MapRoute(val style: Style, val context: Context) {
                 .subscribe {
                     mapDefined(it)
                 }
+
+        MapBoxStore.routeBuildProgress
+                .takeUntil(_onDestroy)
+                .filter{ !it }
+                .subscribeBy {
+                    routeTurnPointList.clear()
+                    routeFullPointList.clear()
+                    steps.clear()
+                    setAreaSource()
+                    setLineSource()
+                }
         MapBoxStore.routeButtonClick
                 .takeUntil(_onDestroy)
                 .subscribeBy {
@@ -101,19 +114,12 @@ class MapRoute(val style: Style, val context: Context) {
                             stepBack()
                         }
                         MapBoxStore.RouteAction.SAVE -> {
-                            val d = DialogSaveTrack(context) { dialogSaveAction ->
-                                Log.d(TAG, dialogSaveAction.toString())
-                                when(dialogSaveAction){
-                                    DialogSaveTrackAction.SAVE -> {
-                                        MapBoxStore.routeBuildProgress.onNext(false)
-                                        runBlocking{
-                                            scope.launch {
-                                                onSave()
-                                            }
-                                        }
-                                    }
-                                    else -> {
-
+                            val d = DialogSaveTrack(context) { trackName ->
+                                Log.d(TAG, trackName)
+                                MapBoxStore.routeBuildProgress.onNext(false)
+                                runBlocking{
+                                    scope.launch {
+                                        onSave(trackName)
                                     }
                                 }
                             }
@@ -173,9 +179,18 @@ class MapRoute(val style: Style, val context: Context) {
 
     }
 
-    private suspend fun onSave(){
-        delay(5000)
-        Log.d(TAG, "Ololo ")
+    private suspend fun onSave(trackName: String){
+        val id =  mapDateBase.saveTrackName(trackName)
+        val trackPointList = mutableListOf<TrackPoint>()
+        routeTurnPointList.forEach { p ->
+            trackPointList.add(TrackPoint(p, MapBoxStore.PointType.TURN))
+        }
+        routeFullPointList.forEach { p ->
+            trackPointList.add(TrackPoint(p, MapBoxStore.PointType.ROUTE))
+        }
+        mapDateBase.saveTrackPoints(id, trackPointList)
+        /*delay(5000)
+        Log.d(TAG, "Ololo ")*/
     }
 
     private fun stepBack(){
@@ -238,7 +253,7 @@ class MapRoute(val style: Style, val context: Context) {
     }
 
     fun onDestroy() {
-        _onDestroy.onNext(true)
         _onDestroy.onComplete()
     }
+
 }

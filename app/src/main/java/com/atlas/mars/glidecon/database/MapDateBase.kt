@@ -7,11 +7,15 @@ import android.database.Cursor
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 import android.util.Log
+import com.atlas.mars.glidecon.model.MapRoute
+import com.atlas.mars.glidecon.model.TrackPoint
 import com.atlas.mars.glidecon.store.MapBoxStore
 import com.atlas.mars.glidecon.store.MapBoxStore.Companion.windSubject
 import com.mapbox.mapboxsdk.camera.CameraPosition
 import com.mapbox.mapboxsdk.geometry.LatLng
 import io.reactivex.rxkotlin.subscribeBy
+import java.text.SimpleDateFormat
+import java.util.*
 
 class MapDateBase(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null, DATABASE_VERSION) {
 
@@ -31,7 +35,7 @@ class MapDateBase(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, n
         private const val UID = "id"
         private const val NAME = "name"
         private const val VALUE = "value"
-        private const val NAME_ID = "nameId"
+        private const val TRACK_ID = "trackId"
 
         private const val DISTANCE = "distance"
         private const val DATE_TIME = "dateTime"
@@ -117,7 +121,7 @@ class MapDateBase(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, n
         val createTRouePoint = "CREATE TABLE if not exists $TABLE_ROUTE_POINT" +
                 " (" +
                 " $UID INTEGER PRIMARY KEY AUTOINCREMENT," +
-                " $NAME_ID INTEGER," +
+                " $TRACK_ID INTEGER," +
                 " lat DOUBLE," +
                 " lon DOUBLE," +
                 " alt DOUBLE," +
@@ -343,6 +347,32 @@ class MapDateBase(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, n
 
     fun saveAgreementAgree() {
         saveParam(AGREEMENT_AGREE, 1.0)
+    }
+
+    fun saveTrackName(trackName: String): Long{
+        val sdb = readableDatabase
+        val cv = ContentValues()
+        val df = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.ENGLISH);
+        val dateTime = df.format(Date())
+        cv.put(NAME, trackName)
+        cv.put("distance", 0)
+        cv.put("dateTime", dateTime)
+        cv.put("active", 0)
+        return sdb.insert(TABLE_ROUTE_NAME, null, cv)
+    }
+
+    fun saveTrackPoints(id: Long, m: MutableList<TrackPoint>){
+        val sdb = readableDatabase
+        val cv = ContentValues()
+        cv.put(TRACK_ID, id)
+        m.forEach { trackPoint ->
+            cv.put("lat", trackPoint.point.latitude )
+            cv.put("lon", trackPoint.point.longitude )
+            cv.put("alt", 0 )
+            cv.put("pointType", trackPoint.type.toString() )
+            sdb.insert(TABLE_ROUTE_POINT, null, cv)
+        }
+
     }
 
     private fun saveParam(name: String, value: Double) {

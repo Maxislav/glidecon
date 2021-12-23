@@ -10,30 +10,6 @@ import io.reactivex.subjects.PublishSubject
 
 class MapBoxStore {
 
-    init {
-        mapboxMapSubject = BehaviorSubject.create()
-        compassOnClickSubject = BehaviorSubject.create()
-        cameraPositionSubject = BehaviorSubject.create()
-        optimalSpeedSubject = BehaviorSubject.create()
-        liftToDragRatioSubject = BehaviorSubject.create()
-        startAltitudeSubject = BehaviorSubject.create()
-        windSubject = BehaviorSubject.create()
-        followTypeSubject = BehaviorSubject.createDefault(FollowViewType.TYPICAL)
-        locationSubject = BehaviorSubject.create()
-        satelliteSubject = BehaviorSubject.createDefault(mapOf(SatCount.TOTAl to 0, SatCount.USED to 0))
-        tiltSubject = BehaviorSubject.create()
-        zoomControlSubject = BehaviorSubject.create()
-        landingLiftToDragRatioSubject = BehaviorSubject.create()
-        landingBoxAngleSubject = BehaviorSubject.createDefault(0.0)
-        landingStartPointSubject = BehaviorSubject.create()
-        defineStartingPointClickSubject = BehaviorSubject.create()
-        routeBuildProgress = BehaviorSubject.createDefault(false)
-        activeRoute = BehaviorSubject.create()
-        routeType = BehaviorSubject.create()
-        routeButtonClick = PublishSubject.create()
-       //  routeSave = PublishSubject.create()
-    }
-
     companion object {
         lateinit var mapboxMapSubject: BehaviorSubject<MapboxMap>
         lateinit var compassOnClickSubject: BehaviorSubject<Boolean>
@@ -55,30 +31,53 @@ class MapBoxStore {
         lateinit var activeRoute: BehaviorSubject<Double>
         lateinit var routeType: BehaviorSubject<RouteType>
         lateinit var routeButtonClick: PublishSubject<RouteAction>
+
+        fun onCreate() {
+            mapboxMapSubject = BehaviorSubject.create()
+            compassOnClickSubject = BehaviorSubject.create()
+            cameraPositionSubject = BehaviorSubject.create()
+            optimalSpeedSubject = BehaviorSubject.create()
+            liftToDragRatioSubject = BehaviorSubject.create()
+            startAltitudeSubject = BehaviorSubject.create()
+            windSubject = BehaviorSubject.create()
+            followTypeSubject = BehaviorSubject.createDefault(FollowViewType.TYPICAL)
+            locationSubject = BehaviorSubject.create()
+            satelliteSubject = BehaviorSubject.createDefault(mapOf(SatCount.TOTAl to 0, SatCount.USED to 0))
+            tiltSubject = BehaviorSubject.create()
+            zoomControlSubject = BehaviorSubject.create()
+            landingLiftToDragRatioSubject = BehaviorSubject.create()
+            landingBoxAngleSubject = BehaviorSubject.createDefault(0.0)
+            landingStartPointSubject = BehaviorSubject.create()
+            defineStartingPointClickSubject = BehaviorSubject.create()
+            routeBuildProgress = BehaviorSubject.createDefault(false)
+            activeRoute = BehaviorSubject.create()
+            routeType = BehaviorSubject.create()
+            routeButtonClick = PublishSubject.create()
+        }
+        fun onDestroy(){
+            mapboxMapSubject.onComplete()
+            compassOnClickSubject.onComplete()
+            cameraPositionSubject.onComplete()
+            optimalSpeedSubject.onComplete()
+            liftToDragRatioSubject.onComplete()
+            startAltitudeSubject.onComplete()
+            windSubject.onComplete()
+            followTypeSubject.onComplete()
+            locationSubject.onComplete()
+            satelliteSubject.onComplete()
+            tiltSubject.onComplete()
+            zoomControlSubject.onComplete()
+            landingLiftToDragRatioSubject.onComplete()
+            landingBoxAngleSubject.onComplete()
+            defineStartingPointClickSubject.onComplete()
+            landingStartPointSubject.onComplete()
+            routeBuildProgress.onComplete()
+            activeRoute.onComplete()
+            routeType.onComplete()
+            routeButtonClick.onComplete()
+        }
     }
 
-    fun onDestroy() {
-        mapboxMapSubject.onComplete()
-        compassOnClickSubject.onComplete()
-        cameraPositionSubject.onComplete()
-        optimalSpeedSubject.onComplete()
-        liftToDragRatioSubject.onComplete()
-        startAltitudeSubject.onComplete()
-        windSubject.onComplete()
-        followTypeSubject.onComplete()
-        locationSubject.onComplete()
-        satelliteSubject.onComplete()
-        tiltSubject.onComplete()
-        zoomControlSubject.onComplete()
-        landingLiftToDragRatioSubject.onComplete()
-        landingBoxAngleSubject.onComplete()
-        defineStartingPointClickSubject.onComplete()
-        landingStartPointSubject.onComplete()
-        routeBuildProgress.onComplete()
-        activeRoute.onComplete()
-        routeType.onComplete()
-        routeButtonClick.onComplete()
-    }
 
     enum class Zoom {
         IN, OUT
@@ -108,6 +107,17 @@ class MapBoxStore {
         companion object {
             fun from(value: String): RouteAction {
                 val dd = values().find { v -> v.routeAction == value }
+                return dd!!
+            }
+        }
+    }
+
+    enum class PointType(var type: String){
+        ROUTE("route"),
+        TURN("turn");
+        companion object {
+            fun from(value: String): PointType {
+                val dd = values().find { v -> v.type == value }
                 return dd!!
             }
         }
