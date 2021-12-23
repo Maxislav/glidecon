@@ -92,10 +92,7 @@ class MapBoxActivity : AppCompatActivity(), Ololo {
         isSubscribed = true
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         serviceIntent = Intent(this, LocationService::class.java)
-           val c = applicationContext
-       // mapBoxStore = MapBoxStore()
         MapBoxStore.onCreate()
-
         mapDateBase = MapDateBase(this)
         mapDateBase.initValues()
 
@@ -114,14 +111,6 @@ class MapBoxActivity : AppCompatActivity(), Ololo {
 
         mapView = findViewById(R.id.mapView)
         mapView?.onCreate(savedInstanceState ?: Bundle())
-        /*if(savedInstanceState === null){
-            val b = Bundle()
-            mapView?.onCreate(b)
-        }else{
-            mapView?.onCreate(savedInstanceState)
-        }*/
-
-
         val myViewModel = ViewModelProviders.of(this).get(LandingBoxViewModel::class.java)
         mapBoxModel = MapBoxModel(mapView!!, this as Context, myViewModel)
         myViewModel.startLatLng.observe(this, {
@@ -177,6 +166,7 @@ class MapBoxActivity : AppCompatActivity(), Ololo {
         val navigationView: NavigationView = findViewById(R.id.nav_view)
         navigationView.setNavigationItemSelectedListener(fun(menuItem: MenuItem): Boolean {
             drawer.closeDrawer(GravityCompat.START);
+            MapBoxStore.routeBuildProgress.onNext(false)
             when (menuItem.itemId) {
                 R.id.wind_menu_item -> {
                     val dialogWindSetting = DialogWindSetting(this)
@@ -187,6 +177,7 @@ class MapBoxActivity : AppCompatActivity(), Ololo {
                     DialogStartAltitude(this).create().show()
                 }
                 R.id.rectangular_landing_pattern -> {
+
                     if (dialogLendingBox == null) {
                         dialogLendingBox = DialogLendingBox(this, this).create()
                     }

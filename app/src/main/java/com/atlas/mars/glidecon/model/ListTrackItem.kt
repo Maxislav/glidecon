@@ -3,11 +3,10 @@ package com.atlas.mars.glidecon.model
 import java.text.SimpleDateFormat
 import java.util.*
 
-class ListTrackItem(public var name: String, private val _distance: Number, private val _date: Date = Date()) {
+class ListTrackItem(var trackId: Int, var name: String, private val _distance: Number, private val _date: String) {
     val date: String
         get() {
-            val format = SimpleDateFormat("yyyy.MM.dd HH:mm:ss")
-            return format.format(_date)
+            return _date
         }
 
     val distance: String

@@ -28,7 +28,7 @@ class MapBoxStore {
         lateinit var landingStartPointSubject: BehaviorSubject<LatLng>
         lateinit var defineStartingPointClickSubject: BehaviorSubject<Boolean>
         lateinit var routeBuildProgress: BehaviorSubject<Boolean>
-        lateinit var activeRoute: BehaviorSubject<Double>
+        lateinit var activeRoute: BehaviorSubject<Number>
         lateinit var routeType: BehaviorSubject<RouteType>
         lateinit var routeButtonClick: PublishSubject<RouteAction>
 

@@ -9,9 +9,11 @@ import android.widget.ListView
 import android.widget.PopupMenu
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import com.atlas.mars.glidecon.database.MapDateBase
 import com.atlas.mars.glidecon.databinding.ActivityListSavedTrackBinding
 import com.atlas.mars.glidecon.databinding.TrackListItemBinding
 import com.atlas.mars.glidecon.model.ListTrackItem
+import com.atlas.mars.glidecon.store.MapBoxStore
 
 
 interface IVehicle {
@@ -23,6 +25,7 @@ class ListSavedTrack : AppCompatActivity() {
     // private val TAG = "ListSavedTrack_tag"
 
     private lateinit var binding: ActivityListSavedTrackBinding
+    var mapDateBase = MapDateBase(this)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityListSavedTrackBinding.inflate(layoutInflater)
@@ -32,79 +35,13 @@ class ListSavedTrack : AppCompatActivity() {
         val listView: ListView = binding.listView;
 
 
-        val trackList = arrayListOf<ListTrackItem>(ListTrackItem("Бразилия", 27))
-        //trackList[0].name = "4"
-        val t = object {
-            var name: String = ""
-            var distance: String = ""
-        }
+        // val trackList = arrayListOf<ListTrackItem>(ListTrackItem("Бразилия", 27))
+        val trackList = mapDateBase.getTrackNameLis()
 
-        val countries = arrayListOf<String>(
-                "Бразилия",
-                "Аргентина",
-                "Колумбия",
-                "Чили",
-                "Аргентина",
-                "Колумбия",
-                "Чили",
-                "Аргентина",
-                "Колумбия",
-                "Чили",
-                "Аргентина",
-                "Колумбия",
-                "Чили",
-                "Аргентина",
-                "Колумбия",
-                "Чили",
-                "Аргентина",
-                "Колумбия",
-                "Чили",
-                "Аргентина",
-                "Колумбия",
-                "Чили",
-                "Аргентина",
-                "Колумбия",
-                "Чили",
-                "Аргентина",
-                "Колумбия",
-                "Чили",
-                "Аргентина",
-                "Колумбия",
-                "Чили",
-                "Аргентина",
-                "Колумбия",
-                "Чили", "Аргентина",
-                "Колумбия",
-                "Чили",
-                "Аргентина",
-                "Колумбия",
-                "Чили",
-                "Аргентина",
-                "Колумбия",
-                "Чили", "Аргентина",
-                "Колумбия",
-                "Чили",
-                "Аргентина",
-                "Колумбия",
-                "Чили",
-                "Аргентина",
-                "Колумбия",
-                "Чили", "Аргентина",
-                "Колумбия",
-                "Чили",
-                "Аргентина",
-                "Колумбия",
-                "Чили",
-                "Аргентина",
-                "Колумбия",
-                "Чили",
-                "Уругвай"
-        )
 
-        for (item in countries) {
-            // println(i)
-            trackList.add(ListTrackItem(item, 0.0))
-        }
+
+
+
 
         val adapter = MyListAdapter(this, trackList)
         listView.adapter = adapter;
@@ -124,7 +61,12 @@ class ListSavedTrack : AppCompatActivity() {
         return true
     }
 
-    inner class MyClick(private val context: Context, private val item: ListTrackItem) : View.OnLongClickListener {
+    fun finish(trackId: Int) {
+        MapBoxStore.activeRoute.onNext(trackId)
+        finish()
+    }
+
+    inner class MyLongClick(private val context: ListSavedTrack, private val item: ListTrackItem) : View.OnLongClickListener {
         override fun onLongClick(v: View?): Boolean {
             Log.d(TAG, "click ${item.name}")
             val popup = PopupMenu(context, v)
@@ -140,7 +82,7 @@ class ListSavedTrack : AppCompatActivity() {
     }
 
 
-    inner class MyListAdapter(context: Context, private val items: ArrayList<ListTrackItem>) : ArrayAdapter<ListTrackItem>(context, 0, items), View.OnLongClickListener {
+    inner class MyListAdapter(private val listSavedTrack: ListSavedTrack, private val items: ArrayList<ListTrackItem>) : ArrayAdapter<ListTrackItem>(listSavedTrack, 0, items), View.OnLongClickListener {
         lateinit var view: View
         lateinit var binding: TrackListItemBinding
 
@@ -152,21 +94,11 @@ class ListSavedTrack : AppCompatActivity() {
 
             }
 
-            binding.textView1.text = items[position].name
-            binding.linearRow.setOnLongClickListener(MyClick(context, items[position]))
-            /*binding.linearRow.setOnLongClickListener { view ->
-                Log.d(TAG, "click ${items[position].name}")
-                val popup = PopupMenu(context, view)
-                popup.inflate(R.menu.menu_track_list)
-                popup.setOnMenuItemClickListener { menuItem: MenuItem ->
-                    // Respond to menu item click.
-                    return@setOnMenuItemClickListener true
-                }
-                popup.show()
-
-                true
-            }*/
-            binding.trackItem = ListTrackItem(items[position].name, 50)
+            binding.linearRow.setOnClickListener {
+                listSavedTrack.finish(items[position].trackId)
+            }
+            binding.linearRow.setOnLongClickListener(MyLongClick(listSavedTrack, items[position]))
+            binding.trackItem = items[position]
             return binding.root
         }
 

@@ -10,7 +10,6 @@ import com.atlas.mars.glidecon.R
 import com.atlas.mars.glidecon.database.MapDateBase
 import com.atlas.mars.glidecon.dialog.DialogLendingBox
 import com.atlas.mars.glidecon.dialog.DialogSaveTrack
-import com.atlas.mars.glidecon.dialog.DialogSaveTrackAction
 import com.atlas.mars.glidecon.store.MapBoxStore
 import com.atlas.mars.glidecon.util.LocationUtil
 import com.mapbox.geojson.Feature

@@ -7,6 +7,7 @@ import android.database.Cursor
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 import android.util.Log
+import com.atlas.mars.glidecon.model.ListTrackItem
 import com.atlas.mars.glidecon.model.MapRoute
 import com.atlas.mars.glidecon.model.TrackPoint
 import com.atlas.mars.glidecon.store.MapBoxStore
@@ -16,6 +17,7 @@ import com.mapbox.mapboxsdk.geometry.LatLng
 import io.reactivex.rxkotlin.subscribeBy
 import java.text.SimpleDateFormat
 import java.util.*
+import kotlin.collections.ArrayList
 
 class MapDateBase(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null, DATABASE_VERSION) {
 
@@ -325,8 +327,8 @@ class MapDateBase(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, n
         }
         MapBoxStore.activeRoute.takeWhile { isSubscribed }
                 .filter { !initRouteId }
-                .subscribeBy{
-                    saveParam(ROUTE_ID, it)
+                .subscribeBy {
+                    saveParam(ROUTE_ID, it.toDouble())
                 }
 
         cursor.close()
@@ -349,7 +351,7 @@ class MapDateBase(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, n
         saveParam(AGREEMENT_AGREE, 1.0)
     }
 
-    fun saveTrackName(trackName: String): Long{
+    fun saveTrackName(trackName: String): Long {
         val sdb = readableDatabase
         val cv = ContentValues()
         val df = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.ENGLISH);
@@ -361,15 +363,32 @@ class MapDateBase(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, n
         return sdb.insert(TABLE_ROUTE_NAME, null, cv)
     }
 
-    fun saveTrackPoints(id: Long, m: MutableList<TrackPoint>){
+    fun getTrackNameLis(): ArrayList<ListTrackItem> {
+        val sdb = readableDatabase
+        val jquery = "SELECT * FROM $TABLE_ROUTE_NAME;"
+        val cursor: Cursor = sdb.rawQuery(jquery, arrayOf())
+
+        val trackList = arrayListOf<ListTrackItem>()
+        while (cursor.moveToNext()) {
+            val name = cursor.getString(cursor.getColumnIndex(NAME))
+            val trackId = cursor.getInt(cursor.getColumnIndex(UID))
+            val distance = cursor.getDouble(cursor.getColumnIndex(DISTANCE))
+            val dateTime = cursor.getString(cursor.getColumnIndex(DATE_TIME))
+            val listTrackItem = ListTrackItem(trackId, name, distance, dateTime)
+            trackList.add(listTrackItem)
+        }
+        return trackList;
+    }
+
+    fun saveTrackPoints(id: Long, m: MutableList<TrackPoint>) {
         val sdb = readableDatabase
         val cv = ContentValues()
         cv.put(TRACK_ID, id)
         m.forEach { trackPoint ->
-            cv.put("lat", trackPoint.point.latitude )
-            cv.put("lon", trackPoint.point.longitude )
-            cv.put("alt", 0 )
-            cv.put("pointType", trackPoint.type.toString() )
+            cv.put("lat", trackPoint.point.latitude)
+            cv.put("lon", trackPoint.point.longitude)
+            cv.put("alt", 0)
+            cv.put("pointType", trackPoint.type.toString())
             sdb.insert(TABLE_ROUTE_POINT, null, cv)
         }
 
