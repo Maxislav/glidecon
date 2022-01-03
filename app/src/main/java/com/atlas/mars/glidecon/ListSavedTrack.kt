@@ -45,7 +45,7 @@ class ListSavedTrack : AppCompatActivity() {
 
         val adapter = MyListAdapter(this, trackList)
         listView.adapter = adapter;
-        Helper.getListViewSize(listView);
+        //Helper.getListViewSize(listView);
     }
 
 

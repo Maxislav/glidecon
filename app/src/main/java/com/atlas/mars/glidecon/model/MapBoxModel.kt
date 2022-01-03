@@ -45,6 +45,7 @@ class MapBoxModel(val mapView: MapView, val context: Context, val myViewModel: L
     lateinit var tailTrace: TailTrace
     lateinit var landingPatternBox: LandingPatternBox
     lateinit var mapRoute: MapRoute
+    lateinit var mapRouteActive: MapRouteActive
 
     var mapboxMap: MapboxMap? = null
     val mapDateBase: MapDateBase = MapDateBase(context)
@@ -69,6 +70,7 @@ class MapBoxModel(val mapView: MapView, val context: Context, val myViewModel: L
                 tailTrace = TailTrace(style, context)
                 landingPatternBox = LandingPatternBox(style, context)
                 mapRoute = MapRoute(style, context)
+                mapRouteActive = MapRouteActive(style, context)
 
                 MyPositionMarker(mapView, mapboxMap, style, context)
                 directionArea = DirectionArea(mapView, mapboxMap, style, context)
@@ -313,6 +315,7 @@ class MapBoxModel(val mapView: MapView, val context: Context, val myViewModel: L
         tailTrace.onDestroy()
         landingPatternBox.onDestroy()
         mapRoute.onDestroy()
+        mapRouteActive.onDestroy()
     }
 
     internal class DrawView(context: Context?) : View(context) {

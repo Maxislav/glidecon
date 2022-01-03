@@ -18,8 +18,10 @@
     <item name="safetyColor" type="color">#0037FD</item>
     <item name="criticalColor" type="color">#F30000</item>
     <item name="landingPatternColor" type="color">#0004FF</item>
-    <item name="mapRouteColor" type="color">#D900FF</item>
-    <item name="mapRoutePointAreaColor" type="color">#D900FF</item>
+    <item name="mapRouteColor" type="color">#23D52A</item>
+    <item name="mapRoutePointAreaColor" type="color">#23D52A</item>
+    <item name="mapRouteColorActive" type="color">#762CFA</item>
+    <item name="mapRoutePointAreaColorActive" type="color">#762CFA</item>
 
     <item name="tailTrace1" type="color">#86FFFFFF</item>
     <item name="tailTrace2" type="color">#FF7CBBFF</item>

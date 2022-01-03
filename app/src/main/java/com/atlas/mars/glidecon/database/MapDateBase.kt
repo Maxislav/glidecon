@@ -9,6 +9,7 @@ import android.database.sqlite.SQLiteOpenHelper
 import android.util.Log
 import com.atlas.mars.glidecon.model.ListTrackItem
 import com.atlas.mars.glidecon.model.MapRoute
+import com.atlas.mars.glidecon.model.RoutePoints
 import com.atlas.mars.glidecon.model.TrackPoint
 import com.atlas.mars.glidecon.store.MapBoxStore
 import com.atlas.mars.glidecon.store.MapBoxStore.Companion.windSubject
@@ -388,10 +389,33 @@ class MapDateBase(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, n
             cv.put("lat", trackPoint.point.latitude)
             cv.put("lon", trackPoint.point.longitude)
             cv.put("alt", 0)
-            cv.put("pointType", trackPoint.type.toString())
+            cv.put("pointType", trackPoint.type.type)
             sdb.insert(TABLE_ROUTE_POINT, null, cv)
         }
 
+    }
+
+    fun  getRoutePoints(id: Number): MutableList<RoutePoints> {
+        val routePointList: MutableList<RoutePoints> = mutableListOf()
+        val sdb = readableDatabase
+        val jquery = "SELECT * FROM $TABLE_ROUTE_POINT" +
+                " INNER JOIN $TABLE_ROUTE_NAME ON $TABLE_ROUTE_POINT.$TRACK_ID = $TABLE_ROUTE_NAME.$UID" +
+                " WHERE $TABLE_ROUTE_NAME.$UID = ?;"
+
+        val cursor: Cursor = sdb.rawQuery(jquery, arrayOf(id.toInt().toString()))
+
+        while (cursor.moveToNext()) {
+            val type = cursor.getString(cursor.getColumnIndex(POINT_TYPE))
+            val p: RoutePoints = object : RoutePoints {
+                override  val lat = cursor.getDouble(cursor.getColumnIndex("lat"))
+                override val lon: Double = cursor.getDouble(cursor.getColumnIndex("lon"))
+
+                override val type = MapBoxStore.PointType.from(type)
+            }
+            routePointList.add(p)
+
+        }
+        return routePointList
     }
 
     private fun saveParam(name: String, value: Double) {

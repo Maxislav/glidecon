@@ -186,7 +186,7 @@ class MapBoxActivity : AppCompatActivity(), Ololo {
                 }
                 R.id.list_saved_track -> {
                     val intent = Intent(this, ListSavedTrack::class.java)
-                    startActivityForResult(intent, 0)
+                    startActivityForResult(intent, LIST_SAVED_TRACK_CODE)
                     Log.d(TAG, "list saved track clicked")
                 }
                 R.id.track_build -> {
@@ -389,6 +389,6 @@ class MapBoxActivity : AppCompatActivity(), Ololo {
     }
 
     companion object {
-        val LIST_SAVED_TRACK_CODE = 0
+        val LIST_SAVED_TRACK_CODE = 50
     }
 }

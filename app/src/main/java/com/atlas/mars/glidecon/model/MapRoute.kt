@@ -4,6 +4,9 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Color
 import android.location.Location
+import android.os.Handler
+import android.os.Looper
+import android.os.Message
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import com.atlas.mars.glidecon.R
@@ -23,10 +26,14 @@ import com.mapbox.mapboxsdk.style.layers.LineLayer
 import com.mapbox.mapboxsdk.style.layers.Property
 import com.mapbox.mapboxsdk.style.layers.PropertyFactory
 import com.mapbox.mapboxsdk.style.sources.GeoJsonSource
+import io.reactivex.Observable.just
 import io.reactivex.rxkotlin.subscribeBy
+import io.reactivex.schedulers.Schedulers
 import io.reactivex.subjects.AsyncSubject
 import io.reactivex.subjects.BehaviorSubject
 import kotlinx.coroutines.*
+import java.text.DecimalFormat
+import java.util.*
 
 @ObsoleteCoroutinesApi
 @SuppressLint("ResourceType")
@@ -47,6 +54,16 @@ class MapRoute(val style: Style, val context: Context) {
 
     @ObsoleteCoroutinesApi
     private val scope = CoroutineScope(newSingleThreadContext(TAG))
+    private val handler = object : Handler(Looper.getMainLooper()) {
+        @SuppressLint("SetTextI18n")
+        override fun handleMessage(msg: Message) {
+            when (msg.what) {
+                1 -> {
+                    MapBoxStore.routeBuildProgress.onNext(false)
+                }
+            }
+        }
+    }
 
     companion object {
         const val SOURCE_ID = "route_source"
@@ -96,7 +113,7 @@ class MapRoute(val style: Style, val context: Context) {
 
         MapBoxStore.routeBuildProgress
                 .takeUntil(_onDestroy)
-                .filter{ !it }
+                .filter { !it }
                 .subscribeBy {
                     routeTurnPointList.clear()
                     routeFullPointList.clear()
@@ -104,31 +121,28 @@ class MapRoute(val style: Style, val context: Context) {
                     setAreaSource()
                     setLineSource()
                 }
+
         MapBoxStore.routeButtonClick
                 .takeUntil(_onDestroy)
-                .subscribeBy {
-                    Log.d(TAG, it.routeAction)
-                    when(it){
-                        MapBoxStore.RouteAction.BACK -> {
-                            stepBack()
-                        }
-                        MapBoxStore.RouteAction.SAVE -> {
-                            val d = DialogSaveTrack(context) { trackName ->
-                                Log.d(TAG, trackName)
-                                MapBoxStore.routeBuildProgress.onNext(false)
-                                runBlocking{
-                                    scope.launch {
-                                        onSave(trackName)
-                                    }
-                                }
-                            }
-                            d.create().show()
-                        }
-                        else -> {
-
-                        }
-                    }
+                .filter {
+                    it === MapBoxStore.RouteAction.BACK
                 }
+                .subscribeBy {
+                    stepBack()
+                }
+
+        MapBoxStore.routeButtonClick
+                .takeUntil(_onDestroy)
+                .filter {
+                    it === MapBoxStore.RouteAction.SAVE
+                }
+                .subscribeBy {
+                    val d = DialogSaveTrack(context) { trackName: String ->
+                        onSave(trackName)
+                    }
+                    d.create().show()
+                }
+
     }
 
 
@@ -175,33 +189,36 @@ class MapRoute(val style: Style, val context: Context) {
                     }
             return true
         }
+    }
+
+    private fun onSave(trackName: String) {
+        just(1)
+                .subscribeOn(Schedulers.newThread())
+                .subscribeBy {
+                    val id = mapDateBase.saveTrackName(trackName)
+                    val trackPointList = mutableListOf<TrackPoint>()
+                    routeTurnPointList.forEach { p ->
+                        trackPointList.add(TrackPoint(p, MapBoxStore.PointType.TURN))
+                    }
+                    routeFullPointList.forEach { p ->
+                        trackPointList.add(TrackPoint(p, MapBoxStore.PointType.ROUTE))
+                    }
+                    mapDateBase.saveTrackPoints(id, trackPointList)
+                    handler.sendEmptyMessage(1)
+                }
 
     }
 
-    private suspend fun onSave(trackName: String){
-        val id =  mapDateBase.saveTrackName(trackName)
-        val trackPointList = mutableListOf<TrackPoint>()
-        routeTurnPointList.forEach { p ->
-            trackPointList.add(TrackPoint(p, MapBoxStore.PointType.TURN))
-        }
-        routeFullPointList.forEach { p ->
-            trackPointList.add(TrackPoint(p, MapBoxStore.PointType.ROUTE))
-        }
-        mapDateBase.saveTrackPoints(id, trackPointList)
-        /*delay(5000)
-        Log.d(TAG, "Ololo ")*/
-    }
-
-    private fun stepBack(){
-        if(0<steps.size){
+    private fun stepBack() {
+        if (0 < steps.size) {
             val n = steps.removeLast()
             routeTurnPointList.removeLast()
-            for(i in 1..n){
+            for (i in 1..n) {
                 routeFullPointList.removeLast()
             }
             setAreaSource()
             setLineSource()
-           // routeFullPointList.sc
+            // routeFullPointList.sc
         }
 
 
@@ -253,6 +270,7 @@ class MapRoute(val style: Style, val context: Context) {
 
     fun onDestroy() {
         _onDestroy.onComplete()
+        handler.removeCallbacksAndMessages(null);
     }
 
 }
