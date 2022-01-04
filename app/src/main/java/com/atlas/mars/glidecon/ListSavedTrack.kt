@@ -1,7 +1,11 @@
 package com.atlas.mars.glidecon
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
+import android.os.Message
 import android.util.Log
 import android.view.*
 import android.widget.ArrayAdapter
@@ -14,6 +18,7 @@ import com.atlas.mars.glidecon.databinding.ActivityListSavedTrackBinding
 import com.atlas.mars.glidecon.databinding.TrackListItemBinding
 import com.atlas.mars.glidecon.model.ListTrackItem
 import com.atlas.mars.glidecon.store.MapBoxStore
+import io.reactivex.rxkotlin.subscribeBy
 
 
 interface IVehicle {
@@ -26,26 +31,36 @@ class ListSavedTrack : AppCompatActivity() {
 
     private lateinit var binding: ActivityListSavedTrackBinding
     var mapDateBase = MapDateBase(this)
+
+    private val handler = object : Handler(Looper.getMainLooper()) {
+        override fun handleMessage(msg: Message) {
+            when (msg.what) {
+                1 -> {
+                }
+            }
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityListSavedTrackBinding.inflate(layoutInflater)
         setContentView(binding.root)
         // binding =  DataBindingUtil.setContentView(this, R.layout.action_bar_list_saved_track)
         //setView(binding.root);
-        val listView: ListView = binding.listView;
+        // val listView: ListView = binding.listView;
 
 
         // val trackList = arrayListOf<ListTrackItem>(ListTrackItem("Бразилия", 27))
+
+        //Helper.getListViewSize(listView);
+        initValues()
+    }
+
+    private fun initValues() {
+        val listView: ListView = binding.listView;
         val trackList = mapDateBase.getTrackNameLis()
-
-
-
-
-
-
         val adapter = MyListAdapter(this, trackList)
         listView.adapter = adapter;
-        //Helper.getListViewSize(listView);
     }
 
 
@@ -66,6 +81,23 @@ class ListSavedTrack : AppCompatActivity() {
         finish()
     }
 
+    private fun deleteTrackById(id: Int) {
+        mapDateBase.deleteTrackById(id)
+        initValues()
+        MapBoxStore.activeRoute
+                .take(1)
+                .subscribeBy {
+                    if(it == id){
+                        MapBoxStore.activeRoute.onNext(-1)
+                    }
+                }
+    }
+
+    override fun onDestroy() {
+        handler.removeCallbacksAndMessages(null)
+        super.onDestroy()
+    }
+
     inner class MyLongClick(private val context: ListSavedTrack, private val item: ListTrackItem) : View.OnLongClickListener {
         override fun onLongClick(v: View?): Boolean {
             Log.d(TAG, "click ${item.name}")
@@ -73,6 +105,11 @@ class ListSavedTrack : AppCompatActivity() {
             popup.inflate(R.menu.menu_track_list)
             popup.setOnMenuItemClickListener { menuItem: MenuItem ->
                 // Respond to menu item click.
+                when (menuItem.itemId) {
+                    R.id.item_delete -> {
+                        deleteTrackById(item.trackId)
+                    }
+                }
                 return@setOnMenuItemClickListener true
             }
             popup.show()

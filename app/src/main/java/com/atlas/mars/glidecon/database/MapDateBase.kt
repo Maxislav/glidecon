@@ -385,19 +385,21 @@ class MapDateBase(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, n
             val listTrackItem = ListTrackItem(trackId, name, distance, dateTime)
             trackList.add(listTrackItem)
         }
+        cursor.close()
         return trackList;
     }
 
-    fun getActiveRouteName(id: Int): String{
+    private fun getActiveRouteName(id: Int): String {
         var name = ""
         val sdb = readableDatabase
         val jquery = "SELECT name FROM $TABLE_ROUTE_NAME WHERE $UID=?;"
         val cursor: Cursor = sdb.rawQuery(jquery, arrayOf(id.toString()))
         while (cursor.moveToNext()) {
-           name = cursor.getString(cursor.getColumnIndex(NAME))
+            name = cursor.getString(cursor.getColumnIndex(NAME))
         }
         return name
     }
+
     fun saveTrackPoints(id: Long, m: MutableList<TrackPoint>) {
         val sdb = readableDatabase
         val cv = ContentValues()
@@ -412,7 +414,7 @@ class MapDateBase(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, n
 
     }
 
-    fun  getRoutePoints(id: Number): MutableList<RoutePoints> {
+    fun getRoutePoints(id: Number): MutableList<RoutePoints> {
         val routePointList: MutableList<RoutePoints> = mutableListOf()
         val sdb = readableDatabase
         val jquery = "SELECT * FROM $TABLE_ROUTE_POINT" +
@@ -424,7 +426,7 @@ class MapDateBase(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, n
         while (cursor.moveToNext()) {
             val type = cursor.getString(cursor.getColumnIndex(POINT_TYPE))
             val p: RoutePoints = object : RoutePoints {
-                override  val lat = cursor.getDouble(cursor.getColumnIndex("lat"))
+                override val lat = cursor.getDouble(cursor.getColumnIndex("lat"))
                 override val lon: Double = cursor.getDouble(cursor.getColumnIndex("lon"))
 
                 override val type = MapBoxStore.PointType.from(type)
@@ -433,6 +435,23 @@ class MapDateBase(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, n
 
         }
         return routePointList
+    }
+
+    fun deleteTrackById(id: Int) {
+        val sdb = readableDatabase
+        val jqueryDeleteFromRouteName = "DELETE FROM $TABLE_ROUTE_NAME" +
+                " WHERE $UID = ?;"
+
+        sdb.execSQL(jqueryDeleteFromRouteName, arrayOf(id.toString()))
+       //  c.close()
+        deleteRoutePoints(id)
+    }
+
+    private fun deleteRoutePoints(id: Int) {
+        val sdb = readableDatabase
+        val jqueryDeleteFromRoutePoints = "DELETE FROM $TABLE_ROUTE_POINT" +
+                " WHERE $TRACK_ID = ?;"
+        sdb.execSQL(jqueryDeleteFromRoutePoints, arrayOf(id.toString()))
     }
 
     private fun saveParam(name: String, value: Double) {

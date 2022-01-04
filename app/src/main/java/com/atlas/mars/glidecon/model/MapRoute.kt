@@ -13,6 +13,7 @@ import com.atlas.mars.glidecon.R
 import com.atlas.mars.glidecon.database.MapDateBase
 import com.atlas.mars.glidecon.dialog.DialogLendingBox
 import com.atlas.mars.glidecon.dialog.DialogSaveTrack
+import com.atlas.mars.glidecon.rest.RouteRequest
 import com.atlas.mars.glidecon.store.MapBoxStore
 import com.atlas.mars.glidecon.util.LocationUtil
 import com.mapbox.geojson.Feature
@@ -52,6 +53,8 @@ class MapRoute(val style: Style, val context: Context) {
     private val areaSource = createSource(SOURCE_AREA_POINT_ID)
     private val routeSource = createSource(SOURCE_ID)
 
+    var loading = false
+
     @ObsoleteCoroutinesApi
     private val scope = CoroutineScope(newSingleThreadContext(TAG))
     private val handler = object : Handler(Looper.getMainLooper()) {
@@ -60,6 +63,8 @@ class MapRoute(val style: Style, val context: Context) {
             when (msg.what) {
                 1 -> {
                     MapBoxStore.routeBuildProgress.onNext(false)
+                    val id = msg.obj as Int
+                    MapBoxStore.activeRoute.onNext(id)
                 }
             }
         }
@@ -148,6 +153,7 @@ class MapRoute(val style: Style, val context: Context) {
 
     private fun mapDefined(mapBoxMap: MapboxMap) {
         var defineRoutePoint: DefineRoutePoint? = null
+
         MapBoxStore.routeBuildProgress
                 .takeUntil(_onDestroy)
                 .subscribeBy {
@@ -166,6 +172,9 @@ class MapRoute(val style: Style, val context: Context) {
     inner class DefineRoutePoint : MapboxMap.OnMapLongClickListener {
         override fun onMapLongClick(point: LatLng): Boolean {
             Log.d(TAG, "map click")
+            if (loading) {
+                return true
+            }
             MapBoxStore.routeType
                     .takeUntil(_onDestroy)
                     .take(1)
@@ -179,11 +188,42 @@ class MapRoute(val style: Style, val context: Context) {
                                 setLineSource()
                                 steps.add(1)
                             }
-                            MapBoxStore.RouteType.BIKE -> {
 
-                            }
-                            MapBoxStore.RouteType.CAR -> {
+                            MapBoxStore.RouteType.CAR, MapBoxStore.RouteType.BIKE -> {
 
+                                if (0 < routeTurnPointList.size) {
+                                    routeTurnPointList.add(point)
+                                    setAreaSource()
+                                    val r = RouteRequest()
+                                    loading = true
+                                    r.restCar(routeTurnPointList[routeTurnPointList.size - 2], point, it) { list, err ->
+                                        if (err === null && list !== null) {
+                                            for (i in 0..list.size - 2 step 2) {
+                                                val latLng: LatLng = LatLng(list[i], list[i + 1])
+                                                routeFullPointList.add(latLng)
+                                            }
+                                            steps.add(list.size / 2)
+                                            setLineSource()
+                                        } else if (err !== null) {
+                                            routeTurnPointList.removeLast()
+                                            setAreaSource()
+                                            setLineSource()
+                                            Log.d(TAG, err.stackTraceToString())
+                                        } else {
+                                            routeTurnPointList.removeLast()
+                                            setAreaSource()
+                                            setLineSource()
+                                            Log.d(TAG, "Track Error")
+                                        }
+                                        loading = false
+                                    }
+                                } else {
+                                    routeTurnPointList.add(point)
+                                    routeFullPointList.add(point)
+                                    setAreaSource()
+                                    setLineSource()
+                                    steps.add(1)
+                                }
                             }
                         }
                     }
@@ -204,7 +244,8 @@ class MapRoute(val style: Style, val context: Context) {
                         trackPointList.add(TrackPoint(p, MapBoxStore.PointType.ROUTE))
                     }
                     mapDateBase.saveTrackPoints(id, trackPointList)
-                    handler.sendEmptyMessage(1)
+                    val msg = handler.obtainMessage(1, id.toInt())
+                    handler.sendMessage(msg)
                 }
 
     }
