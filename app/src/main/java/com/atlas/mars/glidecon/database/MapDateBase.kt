@@ -323,7 +323,7 @@ class MapDateBase(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, n
             initRouteId = true
             cursor.moveToFirst()
             val routeID = cursor.getDouble(cursor.getColumnIndex(VALUE))
-            MapBoxStore.activeRoute.onNext(routeID)
+            MapBoxStore.activeRoute.onNext(routeID.toInt())
             initRouteId = false
         }
         MapBoxStore.activeRoute.takeWhile { isSubscribed }
@@ -331,6 +331,13 @@ class MapDateBase(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, n
                 .subscribeBy {
                     saveParam(ROUTE_ID, it.toDouble())
                 }
+
+        MapBoxStore.activeRoute.takeWhile { isSubscribed }
+                .subscribeBy {
+                    val name = getActiveRouteName(it)
+                    MapBoxStore.activeRouteName.onNext(name)
+                }
+
 
         cursor.close()
         //sdb.close()
@@ -381,6 +388,16 @@ class MapDateBase(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, n
         return trackList;
     }
 
+    fun getActiveRouteName(id: Int): String{
+        var name = ""
+        val sdb = readableDatabase
+        val jquery = "SELECT name FROM $TABLE_ROUTE_NAME WHERE $UID=?;"
+        val cursor: Cursor = sdb.rawQuery(jquery, arrayOf(id.toString()))
+        while (cursor.moveToNext()) {
+           name = cursor.getString(cursor.getColumnIndex(NAME))
+        }
+        return name
+    }
     fun saveTrackPoints(id: Long, m: MutableList<TrackPoint>) {
         val sdb = readableDatabase
         val cv = ContentValues()

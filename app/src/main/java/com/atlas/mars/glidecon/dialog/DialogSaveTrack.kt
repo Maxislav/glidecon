@@ -4,10 +4,7 @@ import android.annotation.SuppressLint
 import android.app.AlertDialog
 import android.content.Context
 import android.text.Editable
-import android.view.Gravity
-import android.view.LayoutInflater
-import android.view.Window
-import android.view.WindowManager
+import android.view.*
 import androidx.databinding.DataBindingUtil
 import com.atlas.mars.glidecon.R
 import com.atlas.mars.glidecon.databinding.DialogSaveTrackBinding
@@ -31,6 +28,13 @@ class DialogSaveTrack(ctx: Context, val cb: (trackName: String) -> Unit) : Alert
             binding.routeNameText.selectAll()
         }
 
+        binding.routeNameText.setOnFocusChangeListener { _, hasFocus ->
+            if (hasFocus) {
+                binding.routeNameText.setSelectAllOnFocus(true)
+                binding.routeNameText.selectAll()
+            }
+        }
+
     }
 
     fun onClickSave() {
@@ -51,11 +55,12 @@ class DialogSaveTrack(ctx: Context, val cb: (trackName: String) -> Unit) : Alert
         setDialogPosition(alertDialog)
         return alertDialog
     }
-    fun onDestroy(){
+
+    fun onDestroy() {
         alertDialog.dismiss()
     }
 
-    private fun setDialogPosition(alertDialog: AlertDialog){
+    private fun setDialogPosition(alertDialog: AlertDialog) {
         val windowDialog: Window? = alertDialog.window
 
         windowDialog?.setGravity(Gravity.TOP or Gravity.CENTER_HORIZONTAL)

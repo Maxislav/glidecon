@@ -17,6 +17,7 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.WindowInsets
 import android.view.WindowManager
+import android.widget.TextView
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
@@ -107,6 +108,8 @@ class MapBoxActivity : AppCompatActivity(), Ololo {
         setupTiltLayout()
         setupZoomControl()
         setupWindLayout()
+        setupActiveRouteName()
+        // initRouteName()
         screenWidth
 
         mapView = findViewById(R.id.mapView)
@@ -132,6 +135,15 @@ class MapBoxActivity : AppCompatActivity(), Ololo {
             locationService = null
             bound = false
         }
+
+    }
+
+    private fun setupActiveRouteName(){
+
+        val fm = this.supportFragmentManager
+        val ft: FragmentTransaction = fm.beginTransaction()
+        ft.add(R.id.activeTrackNameFrame, FragmentActiveTrackName())
+        ft.commit()
 
     }
 

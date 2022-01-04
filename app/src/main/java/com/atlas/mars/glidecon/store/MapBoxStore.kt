@@ -28,7 +28,8 @@ class MapBoxStore {
         lateinit var landingStartPointSubject: BehaviorSubject<LatLng>
         lateinit var defineStartingPointClickSubject: BehaviorSubject<Boolean>
         lateinit var routeBuildProgress: BehaviorSubject<Boolean>
-        lateinit var activeRoute: BehaviorSubject<Number>
+        lateinit var activeRoute: BehaviorSubject<Int>
+        lateinit var activeRouteName: BehaviorSubject<String>
         lateinit var routeType: BehaviorSubject<RouteType>
         lateinit var routeButtonClick: PublishSubject<RouteAction>
 
@@ -51,6 +52,8 @@ class MapBoxStore {
             defineStartingPointClickSubject = BehaviorSubject.create()
             routeBuildProgress = BehaviorSubject.createDefault(false)
             activeRoute = BehaviorSubject.create()
+            activeRouteName = BehaviorSubject.create()
+            // activeRoute = BehaviorSubject.create()
             routeType = BehaviorSubject.create()
             routeButtonClick = PublishSubject.create()
         }
@@ -73,6 +76,7 @@ class MapBoxStore {
             landingStartPointSubject.onComplete()
             routeBuildProgress.onComplete()
             activeRoute.onComplete()
+            activeRouteName.onComplete()
             routeType.onComplete()
             routeButtonClick.onComplete()
         }
