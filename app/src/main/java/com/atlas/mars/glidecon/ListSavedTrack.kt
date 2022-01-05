@@ -10,6 +10,7 @@ import androidx.appcompat.app.AppCompatActivity
 import com.atlas.mars.glidecon.database.MapDateBase
 import com.atlas.mars.glidecon.databinding.ActivityListSavedTrackBinding
 import com.atlas.mars.glidecon.databinding.TrackListItemBinding
+import com.atlas.mars.glidecon.dialog.DialogSaveTrack
 import com.atlas.mars.glidecon.model.ListTrackItem
 import com.atlas.mars.glidecon.store.MapBoxStore
 import io.reactivex.rxkotlin.subscribeBy
@@ -23,7 +24,7 @@ class ListSavedTrack : AppCompatActivity() {
     private val handler = object : Handler(Looper.getMainLooper()) {
         override fun handleMessage(msg: Message) {
             when (msg.what) {
-                1 -> {
+                SAVE_MESSAGE -> {
                 }
             }
         }
@@ -67,16 +68,29 @@ class ListSavedTrack : AppCompatActivity() {
         super.onSaveInstanceState(outState, outPersistentState)
     }
 
-    private fun deleteTrackById(id: Int) {
-        mapDateBase.deleteTrackById(id)
+    private fun deleteTrackById(listTrackItem: ListTrackItem) {
+        mapDateBase.deleteTrackById(listTrackItem.trackId)
         initValues()
         MapBoxStore.activeRoute
                 .take(1)
                 .subscribeBy {
-                    if(it == id){
+                    if (it == listTrackItem.trackId) {
                         MapBoxStore.activeRoute.onNext(-1)
                     }
                 }
+    }
+
+    private fun renameTrackById(listTrackItem: ListTrackItem) {
+        val d = DialogSaveTrack(this, listTrackItem.name) { trackName: String ->
+            mapDateBase.renameTrack(listTrackItem.trackId, trackName)
+            initValues()
+            MapBoxStore.activeRoute
+                    .take(1)
+                    .subscribeBy {
+                        MapBoxStore.activeRoute.onNext(it)
+                    }
+        }
+        d.create().show()
     }
 
     override fun onDestroy() {
@@ -94,7 +108,10 @@ class ListSavedTrack : AppCompatActivity() {
                 // Respond to menu item click.
                 when (menuItem.itemId) {
                     R.id.item_delete -> {
-                        deleteTrackById(item.trackId)
+                        deleteTrackById(item)
+                    }
+                    R.id.item_rename -> {
+                        renameTrackById(item)
                     }
                 }
                 return@setOnMenuItemClickListener true
@@ -119,7 +136,12 @@ class ListSavedTrack : AppCompatActivity() {
             }
 
             binding.linearRow.setOnClickListener {
+                //val msg = handler.obtainMessage(SAVE_MESSAGE, items[position].trackId)
+                //handler.sendMessage(msg)
+                //finish()
                 listSavedTrack.finish(items[position].trackId)
+
+
             }
             binding.linearRow.setOnLongClickListener(MyLongClick(listSavedTrack, items[position]))
             binding.trackItem = items[position]
@@ -143,6 +165,7 @@ class ListSavedTrack : AppCompatActivity() {
 
     companion object {
         const val TAG = "ListSavedTrack_tag"
+        const val SAVE_MESSAGE = 1
     }
 
     object Helper {

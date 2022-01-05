@@ -34,11 +34,12 @@ import io.reactivex.subjects.AsyncSubject
 import io.reactivex.subjects.BehaviorSubject
 import kotlinx.coroutines.*
 import java.text.DecimalFormat
+import java.text.SimpleDateFormat
 import java.util.*
 
 @ObsoleteCoroutinesApi
 @SuppressLint("ResourceType")
-class MapRoute(val style: Style, val context: Context) {
+class MapRouteBuilder(val style: Style, val context: Context) {
 
     private val TAG = "MapRoute";
     val mapDateBase = MapDateBase(context)
@@ -142,7 +143,10 @@ class MapRoute(val style: Style, val context: Context) {
                     it === MapBoxStore.RouteAction.SAVE
                 }
                 .subscribeBy {
-                    val d = DialogSaveTrack(context) { trackName: String ->
+                    val df = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.ENGLISH);
+                    val defaultName = df.format(Date())
+
+                    val d = DialogSaveTrack(context, defaultName) { trackName: String ->
                         onSave(trackName)
                     }
                     d.create().show()
@@ -235,7 +239,7 @@ class MapRoute(val style: Style, val context: Context) {
         just(1)
                 .subscribeOn(Schedulers.newThread())
                 .subscribeBy {
-                    val id = mapDateBase.saveTrackName(trackName)
+
                     val trackPointList = mutableListOf<TrackPoint>()
                     routeTurnPointList.forEach { p ->
                         trackPointList.add(TrackPoint(p, MapBoxStore.PointType.TURN))
@@ -243,11 +247,23 @@ class MapRoute(val style: Style, val context: Context) {
                     routeFullPointList.forEach { p ->
                         trackPointList.add(TrackPoint(p, MapBoxStore.PointType.ROUTE))
                     }
+                    val dist = calcDistance(routeFullPointList)
+                    val id = mapDateBase.saveTrackName(trackName, dist )
                     mapDateBase.saveTrackPoints(id, trackPointList)
                     val msg = handler.obtainMessage(1, id.toInt())
                     handler.sendMessage(msg)
                 }
 
+    }
+
+    private fun calcDistance(list: MutableList<LatLng>): Double {
+        var dist = 0.0
+        for (i in 0 until list.size - 1) {
+            val a = list[i]
+            val b = list[i + 1]
+            dist += a.distanceTo(b)
+        }
+        return String.format("%.1f", dist/1000).toDouble();
     }
 
     private fun stepBack() {

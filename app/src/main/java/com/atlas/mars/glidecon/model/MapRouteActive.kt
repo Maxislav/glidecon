@@ -7,7 +7,6 @@ import android.location.Location
 import android.os.Handler
 import android.os.Looper
 import android.os.Message
-import android.util.Log
 import com.atlas.mars.glidecon.R
 import com.atlas.mars.glidecon.database.MapDateBase
 import com.atlas.mars.glidecon.store.MapBoxStore
@@ -18,7 +17,6 @@ import com.mapbox.geojson.LineString
 import com.mapbox.geojson.Point
 import com.mapbox.mapboxsdk.geometry.LatLng
 import com.mapbox.mapboxsdk.maps.Style
-import com.mapbox.mapboxsdk.style.expressions.Expression.`object`
 import com.mapbox.mapboxsdk.style.layers.LineLayer
 import com.mapbox.mapboxsdk.style.layers.Property
 import com.mapbox.mapboxsdk.style.layers.PropertyFactory
@@ -172,7 +170,7 @@ class MapRouteActive(val style: Style, val context: Context) {
 
 
         for (a in 0..360 step 5) {
-            val loc = LocationUtil(center1).offset(MapRoute.RADIUS, a.toDouble())
+            val loc = LocationUtil(center1).offset(MapRouteBuilder.RADIUS, a.toDouble())
             val p = Point.fromLngLat(loc.longitude, loc.latitude)
             routeCoordinates.add(p)
         }

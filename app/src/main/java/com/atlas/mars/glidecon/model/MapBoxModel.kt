@@ -11,7 +11,6 @@ import android.util.Log
 import android.view.MotionEvent
 import android.view.View
 import com.atlas.mars.glidecon.database.MapDateBase
-import com.atlas.mars.glidecon.dialog.DialogWindSetting
 import com.atlas.mars.glidecon.store.MapBoxStore
 import com.atlas.mars.glidecon.store.MapBoxStore.Companion.cameraPositionSubject
 import com.atlas.mars.glidecon.store.MapBoxStore.Companion.compassOnClickSubject
@@ -44,7 +43,7 @@ class MapBoxModel(val mapView: MapView, val context: Context, val myViewModel: L
     lateinit var flightRadius: FlightRadius
     lateinit var tailTrace: TailTrace
     lateinit var landingPatternBox: LandingPatternBox
-    lateinit var mapRoute: MapRoute
+    lateinit var mapRouteBuilder: MapRouteBuilder
     lateinit var mapRouteActive: MapRouteActive
 
     var mapboxMap: MapboxMap? = null
@@ -69,7 +68,7 @@ class MapBoxModel(val mapView: MapView, val context: Context, val myViewModel: L
             mapboxMap.setStyle(Style.MAPBOX_STREETS) { style: Style ->
                 tailTrace = TailTrace(style, context)
                 landingPatternBox = LandingPatternBox(style, context)
-                mapRoute = MapRoute(style, context)
+                mapRouteBuilder = MapRouteBuilder(style, context)
                 mapRouteActive = MapRouteActive(style, context)
 
                 MyPositionMarker(mapView, mapboxMap, style, context)
@@ -314,7 +313,7 @@ class MapBoxModel(val mapView: MapView, val context: Context, val myViewModel: L
         flightRadius.onDestroy()
         tailTrace.onDestroy()
         landingPatternBox.onDestroy()
-        mapRoute.onDestroy()
+        mapRouteBuilder.onDestroy()
         mapRouteActive.onDestroy()
     }
 

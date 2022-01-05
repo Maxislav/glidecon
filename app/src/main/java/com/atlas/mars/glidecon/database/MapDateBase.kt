@@ -8,7 +8,6 @@ import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 import android.util.Log
 import com.atlas.mars.glidecon.model.ListTrackItem
-import com.atlas.mars.glidecon.model.MapRoute
 import com.atlas.mars.glidecon.model.RoutePoints
 import com.atlas.mars.glidecon.model.TrackPoint
 import com.atlas.mars.glidecon.store.MapBoxStore
@@ -359,13 +358,13 @@ class MapDateBase(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, n
         saveParam(AGREEMENT_AGREE, 1.0)
     }
 
-    fun saveTrackName(trackName: String): Long {
+    fun saveTrackName(trackName: String, dist: Double = 0.0): Long {
         val sdb = readableDatabase
         val cv = ContentValues()
         val df = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.ENGLISH);
         val dateTime = df.format(Date())
         cv.put(NAME, trackName)
-        cv.put("distance", 0)
+        cv.put("distance", dist)
         cv.put("dateTime", dateTime)
         cv.put("active", 0)
         return sdb.insert(TABLE_ROUTE_NAME, null, cv)
@@ -445,6 +444,12 @@ class MapDateBase(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, n
         sdb.execSQL(jqueryDeleteFromRouteName, arrayOf(id.toString()))
        //  c.close()
         deleteRoutePoints(id)
+    }
+
+    fun renameTrack(id: Int, routeName: String) {
+        val sdb = readableDatabase
+        val query = "UPDATE $TABLE_ROUTE_NAME SET $NAME=? WHERE $UID=?;"
+        sdb.execSQL(query, arrayOf(routeName, id.toString()))
     }
 
     private fun deleteRoutePoints(id: Int) {

@@ -13,16 +13,15 @@ import java.util.*
 
 
 @SuppressLint("SimpleDateFormat")
-class DialogSaveTrack(ctx: Context, val cb: (trackName: String) -> Unit) : AlertDialog.Builder(ctx) {
+class DialogSaveTrack(ctx: Context, trackName: String, val cb: (trackName: String) -> Unit) : AlertDialog.Builder(ctx) {
     lateinit var alertDialog: AlertDialog
     var binding: DialogSaveTrackBinding = DataBindingUtil.inflate(LayoutInflater.from(ctx), R.layout.dialog_save_track, null, false)
 
     init {
         binding.dialogSaveTrack = this
         setView(binding.root);
-        val df = SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        df.format(Date())
-        binding.routeNameText.text = Editable.Factory.getInstance().newEditable(df.format(Date())) // Editable(df.format(Date()))
+
+        binding.routeNameText.text = Editable.Factory.getInstance().newEditable(trackName)
 
         binding.routeNameText.post {
             binding.routeNameText.selectAll()
