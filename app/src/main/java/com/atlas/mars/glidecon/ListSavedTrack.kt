@@ -2,10 +2,7 @@ package com.atlas.mars.glidecon
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
-import android.os.Message
+import android.os.*
 import android.util.Log
 import android.view.*
 import android.widget.ArrayAdapter
@@ -19,6 +16,7 @@ import com.atlas.mars.glidecon.databinding.TrackListItemBinding
 import com.atlas.mars.glidecon.model.ListTrackItem
 import com.atlas.mars.glidecon.store.MapBoxStore
 import io.reactivex.rxkotlin.subscribeBy
+import io.reactivex.subjects.AsyncSubject
 
 
 interface IVehicle {
@@ -31,6 +29,7 @@ class ListSavedTrack : AppCompatActivity() {
 
     private lateinit var binding: ActivityListSavedTrackBinding
     var mapDateBase = MapDateBase(this)
+    private val _onDestroy = AsyncSubject.create<Boolean>();
 
     private val handler = object : Handler(Looper.getMainLooper()) {
         override fun handleMessage(msg: Message) {
@@ -81,10 +80,16 @@ class ListSavedTrack : AppCompatActivity() {
         finish()
     }
 
+    override fun onSaveInstanceState(outState: Bundle, outPersistentState: PersistableBundle) {
+        _onDestroy.onComplete()
+        super.onSaveInstanceState(outState, outPersistentState)
+    }
+
     private fun deleteTrackById(id: Int) {
         mapDateBase.deleteTrackById(id)
         initValues()
         MapBoxStore.activeRoute
+                .takeUntil(_onDestroy)
                 .take(1)
                 .subscribeBy {
                     if(it == id){
@@ -95,6 +100,7 @@ class ListSavedTrack : AppCompatActivity() {
 
     override fun onDestroy() {
         handler.removeCallbacksAndMessages(null)
+        _onDestroy.onComplete()
         super.onDestroy()
     }
 

@@ -63,9 +63,11 @@ class MapBoxActivity : AppCompatActivity(), Ololo {
     lateinit var mapBoxModel: MapBoxModel
     var isSubscribed = false;
     lateinit var mapDateBase: MapDateBase
+
     // lateinit var mapBoxStore: MapBoxStore
     private var fragmentTrackBuild: FragmentTrackBuild? = null
     private var fragmentDashboard: FragmentDashboard? = null
+    private var fragmentActiveTrackName: FragmentActiveTrackName? = null
     private val _onDestroy = AsyncSubject.create<Boolean>();
 
     var dialogLendingBox: AlertDialog? = null
@@ -138,14 +140,6 @@ class MapBoxActivity : AppCompatActivity(), Ololo {
 
     }
 
-    private fun setupActiveRouteName(){
-
-        val fm = this.supportFragmentManager
-        val ft: FragmentTransaction = fm.beginTransaction()
-        ft.add(R.id.activeTrackNameFrame, FragmentActiveTrackName())
-        ft.commit()
-
-    }
 
     private fun setupWindLayout() {
         val fm = this.supportFragmentManager
@@ -225,6 +219,43 @@ class MapBoxActivity : AppCompatActivity(), Ololo {
                 }
     }
 
+    private fun setupActiveRouteName() {
+        MapBoxStore.activeRoute
+                .takeUntil(_onDestroy)
+                .distinctUntilChanged { a, b ->
+                    Log.d(TAG, "${a.toString()} ${b}")
+                    if (a == b) {
+                        return@distinctUntilChanged true
+                    } else if (a == -1 || b == -1) {
+                        return@distinctUntilChanged false
+                    } else {
+                        true
+                    }
+                }
+                .subscribeBy {
+                    if (-1 < it) {
+                        showActiveNameFrame()
+                    } else {
+                        hideActiveNameFrame()
+                    }
+                }
+
+
+    }
+
+    private fun showActiveNameFrame() {
+        val fm = this.supportFragmentManager
+        val ft: FragmentTransaction = fm.beginTransaction()
+        fragmentActiveTrackName = FragmentActiveTrackName()
+        fragmentActiveTrackName?.let { fr -> ft.add(R.id.activeTrackNameFrame, fr).commitAllowingStateLoss() }
+    }
+
+    private fun hideActiveNameFrame() {
+        fragmentActiveTrackName?.let { fr ->
+            this.supportFragmentManager.beginTransaction().remove(fr).commit(); fragmentActiveTrackName = null
+        }
+    }
+
     private fun showBuildTrackFrame() {
         val fm = this.supportFragmentManager
         val ft: FragmentTransaction = fm.beginTransaction()
@@ -255,18 +286,17 @@ class MapBoxActivity : AppCompatActivity(), Ololo {
          gpsStatusTrans.commit()*/
     }
 
-    private fun showBikeComputerFrame(){
+    private fun showBikeComputerFrame() {
         val fm = this.supportFragmentManager
         val ft: FragmentTransaction = fm.beginTransaction()
         fragmentDashboard = FragmentDashboard()
-        fragmentDashboard?.let { fr ->  ft.add(R.id.bike_computer_layout, fr).commit()}
+        fragmentDashboard?.let { fr -> ft.add(R.id.bike_computer_layout, fr).commit() }
 
     }
 
-    private fun hideBikeComputerFrame(){
+    private fun hideBikeComputerFrame() {
         fragmentDashboard?.let { fr -> this.supportFragmentManager.beginTransaction().remove(fr).commit() }
     }
-
 
 
     private fun setupCompassFrame() {
