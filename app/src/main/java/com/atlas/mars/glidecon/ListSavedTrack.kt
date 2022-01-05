@@ -1,14 +1,11 @@
 package com.atlas.mars.glidecon
 
-import android.annotation.SuppressLint
-import android.content.Context
 import android.os.*
 import android.util.Log
 import android.view.*
 import android.widget.ArrayAdapter
 import android.widget.ListView
 import android.widget.PopupMenu
-import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import com.atlas.mars.glidecon.database.MapDateBase
 import com.atlas.mars.glidecon.databinding.ActivityListSavedTrackBinding
@@ -18,15 +15,7 @@ import com.atlas.mars.glidecon.store.MapBoxStore
 import io.reactivex.rxkotlin.subscribeBy
 import io.reactivex.subjects.AsyncSubject
 
-
-interface IVehicle {
-    val name: String
-    val make: String
-}
-
 class ListSavedTrack : AppCompatActivity() {
-    // private val TAG = "ListSavedTrack_tag"
-
     private lateinit var binding: ActivityListSavedTrackBinding
     var mapDateBase = MapDateBase(this)
     private val _onDestroy = AsyncSubject.create<Boolean>();
@@ -44,14 +33,6 @@ class ListSavedTrack : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityListSavedTrackBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        // binding =  DataBindingUtil.setContentView(this, R.layout.action_bar_list_saved_track)
-        //setView(binding.root);
-        // val listView: ListView = binding.listView;
-
-
-        // val trackList = arrayListOf<ListTrackItem>(ListTrackItem("Бразилия", 27))
-
-        //Helper.getListViewSize(listView);
         initValues()
     }
 
@@ -66,9 +47,10 @@ class ListSavedTrack : AppCompatActivity() {
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         super.onCreateOptionsMenu(menu)
         supportActionBar?.setDisplayShowCustomEnabled(true)
+        supportActionBar?.setDisplayShowTitleEnabled(false)
         supportActionBar?.setCustomView(R.layout.action_bar_list_saved_track)
         val tView = supportActionBar?.customView;
-        tView?.findViewById<TextView>(R.id.title)?.setOnClickListener { v: View ->
+        tView?.setOnClickListener { v: View ->
             Log.d(TAG, "Title clicked")
             finish()
         }
@@ -89,7 +71,6 @@ class ListSavedTrack : AppCompatActivity() {
         mapDateBase.deleteTrackById(id)
         initValues()
         MapBoxStore.activeRoute
-                .takeUntil(_onDestroy)
                 .take(1)
                 .subscribeBy {
                     if(it == id){

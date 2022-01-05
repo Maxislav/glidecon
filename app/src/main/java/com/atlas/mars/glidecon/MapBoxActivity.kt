@@ -43,10 +43,12 @@ import com.atlas.mars.glidecon.store.MapBoxStore
 import com.google.android.material.navigation.NavigationView
 import com.mapbox.mapboxsdk.Mapbox
 import com.mapbox.mapboxsdk.maps.MapView
+import io.reactivex.rxkotlin.Observables
 import io.reactivex.rxkotlin.subscribeBy
 import io.reactivex.subjects.AsyncSubject
 import io.reactivex.subjects.BehaviorSubject
 import io.reactivex.subjects.Subject
+import kotlinx.coroutines.flow.combine
 
 interface Ololo {
     val ll: FragmentActivity
@@ -69,6 +71,7 @@ class MapBoxActivity : AppCompatActivity(), Ololo {
     private var fragmentDashboard: FragmentDashboard? = null
     private var fragmentActiveTrackName: FragmentActiveTrackName? = null
     private val _onDestroy = AsyncSubject.create<Boolean>();
+    private var _active = BehaviorSubject.createDefault(false);
 
     var dialogLendingBox: AlertDialog? = null
 
@@ -137,9 +140,7 @@ class MapBoxActivity : AppCompatActivity(), Ololo {
             locationService = null
             bound = false
         }
-
     }
-
 
     private fun setupWindLayout() {
         val fm = this.supportFragmentManager
@@ -220,8 +221,11 @@ class MapBoxActivity : AppCompatActivity(), Ololo {
     }
 
     private fun setupActiveRouteName() {
-        MapBoxStore.activeRoute
+
+        Observables.combineLatest(_active, MapBoxStore.activeRoute)
                 .takeUntil(_onDestroy)
+                .filter { it.first }
+                .map { it.second }
                 .distinctUntilChanged { a, b ->
                     Log.d(TAG, "${a.toString()} ${b}")
                     if (a == b) {
@@ -273,17 +277,8 @@ class MapBoxActivity : AppCompatActivity(), Ololo {
     private fun setupGpsStatusFrame() {
         val fm = this.supportFragmentManager
         val ft: FragmentTransaction = fm.beginTransaction()
-        //ft.replace(R.id.gpsStatusFrameView, FragmentGpsStatus());
         ft.add(R.id.gpsStatusFrameView, FragmentGpsStatus());
         ft.commit();
-//        val fm: FragmentManager = fragmentManager
-        // FragmentActivity
-        /* FragmentActivity.getSupportFragmentManager()
-        val fTrans = getFragmentManager().beginTransaction();*/
-        /* val gpsStatus = FragmentGpsStatus()
-         val gpsStatusTrans = fragmentManager.beginTransaction()
-         gpsStatusTrans.add(R.id.gpsStatusFrameView, gpsStatus)
-         gpsStatusTrans.commit()*/
     }
 
     private fun showBikeComputerFrame() {
@@ -371,6 +366,7 @@ class MapBoxActivity : AppCompatActivity(), Ololo {
     override fun onResume() {
 
         super.onResume()
+        _active.onNext(true)
 
         if (mapDateBase.getAgreement()) {
             checkPermissionAndStart()
@@ -403,6 +399,7 @@ class MapBoxActivity : AppCompatActivity(), Ololo {
     override fun onPause() {
 
         super.onPause()
+        _active.onNext(false)
         Log.d(TAG, "onPause")
         if (bound) {
             unbindService(sCon);
