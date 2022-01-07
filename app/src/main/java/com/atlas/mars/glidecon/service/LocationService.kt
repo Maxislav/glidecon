@@ -10,15 +10,12 @@ import android.location.*
 import android.os.*
 import android.util.Log
 import androidx.core.app.ActivityCompat
+import com.atlas.mars.glidecon.MapBoxActivity
 import com.atlas.mars.glidecon.store.MapBoxStore
-import com.atlas.mars.glidecon.store.MapBoxStore.Companion.locationSubject
-import com.atlas.mars.glidecon.store.MapBoxStore.Companion.satelliteSubject
 import com.atlas.mars.glidecon.util.LocationUtil
 import io.reactivex.Observable
-import io.reactivex.disposables.Disposable
 import io.reactivex.rxkotlin.subscribeBy
 import kotlinx.coroutines.*
-import java.text.DecimalFormat
 import java.util.concurrent.TimeUnit
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
@@ -49,7 +46,7 @@ class LocationService : Service() {
          }
          main()*/
         // TODO uncomment fo debug
-        // debug()
+         // debug()
 
         // g()
         // launch { coroutine() }
@@ -125,7 +122,10 @@ class LocationService : Service() {
                     }
                     Log.d(TAG, "total ${satellitesTotalCount}, used ${usedSatellites}")
                     val sat: Map<MapBoxStore.SatCount, Int> = mapOf(MapBoxStore.SatCount.TOTAl to satellitesTotalCount, MapBoxStore.SatCount.USED to usedSatellites)
-                    satelliteSubject.onNext(sat)
+                    // MapBoxStore.satelliteSubject.onNext(sat)
+                    val intent = Intent(MapBoxActivity.SAT_USE)
+                    intent.putExtra(MapBoxActivity.SAT_USE_EXTRA, MapBoxActivity.SatUse(satellitesTotalCount, usedSatellites))
+                    sendBroadcast(intent)
                 }
             }
             locationManagerGps?.registerGnssStatusCallback(mGnssStatusCallback!!, null)
@@ -149,7 +149,7 @@ class LocationService : Service() {
                                 usedSatellites++
                             }
                         }
-                        satelliteSubject.onNext(mapOf(MapBoxStore.SatCount.TOTAl to satellitesTotalCount, MapBoxStore.SatCount.USED to usedSatellites))
+                        MapBoxStore.satelliteSubject.onNext(mapOf(MapBoxStore.SatCount.TOTAl to satellitesTotalCount, MapBoxStore.SatCount.USED to usedSatellites))
                     }
                 }
             }
@@ -236,7 +236,9 @@ class LocationService : Service() {
             override fun handleMessage(msg: Message) {
 
                 val location = msg.obj as Location
-                locationSubject.onNext(location)
+                val intent: Intent = Intent(MapBoxActivity.LOCATION)
+                intent.putExtra(MapBoxActivity.LOCATION_EXTRA, location)
+                sendBroadcast(intent)
             }
         }
 
@@ -262,7 +264,11 @@ class LocationService : Service() {
     inner class GPSListener : LocationListener {
         override fun onLocationChanged(location: Location) {
             if (!isDebug) {
-                locationSubject.onNext(location)
+                val intent: Intent = Intent(MapBoxActivity.LOCATION)
+                intent.putExtra(MapBoxActivity.LOCATION_EXTRA, location)
+                sendBroadcast(intent)
+                // intent.se
+               // MapBoxStore.locationSubject.onNext(location)
             }
 
         }

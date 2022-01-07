@@ -1,10 +1,11 @@
 package com.atlas.mars.glidecon.store
 
 import android.location.Location
+import android.os.Parcel
+import android.os.Parcelable
 import com.mapbox.mapboxsdk.camera.CameraPosition
 import com.mapbox.mapboxsdk.geometry.LatLng
 import com.mapbox.mapboxsdk.maps.MapboxMap
-import io.reactivex.subjects.AsyncSubject
 import io.reactivex.subjects.BehaviorSubject
 import io.reactivex.subjects.PublishSubject
 
@@ -81,6 +82,7 @@ class MapBoxStore {
             routeButtonClick.onComplete()
         }
     }
+
 
 
     enum class Zoom {

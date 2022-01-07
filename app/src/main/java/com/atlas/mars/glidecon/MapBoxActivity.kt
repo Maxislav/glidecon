@@ -2,12 +2,10 @@ package com.atlas.mars.glidecon
 
 import android.Manifest
 import android.app.AlertDialog
-import android.content.ComponentName
-import android.content.Context
-import android.content.Intent
-import android.content.ServiceConnection
+import android.content.*
 import android.content.pm.PackageManager
 import android.graphics.Insets
+import android.location.Location
 import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
@@ -17,18 +15,14 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.WindowInsets
 import android.view.WindowManager
-import android.widget.TextView
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import androidx.core.app.ActivityCompat
 import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
-import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import androidx.fragment.app.FragmentTransaction
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelProviders
 import com.atlas.mars.glidecon.database.MapDateBase
 import com.atlas.mars.glidecon.dialog.DialogInfoPermission
@@ -36,19 +30,19 @@ import com.atlas.mars.glidecon.dialog.DialogLendingBox
 import com.atlas.mars.glidecon.dialog.DialogStartAltitude
 import com.atlas.mars.glidecon.dialog.DialogWindSetting
 import com.atlas.mars.glidecon.fragment.*
-import com.atlas.mars.glidecon.model.MapBoxModel
 import com.atlas.mars.glidecon.model.LandingBoxViewModel
+import com.atlas.mars.glidecon.model.MapBoxModel
 import com.atlas.mars.glidecon.service.LocationService
 import com.atlas.mars.glidecon.store.MapBoxStore
 import com.google.android.material.navigation.NavigationView
 import com.mapbox.mapboxsdk.Mapbox
+import com.mapbox.mapboxsdk.geometry.LatLng
 import com.mapbox.mapboxsdk.maps.MapView
 import io.reactivex.rxkotlin.Observables
 import io.reactivex.rxkotlin.subscribeBy
 import io.reactivex.subjects.AsyncSubject
 import io.reactivex.subjects.BehaviorSubject
-import io.reactivex.subjects.Subject
-import kotlinx.coroutines.flow.combine
+import java.io.Serializable
 
 interface Ololo {
     val ll: FragmentActivity
@@ -72,6 +66,7 @@ class MapBoxActivity : AppCompatActivity(), Ololo {
     private var fragmentActiveTrackName: FragmentActiveTrackName? = null
     private val _onDestroy = AsyncSubject.create<Boolean>();
     private var _active = BehaviorSubject.createDefault(false);
+    var myReceiver: MyReceiver? = null
 
     var dialogLendingBox: AlertDialog? = null
 
@@ -367,6 +362,13 @@ class MapBoxActivity : AppCompatActivity(), Ololo {
 
         super.onResume()
         _active.onNext(true)
+        myReceiver = MyReceiver()
+        val intentFilter = IntentFilter()
+        intentFilter.addAction(LOCATION)
+        intentFilter.addAction(SAT_USE)
+        // intent.addA(SAT_USE)
+        registerReceiver(myReceiver, intentFilter)
+        // intentFilter.addAction(LOCATION)
 
         if (mapDateBase.getAgreement()) {
             checkPermissionAndStart()
@@ -399,6 +401,7 @@ class MapBoxActivity : AppCompatActivity(), Ololo {
     override fun onPause() {
 
         super.onPause()
+        unregisterReceiver(myReceiver)
         _active.onNext(false)
         Log.d(TAG, "onPause")
         if (bound) {
@@ -424,10 +427,35 @@ class MapBoxActivity : AppCompatActivity(), Ololo {
             LIST_SAVED_TRACK_CODE -> {
                 Log.d(TAG, "returned from list saved track")
             }
+
         }
     }
 
+    class SatUse(var total: Int, var used: Int): Serializable {
+
+    }
+
+    class MyReceiver : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            when (intent?.action) {
+                LOCATION -> {
+                    val location = intent.getParcelableExtra<Location>(LOCATION_EXTRA)
+                    location?.let { MapBoxStore.locationSubject.onNext(it) }
+                }
+                SAT_USE -> {
+                    val satUse = intent.getSerializableExtra(SAT_USE_EXTRA) as SatUse
+                    MapBoxStore.satelliteSubject.onNext(mapOf(MapBoxStore.SatCount.TOTAl to satUse.total, MapBoxStore.SatCount.USED to satUse.used ))
+                }
+            }
+        }
+
+    }
+
     companion object {
-        val LIST_SAVED_TRACK_CODE = 50
+        const val LIST_SAVED_TRACK_CODE = 50
+        const val LOCATION = "LOCATION";
+        const val SAT_USE = "SAT_USE";
+        const val SAT_USE_EXTRA = "SAT_USE_EXTRA";
+        const val LOCATION_EXTRA = "LOCATION_EXTRA";
     }
 }
