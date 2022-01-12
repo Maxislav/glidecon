@@ -8,6 +8,7 @@ import android.os.Looper
 import android.os.Message
 import android.util.Log
 import com.atlas.mars.glidecon.store.MapBoxStore
+import com.atlas.mars.glidecon.util.LocationUtil
 import com.mapbox.geojson.Feature
 import com.mapbox.geojson.LineString
 import com.mapbox.geojson.Point
@@ -26,6 +27,7 @@ import io.reactivex.schedulers.Schedulers
 import io.reactivex.subjects.AsyncSubject
 import java.util.*
 import java.util.concurrent.TimeUnit
+import kotlin.math.abs
 
 class MyPositionMarker(val mapView: MapView, mapboxMap: MapboxMap, val style: Style, context: Context) {
 
@@ -36,9 +38,9 @@ class MyPositionMarker(val mapView: MapView, mapboxMap: MapboxMap, val style: St
     private var movingLocation: Location? = null
     private var rotationBearing = 0.0f
 
-    private val symbolLayer =  SymbolLayer(MY_POSITION_MARKER_LAYER_ID, MY_POSITION_MARKER_SOURCE_ID)
+    private val symbolLayer = SymbolLayer(MY_POSITION_MARKER_LAYER_ID, MY_POSITION_MARKER_SOURCE_ID)
 
-    companion object{
+    companion object {
         private const val WHAT_LOCATION = 1
         private const val WHAT_BEARING = 2
         private const val TAG = "MyPositionMarker"
@@ -48,9 +50,9 @@ class MyPositionMarker(val mapView: MapView, mapboxMap: MapboxMap, val style: St
     }
 
 
-    private val handler = object : Handler(Looper.getMainLooper()){
-        override fun handleMessage(msg: Message){
-            when (msg.what){
+    private val handler = object : Handler(Looper.getMainLooper()) {
+        override fun handleMessage(msg: Message) {
+            when (msg.what) {
                 WHAT_LOCATION -> {
                     val l = msg.obj as Location
                     setMarkerPosition(l)
@@ -83,20 +85,20 @@ class MyPositionMarker(val mapView: MapView, mapboxMap: MapboxMap, val style: St
                 .map { location ->
 
 
-                   /* val singleFeatureOne = Feature.fromGeometry(
-                            Point.fromLngLat(location.longitude, location.latitude)
-                    )
+                    /* val singleFeatureOne = Feature.fromGeometry(
+                             Point.fromLngLat(location.longitude, location.latitude)
+                     )
 
-                    markerSource.setGeoJson(singleFeatureOne)*/
+                     markerSource.setGeoJson(singleFeatureOne)*/
                     Pair(previousLocation, location)
                 }
                 .subscribeBy(
                         onNext = {
-                            if(it.first == null){
+                            if (it.first == null) {
                                 val msg = handler.obtainMessage(WHAT_LOCATION, it.second)
                                 handler.sendMessage(msg)
-                            }else {
-                                if(movingLocation== null){
+                            } else {
+                                if (movingLocation == null) {
                                     movingLocation = it.first
                                 }
                                 moveOnNextFn?.let { it() }
@@ -106,8 +108,8 @@ class MyPositionMarker(val mapView: MapView, mapboxMap: MapboxMap, val style: St
 
                             }
 
-                            if(it.first == null){
-                               //  val bearing = 0.0f
+                            if (it.first == null) {
+                                //  val bearing = 0.0f
                                 val msg = handler.obtainMessage(WHAT_BEARING, rotationBearing)
                                 handler.sendMessage(msg)
                             } else {
@@ -115,16 +117,16 @@ class MyPositionMarker(val mapView: MapView, mapboxMap: MapboxMap, val style: St
 
                                 movingLocation?.let { m ->
                                     val bb = m.bearingTo(it.second)
-                                    rotateNextFn = rotateNext(rotationBearing, bb)
+                                    val lu = LocationUtil()
+                                    rotateNextFn = rotateNext(lu.bearingNormalize(rotationBearing), lu.bearingNormalize(bb))
                                 }
                             }
 
 
-
-                           /* it.first?.let(fun(prev: Location) {
-                                val bearing: Float = prev.bearingTo(it.second)
-                                symbolLayer.setProperties(PropertyFactory.iconRotate(bearing))
-                            })*/
+                            /* it.first?.let(fun(prev: Location) {
+                                 val bearing: Float = prev.bearingTo(it.second)
+                                 symbolLayer.setProperties(PropertyFactory.iconRotate(bearing))
+                             })*/
                             previousLocation = it.second
                         }
                 )
@@ -132,7 +134,7 @@ class MyPositionMarker(val mapView: MapView, mapboxMap: MapboxMap, val style: St
     }
 
 
-    private fun setMarkerPosition(l: Location){
+    private fun setMarkerPosition(l: Location) {
         val singleFeatureOne = Feature.fromGeometry(
                 Point.fromLngLat(l.longitude, l.latitude)
         )
@@ -140,7 +142,7 @@ class MyPositionMarker(val mapView: MapView, mapboxMap: MapboxMap, val style: St
         markerSource.setGeoJson(singleFeatureOne)
     }
 
-    private fun setMarkerRotation(bearing: Float){
+    private fun setMarkerRotation(bearing: Float) {
         symbolLayer.setProperties(PropertyFactory.iconRotate(bearing))
     }
 
@@ -155,42 +157,53 @@ class MyPositionMarker(val mapView: MapView, mapboxMap: MapboxMap, val style: St
                     val lat2 = toLocation.latitude
                     val lon1 = fromLocation.longitude
                     val lon2 = toLocation.longitude
-                    stepLat = (lat2 - lat1)/25
-                    stepLon = (lon2 - lon1)/25
+                    stepLat = (lat2 - lat1) / 15
+                    stepLon = (lon2 - lon1) / 15
                 }
-                .switchMap { interval(40, TimeUnit.MILLISECONDS)  }
+                .switchMap { interval(40, TimeUnit.MILLISECONDS) }
                 .takeUntil(_onDestroy)
-                .takeWhile { it<25 }
+                .takeWhile { it < 15 }
                 .subscribeBy {
                     val newLocation: Location = Location("A")
-                    newLocation.latitude = fromLocation.latitude + stepLat*it
-                    newLocation.longitude = fromLocation.longitude + stepLon*it
+                    newLocation.latitude = fromLocation.latitude + stepLat * it
+                    newLocation.longitude = fromLocation.longitude + stepLon * it
                     movingLocation = newLocation
                     val msg = handler.obtainMessage(WHAT_LOCATION, movingLocation)
                     handler.sendMessage(msg)
-                    Log.d(TAG, "$it")
+                    //  Log.d(TAG, "$it")
                 }
         return fun() {
             l.dispose()
         }
     }
-    private fun rotateNext(fromAngle: Float, toAngle: Float):  () -> Unit{
+
+    private fun rotateNext(fromAngle: Float, toAngle: Float): () -> Unit {
+
+        Log.d(TAG, "$fromAngle, $toAngle")
         var step = 1.0f;
+        //val lu = LocationUtil()
         val l = just(1)
                 .subscribeOn(Schedulers.newThread())
                 .doOnNext {
-                    step = (toAngle - fromAngle)/10
+                    step = if (180 < fromAngle - toAngle) {
+                        (toAngle + 360 - fromAngle) / 10
+                    } else if (fromAngle - toAngle < -180) {
+                        (toAngle - fromAngle - 360) / 10
+                    } else {
+                        (toAngle - fromAngle) / 10
+                    }
+
                 }
-                .switchMap { interval(40, TimeUnit.MILLISECONDS)  }
+                .switchMap { interval(40, TimeUnit.MILLISECONDS) }
                 .takeUntil(_onDestroy)
-                .takeWhile { it< 10}
-                .subscribeBy{
-                    val b: Float = fromAngle + step*it
+                .takeWhile { it < 10 }
+                .subscribeBy {
+                    val b: Float = fromAngle + step * it
                     rotationBearing = b;
                     val msg = handler.obtainMessage(WHAT_BEARING, b)
                     handler.sendMessage(msg)
                 }
-        return fun () {
+        return fun() {
             l.dispose()
         }
     }

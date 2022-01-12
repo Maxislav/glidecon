@@ -46,7 +46,7 @@ class LocationService : Service() {
          }
          main()*/
         // TODO uncomment fo debug
-         // debug()
+        //  debug()
 
         // g()
         // launch { coroutine() }
@@ -179,7 +179,7 @@ class LocationService : Service() {
     }
 
     private suspend fun coroutine(): Unit {
-        for (a in 0..360 step 5) {
+        for (a in 0..400 step 5) {
             delay(500)
             Log.d(TAG, "Ololo $a")
             // continuation.resume
@@ -212,7 +212,7 @@ class LocationService : Service() {
         var move = true
 
         var alt = 700.0
-        for (a in 0..360 step 5) {
+        for (a in 0..500 step 5) {
             val locat = LocationUtil()
             locat.latitude = 50.3988
             locat.longitude = 30.0672

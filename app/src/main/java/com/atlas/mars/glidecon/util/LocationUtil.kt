@@ -74,6 +74,11 @@ class LocationUtil() : Location("A") {
         res %= 360
         return res
     }
+    fun bearingNormalize(bearing: Float): Float {
+        var res: Float = bearing + 360 * 2
+        res %= 360
+        return res
+    }
 
     private companion object {
         const val RADIUS = 6378137.0
