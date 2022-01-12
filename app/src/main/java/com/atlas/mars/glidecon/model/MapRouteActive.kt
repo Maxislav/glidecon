@@ -2,6 +2,7 @@ package com.atlas.mars.glidecon.model
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.graphics.Bitmap
 import android.graphics.Color
 import android.location.Location
 import android.os.Handler
@@ -20,6 +21,7 @@ import com.mapbox.mapboxsdk.maps.Style
 import com.mapbox.mapboxsdk.style.layers.LineLayer
 import com.mapbox.mapboxsdk.style.layers.Property
 import com.mapbox.mapboxsdk.style.layers.PropertyFactory
+import com.mapbox.mapboxsdk.style.layers.SymbolLayer
 import com.mapbox.mapboxsdk.style.sources.GeoJsonSource
 import io.reactivex.rxkotlin.subscribeBy
 import io.reactivex.schedulers.Schedulers
@@ -33,6 +35,17 @@ interface RoutePoints {
 }
 
 class MapRouteActive(val style: Style, val context: Context) {
+    companion object {
+        const val SOURCE_ID = "route_source_active"
+        const val LAYER_ID = "route_layer_active"
+        const val SOURCE_AREA_POINT_ID = "turn_point_area_source_active"
+        const val LAYER_AREA_POINT_ID = "turn_point_area_layer_active"
+
+        private const val POINT_LAYER_ID = "ACTIVE_POINT_LAYER_ID"
+        private const val POINT_SOURCE_ID = "ACTIVE_POINT_SOURCE_ID"
+        private const val POINT_IMAGE_ID = "ACTIVE_POINT_IMAGE_ID"
+        const val RADIUS = 500.0
+    }
     private val TAG = "MapRouteActive"
     val mapDateBase = MapDateBase(context)
     private val density: Float = Density(context).density
@@ -40,6 +53,7 @@ class MapRouteActive(val style: Style, val context: Context) {
 
     private val areaSource = createSource(SOURCE_AREA_POINT_ID)
     private val routeSource = createSource(SOURCE_ID)
+    private val pointSource = createSource(POINT_SOURCE_ID)
 
     private val routeTurnPointList = mutableListOf<LatLng>()
     private val routeFullPointList = mutableListOf<LatLng>()
@@ -54,14 +68,14 @@ class MapRouteActive(val style: Style, val context: Context) {
             routeFullPointList.clear()
             when (msg.what) {
                 1 -> {
-                    val list  = msg.obj as MutableList<RoutePoints>
+                    val list = msg.obj as MutableList<RoutePoints>
 
                     list.forEach {
                         val latLng: LatLng = LatLng(it.lat, it.lon)
-                        if(it.type === MapBoxStore.PointType.ROUTE){
+                        if (it.type === MapBoxStore.PointType.ROUTE) {
                             routeFullPointList.add(latLng)
                         }
-                        if(it.type == MapBoxStore.PointType.TURN){
+                        if (it.type == MapBoxStore.PointType.TURN) {
                             routeTurnPointList.add(latLng)
                         }
                     }
@@ -79,6 +93,16 @@ class MapRouteActive(val style: Style, val context: Context) {
 
     init {
         val routeLineColor = context.resources.getString(R.color.mapRouteColorActive)
+
+        val myImage = MyImage(context)
+        val turnPointBitmap: Bitmap = myImage.getMarkerPoint(20, R.color.mapRouteColorActive, 1.0f)
+        style.addImage(POINT_IMAGE_ID, turnPointBitmap)
+        style.addLayer(SymbolLayer(POINT_LAYER_ID, POINT_SOURCE_ID).withProperties(
+                PropertyFactory.iconImage(POINT_IMAGE_ID),
+                PropertyFactory.iconSize(1.0f),
+                PropertyFactory.fillOpacity(0.6f),
+                PropertyFactory.iconPitchAlignment(Property.ICON_PITCH_ALIGNMENT_MAP)
+        ))
 
         style.addLayer(LineLayer(LAYER_ID, SOURCE_ID).withProperties(
                 PropertyFactory.lineCap(Property.LINE_CAP_ROUND),
@@ -126,7 +150,7 @@ class MapRouteActive(val style: Style, val context: Context) {
             val list = mapDateBase.getRoutePoints(id)
             val msg = handler.obtainMessage(1, list)
             handler.sendMessage(msg)
-        }else {
+        } else {
             handler.sendEmptyMessage(2)
 
         }
@@ -143,14 +167,21 @@ class MapRouteActive(val style: Style, val context: Context) {
 
     private fun setAreaSource(routeTurnPointList: MutableList<LatLng>) {
         val featureList = mutableListOf<Feature>()
+        val pointList = mutableListOf<Feature>()
         routeTurnPointList.forEach { latLng ->
             val c = Location("A")
             c.longitude = latLng.longitude
             c.latitude = latLng.latitude
             val feature = Feature.fromGeometry(LineString.fromLngLats(getPointArea(c)))
             featureList.add(feature)
+            val singleFeatureOne = Feature.fromGeometry( Point.fromLngLat(
+                    latLng.longitude,
+                    latLng.latitude
+            ) )
+            pointList.add(singleFeatureOne)
         }
         areaSource.setGeoJson(FeatureCollection.fromFeatures(featureList))
+        pointSource.setGeoJson(FeatureCollection.fromFeatures(pointList))
     }
 
     private fun setLineSource(routeFullPointList: MutableList<LatLng>) {
@@ -170,7 +201,7 @@ class MapRouteActive(val style: Style, val context: Context) {
 
 
         for (a in 0..360 step 5) {
-            val loc = LocationUtil(center1).offset(MapRouteBuilder.RADIUS, a.toDouble())
+            val loc = LocationUtil(center1).offset(RADIUS, a.toDouble())
             val p = Point.fromLngLat(loc.longitude, loc.latitude)
             routeCoordinates.add(p)
         }
@@ -183,11 +214,5 @@ class MapRouteActive(val style: Style, val context: Context) {
         _onDestroy.onComplete()
     }
 
-    companion object {
-        const val SOURCE_ID = "route_source_active"
-        const val LAYER_ID = "route_layer_active"
-        const val SOURCE_AREA_POINT_ID = "turn_point_area_source_active"
-        const val LAYER_AREA_POINT_ID = "turn_point_area_layer_active"
-        const val RADIUS = 500.0
-    }
+
 }

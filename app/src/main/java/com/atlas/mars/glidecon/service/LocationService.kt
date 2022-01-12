@@ -102,7 +102,7 @@ class LocationService : Service() {
         locationManagerGps?.requestLocationUpdates(
                 LocationManager.GPS_PROVIDER,
                 200,
-                0F,
+                10.0f,
                 gpsListener
 
         )
@@ -149,7 +149,11 @@ class LocationService : Service() {
                                 usedSatellites++
                             }
                         }
-                        MapBoxStore.satelliteSubject.onNext(mapOf(MapBoxStore.SatCount.TOTAl to satellitesTotalCount, MapBoxStore.SatCount.USED to usedSatellites))
+                        val intent = Intent(MapBoxActivity.SAT_USE)
+                        intent.putExtra(MapBoxActivity.SAT_USE_EXTRA, MapBoxActivity.SatUse(satellitesTotalCount, usedSatellites))
+                        sendBroadcast(intent)
+
+                     //   MapBoxStore.satelliteSubject.onNext(mapOf(MapBoxStore.SatCount.TOTAl to satellitesTotalCount, MapBoxStore.SatCount.USED to usedSatellites))
                     }
                 }
             }

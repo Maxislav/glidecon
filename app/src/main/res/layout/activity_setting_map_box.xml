@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+    <data>
+        <variable
+            name="settingMapBoxActivity"
+            type="com.atlas.mars.glidecon.SettingMapBoxActivity" />
+    </data>
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <ScrollView
+            android:fillViewport="true"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+            <LinearLayout
+                android:orientation="vertical"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+                <LinearLayout
+                    android:layout_gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <TextView
+                        android:padding="5dp"
+                        android:layout_weight="1"
+                        android:text="Turn point radius"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"/>
+                    <EditText
+                        android:padding="5dp"
+                        android:text="@{settingMapBoxActivity.radius}"
+                        android:inputType="numberDecimal|numberSigned"
+                        android:layout_weight="1"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"/>
+                </LinearLayout>
+
+            </LinearLayout>
+        </ScrollView>
+    </FrameLayout>
+</layout>

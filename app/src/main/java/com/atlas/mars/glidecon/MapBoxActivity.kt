@@ -321,9 +321,14 @@ class MapBoxActivity : AppCompatActivity(), Ololo {
     override fun onOptionsItemSelected(menuItem: MenuItem): Boolean {
         when (menuItem.itemId) {
             R.id.action_calc -> {
-                Log.d(TAG, "action_settings")
+                // Log.d(TAG, "action_settings")
                 val questionIntent = Intent(this, MainActivity::class.java)
                 startActivityForResult(questionIntent, LIST_SAVED_TRACK_CODE)
+            }
+            R.id.action_settings -> {
+                Log.d(TAG, "action_settings")
+                val intent = Intent(this, SettingActivity::class.java)
+                startActivityForResult(intent, SETTING_REQUEST_CODE)
             }
         }
         return super.onOptionsItemSelected(menuItem)
@@ -427,6 +432,9 @@ class MapBoxActivity : AppCompatActivity(), Ololo {
             LIST_SAVED_TRACK_CODE -> {
                 Log.d(TAG, "returned from list saved track")
             }
+            SETTING_REQUEST_CODE -> {
+                Log.d(TAG, "returned from setting")
+            }
 
         }
     }
@@ -457,5 +465,6 @@ class MapBoxActivity : AppCompatActivity(), Ololo {
         const val SAT_USE = "SAT_USE";
         const val SAT_USE_EXTRA = "SAT_USE_EXTRA";
         const val LOCATION_EXTRA = "LOCATION_EXTRA";
+        const val SETTING_REQUEST_CODE = 11
     }
 }

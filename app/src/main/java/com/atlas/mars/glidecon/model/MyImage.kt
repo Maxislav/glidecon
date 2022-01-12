@@ -275,28 +275,28 @@ class MyImage(var context: Context) {
     }
 
     private fun createMarkerPoint(size: Int, @ColorRes colorId: Int, strokeWidth: Float): Bitmap {
-        var colorId = colorId
-        if (colorId == 0) {
-            colorId = R.color.colorPrimary
+        var colorId1 = colorId
+        if (colorId1 == 0) {
+            colorId1 = R.color.colorPrimary
         }
         val r = size.toFloat() * density / 2
         val bitmap = Bitmap.createBitmap((r * 2).toInt(), (r * 2).toInt(), Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)
-        val path: Path
-        path = Path()
+        val path: Path = Path()
         path.reset()
         path.addCircle(r, r, r - strokeWidth, Path.Direction.CCW)
         path.close()
         var p = Paint()
         p.style = Paint.Style.FILL
         p.isAntiAlias = true
-        p.color = context.resources.getColor(colorId)
+
+        p.color = ContextCompat.getColor(context, colorId1)
         p.alpha = 180
         canvas.drawPath(path, p)
         p = Paint()
         p.isAntiAlias = true
         p.style = Paint.Style.STROKE
-        p.color = context.resources.getColor(R.color.colorPrimaryText)
+        p.color = ContextCompat.getColor(context, R.color.colorPrimaryText)
         p.strokeWidth = strokeWidth
         canvas.drawPath(path, p)
         return bitmap

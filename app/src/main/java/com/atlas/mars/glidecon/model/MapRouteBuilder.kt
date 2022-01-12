@@ -2,16 +2,15 @@ package com.atlas.mars.glidecon.model
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.graphics.Bitmap
 import android.graphics.Color
 import android.location.Location
 import android.os.Handler
 import android.os.Looper
 import android.os.Message
 import android.util.Log
-import androidx.appcompat.app.AppCompatActivity
 import com.atlas.mars.glidecon.R
 import com.atlas.mars.glidecon.database.MapDateBase
-import com.atlas.mars.glidecon.dialog.DialogLendingBox
 import com.atlas.mars.glidecon.dialog.DialogSaveTrack
 import com.atlas.mars.glidecon.rest.RouteRequest
 import com.atlas.mars.glidecon.store.MapBoxStore
@@ -26,6 +25,7 @@ import com.mapbox.mapboxsdk.maps.Style
 import com.mapbox.mapboxsdk.style.layers.LineLayer
 import com.mapbox.mapboxsdk.style.layers.Property
 import com.mapbox.mapboxsdk.style.layers.PropertyFactory
+import com.mapbox.mapboxsdk.style.layers.SymbolLayer
 import com.mapbox.mapboxsdk.style.sources.GeoJsonSource
 import io.reactivex.Observable.just
 import io.reactivex.rxkotlin.subscribeBy
@@ -33,7 +33,6 @@ import io.reactivex.schedulers.Schedulers
 import io.reactivex.subjects.AsyncSubject
 import io.reactivex.subjects.BehaviorSubject
 import kotlinx.coroutines.*
-import java.text.DecimalFormat
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -42,6 +41,8 @@ import java.util.*
 class MapRouteBuilder(val style: Style, val context: Context) {
 
     private val TAG = "MapRoute";
+
+
     val mapDateBase = MapDateBase(context)
 
     private val density: Float = Density(context).density
@@ -52,7 +53,10 @@ class MapRouteBuilder(val style: Style, val context: Context) {
     private val routeFullPointList = mutableListOf<LatLng>()
     private val steps = mutableListOf<Int>()
     private val areaSource = createSource(SOURCE_AREA_POINT_ID)
+
     private val routeSource = createSource(SOURCE_ID)
+
+    private val pointSource = createSource(POINT_SOURCE_ID)
 
     var loading = false
 
@@ -76,15 +80,19 @@ class MapRouteBuilder(val style: Style, val context: Context) {
         const val LAYER_ID = "route_layer"
         const val SOURCE_AREA_POINT_ID = "turn_point_area_source"
         const val LAYER_AREA_POINT_ID = "turn_point_area_layer"
-        const val TAG = "MapRoute"
-        const val RADIUS = 500.0
+
+        private const val POINT_LAYER_ID = "BUILDER_POINT_LAYER_ID"
+        private const val POINT_SOURCE_ID = "BUILDER_POINT_SOURCE_ID"
+        private const val POINT_IMAGE_ID = "BUILDER_POINT_IMAGE_ID"
+        private const val TAG = "MapRoute"
+        private const val RADIUS = 500.0
     }
 
     init {
-
+        val myImage = MyImage(context)
+        val turnPointBitmap: Bitmap = myImage.getMarkerPoint(20, R.color.mapRouteColor, 1.0f)
         val routeLineColor = context.resources.getString(R.color.mapRouteColor)
-
-
+        style.addImage(POINT_IMAGE_ID, turnPointBitmap);
 
         style.addLayer(LineLayer(LAYER_ID, SOURCE_ID).withProperties(
                 PropertyFactory.lineCap(Property.LINE_CAP_ROUND),
@@ -94,10 +102,12 @@ class MapRouteBuilder(val style: Style, val context: Context) {
                 PropertyFactory.lineColor(Color.parseColor(routeLineColor)),
         ))
 
-        //val routeCoordinates = getRouteCoordinates()
-        /*routeSource.setGeoJson(FeatureCollection.fromFeatures(arrayOf(
-                Feature.fromGeometry(LineString.fromLngLats(routeCoordinates))
-        )))*/
+        style.addLayer(SymbolLayer(POINT_LAYER_ID, POINT_SOURCE_ID).withProperties(
+                PropertyFactory.iconImage(POINT_IMAGE_ID),
+                PropertyFactory.iconSize(1.0f),
+                PropertyFactory.fillOpacity(0.6f),
+                PropertyFactory.iconPitchAlignment(Property.ICON_PITCH_ALIGNMENT_MAP)
+        ))
 
 
         val areaColor = context.resources.getString(R.color.mapRoutePointAreaColor)
@@ -248,7 +258,7 @@ class MapRouteBuilder(val style: Style, val context: Context) {
                         trackPointList.add(TrackPoint(p, MapBoxStore.PointType.ROUTE))
                     }
                     val dist = calcDistance(routeFullPointList)
-                    val id = mapDateBase.saveTrackName(trackName, dist )
+                    val id = mapDateBase.saveTrackName(trackName, dist)
                     mapDateBase.saveTrackPoints(id, trackPointList)
                     val msg = handler.obtainMessage(1, id.toInt())
                     handler.sendMessage(msg)
@@ -263,7 +273,7 @@ class MapRouteBuilder(val style: Style, val context: Context) {
             val b = list[i + 1]
             dist += a.distanceTo(b)
         }
-        return String.format("%.1f", dist/1000).toDouble();
+        return String.format("%.1f", dist / 1000).toDouble();
     }
 
     private fun stepBack() {
@@ -283,14 +293,25 @@ class MapRouteBuilder(val style: Style, val context: Context) {
 
     private fun setAreaSource() {
         val featureList = mutableListOf<Feature>()
+        val pointList = mutableListOf<Feature>()
         routeTurnPointList.forEach { latLng ->
             val c = Location("A")
             c.longitude = latLng.longitude
             c.latitude = latLng.latitude
             val feature = Feature.fromGeometry(LineString.fromLngLats(getPointArea(c)))
             featureList.add(feature)
+
+            val singleFeatureOne = Feature.fromGeometry( Point.fromLngLat(
+                    latLng.longitude,
+                    latLng.latitude
+            ) )
+            pointList.add(singleFeatureOne)
         }
         areaSource.setGeoJson(FeatureCollection.fromFeatures(featureList))
+        pointSource.setGeoJson(FeatureCollection.fromFeatures(pointList))
+
+
+        // pointSource.setGeoJson(singleFeatureOne)
     }
 
     private fun setLineSource() {

@@ -57,8 +57,12 @@
             android:label="@string/list_saved_track"
             android:screenOrientation="portrait"
             >
-
         </activity>
+        <activity
+            android:name=".SettingMapBoxActivity"
+            android:label="@string/setting_map_box"
+            android:screenOrientation="portrait"
+            android:theme="@style/AppTheme.Primary" />
 
 
         <activity
