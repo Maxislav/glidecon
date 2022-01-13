@@ -30,7 +30,7 @@ android {
         applicationId "com.atlas.mars.glidecon"
         minSdkVersion 15
         targetSdkVersion 30
-        versionCode 57
+        versionCode 58
         versionName "2.0"
         multiDexEnabled true
         vectorDrawables {
@@ -57,6 +57,9 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
+    kotlinOptions {
+        jvmTarget = "1.8"
+    }
     flavorDimensions "version"
     productFlavors {
         develop{
@@ -77,6 +80,7 @@ android {
 }*/
 buildscript {
     repositories {
+
         mavenCentral()
         google()
         jcenter()
@@ -90,19 +94,20 @@ buildscript {
                 // This should always be `mapbox` (not your username).
                 username = 'mapbox'
                 // Use the secret token you stored in gradle.properties as the password
-                password = project.properties['MAPBOX_DOWNLOADS_TOKEN'] ?: "pk.eyJ1IjoibWF4aXNsYXYiLCJhIjoiY2lxa3o3Nm9oMDAya2l3bTJ3ZDN0MDRrdSJ9.Ty19_lyeTVUu8OxxDK8Ymg"
+                // password = project.properties['MAPBOX_DOWNLOADS_TOKEN'] ?: "pk.eyJ1IjoibWF4aXNsYXYiLCJhIjoiY2lxa3o3Nm9oMDAya2l3bTJ3ZDN0MDRrdSJ9.Ty19_lyeTVUu8OxxDK8Ymg"
+                password = "pk.eyJ1IjoibWF4aXNsYXYiLCJhIjoiY2lxa3o3Nm9oMDAya2l3bTJ3ZDN0MDRrdSJ9.Ty19_lyeTVUu8OxxDK8Ymg"
             }
         }
     }
     dependencies {
-        classpath 'com.google.gms:google-services:4.3.8'
-        classpath 'com.google.firebase:firebase-crashlytics-gradle:2.7.1'
+        classpath 'com.google.gms:google-services:4.3.10'
+        classpath 'com.google.firebase:firebase-crashlytics-gradle:2.8.1'
         // classpath 'com.android.tools.build:gradle:4.0.1'
     }
 }
-repositories {
+/*repositories {
     mavenCentral()
-}
+}*/
 // chrashlistics
 
 configurations {
@@ -118,17 +123,17 @@ dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     // implementation 'com.android.support:appcompat-v7:24.2.1'
     //compile 'com.android.support:palette-v7:+'
-    implementation 'com.google.android.gms:play-services:8.4.0'
+    implementation 'com.google.android.gms:play-services:12.0.1'
 
 
-    implementation 'com.fasterxml.jackson.core:jackson-core:2.5.3'
-    implementation 'com.fasterxml.jackson.core:jackson-databind:2.5.3'
-    implementation 'com.google.maps.android:android-maps-utils:0.3+'
+    implementation 'com.fasterxml.jackson.core:jackson-core:2.9.8'
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.9.8'
+   //  implementation 'com.google.maps.android:android-maps-utils:0.3+'
 
 
     //compile 'com.google.code.gson:gson:2.6.2'
     implementation 'com.squareup.retrofit2:retrofit:2.1.0'
-    implementation 'com.squareup.okhttp3:okhttp:3.4.1'
+    implementation 'com.squareup.okhttp3:okhttp:3.12.3'
     implementation 'com.squareup.okhttp3:okhttp-urlconnection:3.2.0'
     implementation 'com.android.support:support-annotations:28.0.0'
     implementation 'com.squareup.retrofit2:converter-gson:2.1.0'
@@ -141,10 +146,15 @@ dependencies {
     implementation 'ch.acra:acra:4.9.0'
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
 
-    implementation 'com.mapbox.mapboxsdk:mapbox-android-sdk:9.2.0'
+    implementation 'com.mapbox.mapboxsdk:mapbox-android-sdk:9.2.1'
     implementation 'com.mapbox.mapboxsdk:mapbox-android-plugin-markerview-v9:0.4.0'
     implementation 'com.mapbox.mapboxsdk:mapbox-android-plugin-annotation-v9:0.9.0'
     implementation 'io.reactivex.rxjava2:rxjava:2.1.9'
+
+
+//    implementation "com.mapbox.vision:mapbox-android-vision:0.13.0"
+//    implementation "com.mapbox.vision:mapbox-android-vision-ar:0.13.0"
+//    implementation "com.mapbox.vision:mapbox-android-vision-safety:0.13.0"
 
 //Add the following//
 

@@ -127,6 +127,7 @@ class MapBoxModel(val mapView: MapView, val context: Context, val myViewModel: L
     private fun initMap(mapboxMap: MapboxMap) {
         this.mapboxMap = mapboxMap
 
+
         MapBoxStore.defineStartingPointClickSubject
                 .takeWhile { isSubscribed }
                 .filter{defineStartingPoint == null}
@@ -136,6 +137,8 @@ class MapBoxModel(val mapView: MapView, val context: Context, val myViewModel: L
                 }
 
         val cp = mapDateBase.getCameraPosition()
+
+
         cp?.let {
             mapboxMap.cameraPosition = cp
             cameraPositionSubject.onNext(cp)

@@ -1,6 +1,7 @@
 package com.atlas.mars.glidecon
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.app.AlertDialog
 import android.content.*
 import android.content.pm.PackageManager
@@ -113,6 +114,7 @@ class MapBoxActivity : AppCompatActivity(), Ololo {
         screenWidth
 
         mapView = findViewById(R.id.mapView)
+
         mapView?.onCreate(savedInstanceState ?: Bundle())
         val myViewModel = ViewModelProviders.of(this).get(LandingBoxViewModel::class.java)
         mapBoxModel = MapBoxModel(mapView!!, this as Context, myViewModel)
@@ -200,11 +202,12 @@ class MapBoxActivity : AppCompatActivity(), Ololo {
 
     }
 
+    @SuppressLint("CheckResult")
     private fun setupStoreSubscribers() {
         MapBoxStore.routeBuildProgress
                 .takeUntil(_onDestroy)
                 .distinctUntilChanged()
-                .subscribeBy {
+                .subscribe {
                     if (it) {
                         showBuildTrackFrame()
                         hideBikeComputerFrame()
@@ -217,7 +220,7 @@ class MapBoxActivity : AppCompatActivity(), Ololo {
 
     private fun setupActiveRouteName() {
 
-        Observables.combineLatest(_active, MapBoxStore.activeRoute)
+        Observables.combineLatest(_active, MapBoxStore.activeRoute){a,b -> Pair(a,b)}
                 .takeUntil(_onDestroy)
                 .filter { it.first }
                 .map { it.second }

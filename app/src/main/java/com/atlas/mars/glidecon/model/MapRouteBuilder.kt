@@ -15,6 +15,10 @@ import com.atlas.mars.glidecon.dialog.DialogSaveTrack
 import com.atlas.mars.glidecon.rest.RouteRequest
 import com.atlas.mars.glidecon.store.MapBoxStore
 import com.atlas.mars.glidecon.util.LocationUtil
+import com.google.gson.JsonArray
+import com.google.gson.JsonElement
+import com.google.gson.JsonObject
+import com.google.gson.JsonParser
 import com.mapbox.geojson.Feature
 import com.mapbox.geojson.FeatureCollection
 import com.mapbox.geojson.LineString
@@ -22,10 +26,9 @@ import com.mapbox.geojson.Point
 import com.mapbox.mapboxsdk.geometry.LatLng
 import com.mapbox.mapboxsdk.maps.MapboxMap
 import com.mapbox.mapboxsdk.maps.Style
-import com.mapbox.mapboxsdk.style.layers.LineLayer
-import com.mapbox.mapboxsdk.style.layers.Property
-import com.mapbox.mapboxsdk.style.layers.PropertyFactory
-import com.mapbox.mapboxsdk.style.layers.SymbolLayer
+import com.mapbox.mapboxsdk.style.expressions.Expression
+import com.mapbox.mapboxsdk.style.expressions.Expression.literal
+import com.mapbox.mapboxsdk.style.layers.*
 import com.mapbox.mapboxsdk.style.sources.GeoJsonSource
 import io.reactivex.Observable.just
 import io.reactivex.rxkotlin.subscribeBy
@@ -101,13 +104,35 @@ class MapRouteBuilder(val style: Style, val context: Context) {
                 PropertyFactory.lineOpacity(0.8f),
                 PropertyFactory.lineColor(Color.parseColor(routeLineColor)),
         ))
+        val j: JsonArray = JsonArray()
+        val jjo = JsonObject()
+        jjo.addProperty("duration", 0.0)
+        jjo.addProperty("delay", 0.0)
 
-        style.addLayer(SymbolLayer(POINT_LAYER_ID, POINT_SOURCE_ID).withProperties(
+        // j.add(JsonParser.parseString("{'duration': 0, 'delay': 0}"))
+        // j.add(JsonParser.parseString("[\"interpolate\",[\"duration\",\"0\"]]"))
+
+        val jjjs = JsonParser.parseString("[\"interpolate\", ['duration', 0]]")
+               // JsonArray =
+        class AA {
+            val duration = 0
+            val delay = 0
+        }
+        Expression.literal(j)
+
+        val jjj = HashMap<String, Int>();
+        jjj.put("duration", 0)
+
+        val fdf = SymbolLayer(POINT_LAYER_ID, POINT_SOURCE_ID).withProperties(
                 PropertyFactory.iconImage(POINT_IMAGE_ID),
                 PropertyFactory.iconSize(1.0f),
-                PropertyFactory.fillOpacity(0.6f),
+                PropertyValue("icon-ignore-placement", true),
+                PropertyValue("icon-allow-overlap", true),
                 PropertyFactory.iconPitchAlignment(Property.ICON_PITCH_ALIGNMENT_MAP)
-        ))
+        )
+        fdf.setIconColorTransition(TransitionOptions(1, 1))
+        fdf.setIconOpacityTransition(TransitionOptions(1, 1))
+        style.addLayer(fdf)
 
 
         val areaColor = context.resources.getString(R.color.mapRoutePointAreaColor)
@@ -116,7 +141,7 @@ class MapRouteBuilder(val style: Style, val context: Context) {
                 PropertyFactory.lineCap(Property.LINE_CAP_ROUND),
                 PropertyFactory.lineJoin(Property.LINE_JOIN_ROUND),
                 PropertyFactory.lineWidth(density * 2),
-                PropertyFactory.lineOpacity(0.5f),
+                PropertyFactory.lineOpacity(0.2f),
                 PropertyFactory.lineColor(Color.parseColor(areaColor)),
         ))
 
@@ -167,6 +192,7 @@ class MapRouteBuilder(val style: Style, val context: Context) {
 
     private fun mapDefined(mapBoxMap: MapboxMap) {
         var defineRoutePoint: DefineRoutePoint? = null
+        // latLngToContainerPoint
 
         MapBoxStore.routeBuildProgress
                 .takeUntil(_onDestroy)
@@ -184,7 +210,7 @@ class MapRouteBuilder(val style: Style, val context: Context) {
 
 
     inner class DefineRoutePoint : MapboxMap.OnMapLongClickListener {
-        override fun onMapLongClick(point: LatLng): Boolean {
+        override fun onMapLongClick(latLng: LatLng): Boolean {
             Log.d(TAG, "map click")
             if (loading) {
                 return true
@@ -193,10 +219,13 @@ class MapRouteBuilder(val style: Style, val context: Context) {
                     .takeUntil(_onDestroy)
                     .take(1)
                     .subscribeBy {
+
+                        // mapboxMap.projection.toScreenLocation()
+
                         when (it!!) {
                             MapBoxStore.RouteType.PLANE -> {
-                                routeTurnPointList.add(point)
-                                routeFullPointList.add(point)
+                                routeTurnPointList.add(latLng)
+                                routeFullPointList.add(latLng)
 
                                 setAreaSource()
                                 setLineSource()
@@ -206,11 +235,11 @@ class MapRouteBuilder(val style: Style, val context: Context) {
                             MapBoxStore.RouteType.CAR, MapBoxStore.RouteType.BIKE -> {
 
                                 if (0 < routeTurnPointList.size) {
-                                    routeTurnPointList.add(point)
+                                    routeTurnPointList.add(latLng)
                                     setAreaSource()
                                     val r = RouteRequest()
                                     loading = true
-                                    r.restCar(routeTurnPointList[routeTurnPointList.size - 2], point, it) { list, err ->
+                                    r.restCar(routeTurnPointList[routeTurnPointList.size - 2], latLng, it) { list, err ->
                                         if (err === null && list !== null) {
                                             for (i in 0..list.size - 2 step 2) {
                                                 val latLng: LatLng = LatLng(list[i], list[i + 1])
@@ -232,8 +261,8 @@ class MapRouteBuilder(val style: Style, val context: Context) {
                                         loading = false
                                     }
                                 } else {
-                                    routeTurnPointList.add(point)
-                                    routeFullPointList.add(point)
+                                    routeTurnPointList.add(latLng)
+                                    routeFullPointList.add(latLng)
                                     setAreaSource()
                                     setLineSource()
                                     steps.add(1)

@@ -1,5 +1,6 @@
 package com.atlas.mars.glidecon.model
 
+import android.animation.ObjectAnimator
 import android.content.Context
 import android.graphics.Bitmap
 import android.location.Location
@@ -9,15 +10,16 @@ import android.os.Message
 import android.util.Log
 import com.atlas.mars.glidecon.store.MapBoxStore
 import com.atlas.mars.glidecon.util.LocationUtil
+import com.google.gson.JsonElement
+import com.google.gson.JsonParser
 import com.mapbox.geojson.Feature
 import com.mapbox.geojson.LineString
 import com.mapbox.geojson.Point
 import com.mapbox.mapboxsdk.maps.MapView
 import com.mapbox.mapboxsdk.maps.MapboxMap
 import com.mapbox.mapboxsdk.maps.Style
-import com.mapbox.mapboxsdk.style.layers.Property
-import com.mapbox.mapboxsdk.style.layers.PropertyFactory
-import com.mapbox.mapboxsdk.style.layers.SymbolLayer
+import com.mapbox.mapboxsdk.style.expressions.Expression
+import com.mapbox.mapboxsdk.style.layers.*
 import com.mapbox.mapboxsdk.style.sources.GeoJsonSource
 import io.reactivex.Observable.interval
 import io.reactivex.Observable.just
@@ -73,12 +75,24 @@ class MyPositionMarker(val mapView: MapView, mapboxMap: MapboxMap, val style: St
         style.addImage(MY_POSITION_MARKER_IMAGE_ID, bitmap);
         markerSource = createSource()
         // val symbolLayer = SymbolLayer(MY_POSITION_MARKER_LAYER_ID, MY_POSITION_MARKER_SOURCE_ID)
+
+        val j: JsonElement = JsonParser.parseString("{'duration': 0, 'delay': 0}")
+        val jj = object: Object() {
+            var duration = 0.0f
+            var delay = 0.0f
+        }
         symbolLayer.setProperties(
                 PropertyFactory.iconImage(MY_POSITION_MARKER_IMAGE_ID),
                 PropertyFactory.iconSize(1.0f),
                 PropertyFactory.iconRotationAlignment(Property.ICON_ROTATION_ALIGNMENT_MAP),
-                PropertyFactory.iconPitchAlignment(Property.ICON_PITCH_ALIGNMENT_MAP)
+                PropertyFactory.iconPitchAlignment(Property.ICON_PITCH_ALIGNMENT_MAP),
+                PropertyValue("icon-ignore-placement", true),
+                PropertyValue("icon-allow-overlap", true),
+                PropertyValue("z-offset", 120),
+               // PropertyValue("icon-opacity-transition", jj),
         )
+        symbolLayer.iconColorTransition = TransitionOptions(1, 1)
+        symbolLayer.iconOpacityTransition = TransitionOptions(1, 1)
         style.addLayer(symbolLayer);
         MapBoxStore.locationSubject
                 .takeUntil(_onDestroy)
@@ -194,7 +208,7 @@ class MyPositionMarker(val mapView: MapView, mapboxMap: MapboxMap, val style: St
                     }
 
                 }
-                .switchMap { interval(40, TimeUnit.MILLISECONDS) }
+                .switchMap { interval(35, TimeUnit.MILLISECONDS) }
                 .takeUntil(_onDestroy)
                 .takeWhile { it < 10 }
                 .subscribeBy {

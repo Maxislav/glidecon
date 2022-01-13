@@ -118,7 +118,7 @@ class MapRouteActive(val style: Style, val context: Context) {
                 PropertyFactory.lineCap(Property.LINE_CAP_ROUND),
                 PropertyFactory.lineJoin(Property.LINE_JOIN_ROUND),
                 PropertyFactory.lineWidth(density * 2),
-                PropertyFactory.lineOpacity(0.5f),
+                PropertyFactory.lineOpacity(0.4f),
                 PropertyFactory.lineColor(Color.parseColor(areaColor)),
         ))
 

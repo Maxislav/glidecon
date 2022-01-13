@@ -46,7 +46,7 @@ class LocationService : Service() {
          }
          main()*/
         // TODO uncomment fo debug
-        //  debug()
+       //  debug()
 
         // g()
         // launch { coroutine() }
@@ -102,7 +102,7 @@ class LocationService : Service() {
         locationManagerGps?.requestLocationUpdates(
                 LocationManager.GPS_PROVIDER,
                 200,
-                10.0f,
+                5.0f,
                 gpsListener
 
         )
