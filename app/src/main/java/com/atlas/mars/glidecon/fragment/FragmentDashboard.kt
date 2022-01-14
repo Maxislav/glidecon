@@ -22,6 +22,7 @@ import com.atlas.mars.glidecon.model.DashboardSpeedDrawer
 import com.atlas.mars.glidecon.model.DashboardVarioDrawer
 import com.atlas.mars.glidecon.model.MyImage
 import com.atlas.mars.glidecon.store.MapBoxStore
+import com.atlas.mars.glidecon.util.LocationUtil
 import com.atlas.mars.glidecon.view.CustomFontTextView
 import io.reactivex.rxkotlin.Observables
 import io.reactivex.rxkotlin.subscribeBy
@@ -41,6 +42,7 @@ class FragmentDashboard : Fragment() {
     private var speedViewFr: CustomFontTextView? = null
     private var varioView: CustomFontTextView? = null
     private var altView: CustomFontTextView? = null
+
     // private var ratioView: CustomFontTextView? = null
     private val locationList = mutableListOf<Location>()
     private lateinit var speedDrawer: DashboardSpeedDrawer
@@ -53,11 +55,13 @@ class FragmentDashboard : Fragment() {
         const val HANDLER_RATIO_KEY = "ratio"
         const val HANDLER_VARIO_KEY = "vario"
         const val HANDLER_ALT_KEY = "altitude"
+        const val WHAT_PARAM = 1
+        const val WHAT_ALT = 2
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         // return super.onCreateView(inflater, container, savedInstanceState)
-        binding =FragmentDashboardBinding.inflate(inflater, container, false)
+        binding = FragmentDashboardBinding.inflate(inflater, container, false)
         // return inflater.inflate(R.layout.fragment_dashboard, null)
         return binding.root;
     }
@@ -68,7 +72,7 @@ class FragmentDashboard : Fragment() {
         speedViewFr = view?.findViewById(R.id.speed_view_fractional)
         varioView = view?.findViewById(R.id.vario_view)
         altView = view?.findViewById(R.id.alt_view)
-       // ratioView = view?.findViewById(R.id.ratio_view)
+        // ratioView = view?.findViewById(R.id.ratio_view)
 
         speedFrame = view?.findViewById(R.id.speed_frame)
         varioFrame = view?.findViewById(R.id.vario_frame)
@@ -141,7 +145,7 @@ class FragmentDashboard : Fragment() {
             override fun handleMessage(msg: Message) {
 
                 when (msg.what) {
-                    1 -> {
+                    WHAT_PARAM -> {
                         val bundle = msg.data
                         val ratio = bundle.getDouble(HANDLER_RATIO_KEY)
                         val speed = bundle.getDouble(HANDLER_SPEED_KEY) * 3.6
@@ -159,7 +163,7 @@ class FragmentDashboard : Fragment() {
                             binding.myRatio = DecimalFormat("#.#").format(ratio)
                         }
 
-                        varioView?.text = vario?.let {
+                        varioView?.text = vario.let {
                             if (0 < it) {
                                 DecimalFormat("#.#").format(vario).let { "+$it" }
                             } else {
@@ -167,92 +171,45 @@ class FragmentDashboard : Fragment() {
                             }
                         }
                     }
-                    2 -> {
+                    WHAT_ALT -> {
                         val bundle = msg.data
                         val altitude = bundle.getDouble(HANDLER_ALT_KEY)
                         updateAltimeterDrawer(altitude)
                         altView?.text = DecimalFormat("#").format(altitude)
                     }
                 }
-
-
             }
         }
 
-        val locationListSpeed = mutableListOf<Location>()
-        val locationListVario = mutableListOf<Location>()
 
+
+        val locationUtil = LocationUtil()
         MapBoxStore.locationSubject
                 .takeWhile { isSubscribed }
                 .doOnNext {
                     locationList.add(it)
-                    locationListVario.add(it)
-                }
-                .subscribeBy {
-                    locationListSpeed.add(it)
-
-                    if (1 < locationListSpeed.size) {
-                        val k = calcDragRatio()
-
-                        while (3000 < (locationListSpeed.last().time - locationListSpeed.first().time)) {
-                            locationListSpeed.removeAt(0)
-                        }
-                        val speedList = mutableListOf<Double>()
-                        for (i in 0..locationListSpeed.size - 2) {
-                            val previousLocation = locationListSpeed[i]
-                            val currentLocation = locationListSpeed[i + 1]
-                            val dTime = (currentLocation.time - previousLocation.time) / 1000
-                            val distance = previousLocation.distanceTo(currentLocation)
-                            val speed = distance / dTime
-                            speedList.add(speed.toDouble())
-                        }
-                        /** vario **/
-                        while (3 < locationListVario.size) {
-                            locationListVario.removeAt(0)
-                        }
-                        val varioList = mutableListOf<Double>()
-
-                        for (i in 0..locationListVario.size - 2) {
-                            val previousLocation = locationListVario[i]
-                            val currentLocation = locationListVario[i + 1]
-                            val dTime = (currentLocation.time - previousLocation.time) / 1000
-                            val dAlt = currentLocation.altitude - previousLocation.altitude
-                            varioList.add(dAlt / dTime)
-                        }
-                        var varioSum = 0.0
-                        for (vario in varioList) {
-                            varioSum += vario
-                        }
-                        val vario = varioSum / varioList.size
-
-
-                        var sum = 0.0
-                        for (speed in speedList) {
-                            sum += speed
-                        }
-                        val speed = sum / speedList.size
-                        if (speed < 600) {
-                            val msg: Message = handler.obtainMessage()
-                            val bundle = Bundle()
-                            msg.what = 1
-                            bundle.putDouble(HANDLER_SPEED_KEY, speed)
-                            bundle.putDouble(HANDLER_RATIO_KEY, k)
-                            bundle.putDouble(HANDLER_VARIO_KEY, vario)
-                            msg.data = bundle
-                            handler.sendMessage(msg);
-                        }
-
+                    while (3 < locationList.size) {
+                        locationList.removeAt(0)
                     }
-
+                }
+                .filter { 1 < locationList.size }
+                .subscribeBy {
+                    val bundle = Bundle()
+                    val msg: Message = handler.obtainMessage(WHAT_PARAM)
+                    val calcParams = locationUtil.calcParams(locationList)
+                    bundle.putDouble(HANDLER_SPEED_KEY, calcParams.speed)
+                    bundle.putDouble(HANDLER_VARIO_KEY, calcParams.vario)
+                    bundle.putDouble(HANDLER_RATIO_KEY, calcParams.k)
+                    msg.data = bundle
+                    handler.sendMessage(msg);
                 }
 
 
         Observables.combineLatest(MapBoxStore.locationSubject, MapBoxStore.startAltitudeSubject)
                 .takeWhile { isSubscribed }
                 .subscribeBy {
-                    val msg: Message = handler.obtainMessage()
+                    val msg: Message = handler.obtainMessage(WHAT_ALT)
                     val bundle = Bundle()
-                    msg.what = 2
                     bundle.putDouble(HANDLER_ALT_KEY, it.first.altitude - it.second)
                     msg.data = bundle
                     handler.sendMessage(msg);
@@ -261,29 +218,6 @@ class FragmentDashboard : Fragment() {
     }
 
 
-    private fun calcDragRatio(): Double {
-        val kList = mutableListOf<Double>()
-        for (i in 0..locationList.size - 2) {
-            val previousLocation = locationList[i]
-            val currentLocation = locationList[i + 1]
-            val distance = previousLocation.distanceTo(currentLocation) // m
-            val dTime = currentLocation.time - previousLocation.time
-            val dAltitude = previousLocation.altitude - currentLocation.altitude
-            if (0 < distance && dAltitude != 0.0) {
-                kList.add(distance / dAltitude)
-            }
-
-        }
-        var kSum = 0.0
-        if (0 < kList.size) {
-            for (k in kList) {
-                kSum += k
-            }
-            return kSum / kList.size
-        }
-        return 0.0
-
-    }
 
     override fun onDestroy() {
         super.onDestroy()

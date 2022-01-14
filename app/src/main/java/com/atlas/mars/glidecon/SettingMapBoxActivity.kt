@@ -24,6 +24,7 @@ class SettingMapBoxActivity : AppCompatActivity() {
         binding.settingMapBoxActivity = this
 
         radius.set("500")
+        setContentView(binding.root)
         // val myParams: ObservableField<MyParams> = ObservableField<MyParams>()
     }
     class MyParams{

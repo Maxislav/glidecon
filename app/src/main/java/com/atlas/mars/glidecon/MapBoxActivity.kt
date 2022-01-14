@@ -330,7 +330,7 @@ class MapBoxActivity : AppCompatActivity(), Ololo {
             }
             R.id.action_settings -> {
                 Log.d(TAG, "action_settings")
-                val intent = Intent(this, SettingActivity::class.java)
+                val intent = Intent(this, SettingMapBoxActivity::class.java)
                 startActivityForResult(intent, SETTING_REQUEST_CODE)
             }
         }

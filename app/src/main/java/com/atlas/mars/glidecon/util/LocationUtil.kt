@@ -2,6 +2,7 @@ package com.atlas.mars.glidecon.util
 
 import com.mapbox.geojson.Point
 import android.location.Location
+import android.util.Log
 import java.lang.Math.toDegrees
 import java.lang.Math.toRadians
 import kotlin.math.asin
@@ -65,7 +66,44 @@ class LocationUtil() : Location("A") {
         return location2
     }
 
-    fun toPoint(): Point{
+    interface FlyParams {
+        val speed: Double
+        val k: Double
+        val vario: Double
+    }
+
+    fun calcParams(locationList: MutableList<Location>): FlyParams {
+        val speedList = mutableListOf<Double>()
+        val varioList = mutableListOf<Double>()
+        val kList = mutableListOf<Double>()
+        for (i in 0 until locationList.size - 1) {
+            // Log.d(TAG, i.toString())
+            val previousLocation = locationList[i]
+            val currentLocation = locationList[i + 1]
+            val dTime: Double = (currentLocation.time - previousLocation.time).toDouble() / 1000
+            val distance: Double = previousLocation.distanceTo(currentLocation).toDouble()
+            val speed: Double = distance / dTime
+            speedList.add(speed)
+            val dAlt = currentLocation.altitude - previousLocation.altitude
+            varioList.add(dAlt / dTime)
+
+            val dAltitude = previousLocation.altitude - currentLocation.altitude
+            if (0 < distance && dAltitude != 0.0) {
+                kList.add(distance / dAltitude)
+            }
+        }
+        return object : FlyParams {
+            override val speed = speedList.sum() / speedList.size
+            override val k = if (0 < kList.size) {
+                kList.sum() / kList.size
+            } else {
+                0.0
+            }
+            override val vario = varioList.sum() / varioList.size
+        }
+    }
+
+    fun toPoint(): Point {
         return Point.fromLngLat(this.longitude, this.latitude)
     }
 
@@ -74,6 +112,7 @@ class LocationUtil() : Location("A") {
         res %= 360
         return res
     }
+
     fun bearingNormalize(bearing: Float): Float {
         var res: Float = bearing + 360 * 2
         res %= 360

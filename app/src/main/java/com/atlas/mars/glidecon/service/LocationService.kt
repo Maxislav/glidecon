@@ -19,6 +19,7 @@ import kotlinx.coroutines.*
 import java.util.concurrent.TimeUnit
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
+import kotlin.time.Duration
 
 
 class LocationService : Service() {
@@ -39,39 +40,12 @@ class LocationService : Service() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         Log.d(TAG, "onStartCommand")
-        // debug2()
-        /* fun main() = runBlocking {
-             launch { coroutine() }
-             println("Hello,")
-         }
-         main()*/
+
         // TODO uncomment fo debug
-       //  debug()
+        // debug()
 
-        // g()
-        // launch { coroutine() }
-        /* val a = runBlocking{
-             coroutine()
-         }*/
-        // a.c
-
-        /*runBlocking {
-            launch {
-                coroutine()
-            }
-        }*/
-        //  GlobalScope.launch { coroutine() }
-        var a: Job? = null
-        /*a = GlobalScope.launch {
+        val job: Job = GlobalScope.launch(Dispatchers.IO) {
             coroutine()
-
-        }*/
-        runBlocking {
-
-            a = launch {
-                coroutine()
-            }
-            a?.cancelAndJoin()
         }
         return super.onStartCommand(intent, flags, startId)
     }
@@ -120,7 +94,7 @@ class LocationService : Service() {
                             usedSatellites++
                         }
                     }
-                    Log.d(TAG, "total ${satellitesTotalCount}, used ${usedSatellites}")
+                    // Log.d(TAG, "total ${satellitesTotalCount}, used ${usedSatellites}")
                     val sat: Map<MapBoxStore.SatCount, Int> = mapOf(MapBoxStore.SatCount.TOTAl to satellitesTotalCount, MapBoxStore.SatCount.USED to usedSatellites)
                     // MapBoxStore.satelliteSubject.onNext(sat)
                     val intent = Intent(MapBoxActivity.SAT_USE)
@@ -204,6 +178,7 @@ class LocationService : Service() {
         println("Hello")
     }
 
+    @DelicateCoroutinesApi
     private fun debug() {
 
 
@@ -212,7 +187,7 @@ class LocationService : Service() {
         var move = true
 
         var alt = 700.0
-        for (a in 0..500 step 5) {
+        for (a in 0..360 step 5) {
             val locat = LocationUtil()
             locat.latitude = 50.3988
             locat.longitude = 30.0672
@@ -246,7 +221,33 @@ class LocationService : Service() {
             }
         }
 
-        Observable
+        var j: Job? = null
+        val a = suspend {
+
+            while (0<locationList.size){
+                delay(500)
+                val currLocation = locationList.removeAt(0)
+                currLocation.time = System.currentTimeMillis()
+                // Log.d(TAG, )
+                val msg = handler.obtainMessage(1, currLocation)
+                handler.sendMessage(msg)
+            }
+            Log.d(TAG, "finish scope")
+            j?.cancelAndJoin()
+        }
+        j = GlobalScope.launch(Dispatchers.IO) {
+            a()
+        }
+       /* GlobalScope.launch(Dispatchers.IO) {
+            suspend {
+                delay(5000)
+                j.cancelAndJoin()
+            }()
+        }*/
+        // j.cancel()
+
+
+        /*Observable
                 .interval(1, TimeUnit.SECONDS)
                 .takeWhile { move }
                 .subscribeBy {
@@ -262,7 +263,7 @@ class LocationService : Service() {
                         move = false
                     }
                 }
-
+*/
     }
 
     inner class GPSListener : LocationListener {
