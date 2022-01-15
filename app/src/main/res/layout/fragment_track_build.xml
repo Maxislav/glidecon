@@ -34,7 +34,7 @@
                 android:layout_height="40dp"
                 android:layout_margin="5dp"
                 android:onClick="@{(view)->fragmentTrackBuild.onClickClose()}"
-                android:padding="15dp"
+                android:padding="10dp"
                 app:srcCompat="@drawable/ic_close" />
 
             <ImageView
@@ -50,7 +50,7 @@
                 android:layout_margin="5dp"
                 android:onClick="@{(view)->fragmentTrackBuild.onClickBack()}"
                 android:padding="5dp"
-                app:srcCompat="@drawable/ic_go_back" />
+                app:srcCompat="@drawable/ic_step_back" />
 
             <ImageView
 

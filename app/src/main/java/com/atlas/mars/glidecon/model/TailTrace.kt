@@ -20,11 +20,12 @@ import com.mapbox.mapboxsdk.style.layers.PropertyFactory.*
 import com.mapbox.mapboxsdk.style.sources.GeoJsonOptions
 import com.mapbox.mapboxsdk.style.sources.GeoJsonSource
 import io.reactivex.rxkotlin.subscribeBy
+import io.reactivex.subjects.AsyncSubject
 
 
 @SuppressLint("ResourceType")
 class TailTrace(val style: Style, val context: Context) {
-    private var isSubscribed = true
+    private val _onDestroy = AsyncSubject.create<Boolean>();
     private val locationList = mutableListOf<Location>()
 
     companion object {
@@ -56,7 +57,7 @@ class TailTrace(val style: Style, val context: Context) {
         style.addLayer(lineLayer)
 
         MapBoxStore.locationSubject
-                .takeWhile { isSubscribed }
+                .takeUntil(_onDestroy)
                 .doOnNext { locationList.add(it) }
                 .buffer(2, 1)
                 .filter { buff -> 1 < buff.size }
@@ -175,6 +176,6 @@ class TailTrace(val style: Style, val context: Context) {
     }
 
     fun onDestroy() {
-        isSubscribed = false
+       _onDestroy.onComplete()
     }
 }

@@ -58,7 +58,6 @@ class MapBoxActivity : AppCompatActivity(), Ololo {
     lateinit var serviceIntent: Intent
     lateinit var toolbar: Toolbar
     lateinit var mapBoxModel: MapBoxModel
-    var isSubscribed = false;
     lateinit var mapDateBase: MapDateBase
 
     // lateinit var mapBoxStore: MapBoxStore
@@ -91,7 +90,7 @@ class MapBoxActivity : AppCompatActivity(), Ololo {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        isSubscribed = true
+
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         serviceIntent = Intent(this, LocationService::class.java)
         MapBoxStore.onCreate()
@@ -302,7 +301,8 @@ class MapBoxActivity : AppCompatActivity(), Ololo {
     private fun setupFollowFrame() {
         val fm = this.supportFragmentManager
         val ft: FragmentTransaction = fm.beginTransaction()
-        ft.add(R.id.follow_layout, FragmentFollow())
+        val fragmentFollow = FragmentFollow()
+        ft.add(R.id.follow_layout, fragmentFollow)
         ft.commit();
     }
 
@@ -409,6 +409,7 @@ class MapBoxActivity : AppCompatActivity(), Ololo {
     override fun onPause() {
 
         super.onPause()
+        mapBoxModel.onPause()
         unregisterReceiver(myReceiver)
         _active.onNext(false)
         Log.d(TAG, "onPause")
@@ -419,7 +420,6 @@ class MapBoxActivity : AppCompatActivity(), Ololo {
     }
 
     override fun onDestroy() {
-        isSubscribed = false
         mapView?.onDestroy()
         mapBoxModel.onDestroy()
         mapDateBase.onUnsubscribe()

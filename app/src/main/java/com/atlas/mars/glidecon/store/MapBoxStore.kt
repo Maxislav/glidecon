@@ -54,7 +54,6 @@ class MapBoxStore {
             routeBuildProgress = BehaviorSubject.createDefault(false)
             activeRoute = BehaviorSubject.create()
             activeRouteName = BehaviorSubject.create()
-            // activeRoute = BehaviorSubject.create()
             routeType = BehaviorSubject.create()
             routeButtonClick = PublishSubject.create()
         }

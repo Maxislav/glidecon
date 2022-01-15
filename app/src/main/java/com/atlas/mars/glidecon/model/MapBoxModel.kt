@@ -30,13 +30,14 @@ import com.mapbox.mapboxsdk.maps.Style
 import com.mapbox.mapboxsdk.plugins.markerview.MarkerViewManager
 import io.reactivex.rxkotlin.Observables
 import io.reactivex.rxkotlin.subscribeBy
+import io.reactivex.subjects.AsyncSubject
 import java.util.*
 import kotlin.math.pow
 
 
 class MapBoxModel(val mapView: MapView, val context: Context, val myViewModel: LandingBoxViewModel) {
     private val TAG = "MapBoxModel"
-    private var isSubscribed = true
+    private val _onDestroy = AsyncSubject.create<Boolean>();
     lateinit var markerViewManager: MarkerViewManager
 
     lateinit var directionArea: DirectionArea
@@ -82,14 +83,14 @@ class MapBoxModel(val mapView: MapView, val context: Context, val myViewModel: L
             }
         }
         mapboxMapSubject
-                .takeWhile { isSubscribed }
+                .takeUntil(_onDestroy)
                 .subscribeBy(
                         onNext = { value: MapboxMap ->
                             Log.d(TAG, "mapboxMap defined")
                         }
                 )
         MapBoxStore.locationSubject
-                .takeWhile { isSubscribed }
+                .takeUntil(_onDestroy)
                 .subscribeBy(
                         onNext = { location: Location ->
                             Log.d(TAG, "location ${location.toString()}")
@@ -113,7 +114,7 @@ class MapBoxModel(val mapView: MapView, val context: Context, val myViewModel: L
         })
         mapboxMapSubject
                 //  .last(1)
-                .takeWhile { isSubscribed }
+                .takeUntil(_onDestroy)
                 .subscribeBy(
                         onNext = { mapboxMap ->
                             initMap(mapboxMap)
@@ -129,7 +130,7 @@ class MapBoxModel(val mapView: MapView, val context: Context, val myViewModel: L
 
 
         MapBoxStore.defineStartingPointClickSubject
-                .takeWhile { isSubscribed }
+                .takeUntil(_onDestroy)
                 .filter{defineStartingPoint == null}
                 .subscribeBy {
                     defineStartingPoint = DefineStartingPoint()
@@ -144,7 +145,7 @@ class MapBoxModel(val mapView: MapView, val context: Context, val myViewModel: L
             cameraPositionSubject.onNext(cp)
         }
         tiltSubject
-                .takeWhile { isSubscribed }
+                .takeUntil(_onDestroy)
                 .subscribeBy(
                         onNext = {
                             val tilt: Double = (60 * it / 100).toDouble()
@@ -156,7 +157,7 @@ class MapBoxModel(val mapView: MapView, val context: Context, val myViewModel: L
                 )
 
         zoomControlSubject
-                .takeWhile { isSubscribed }
+                .takeUntil(_onDestroy)
                 .subscribeBy { zoom: MapBoxStore.Zoom ->
                     var currentZoom = mapboxMap.cameraPosition.zoom
                     when (zoom) {
@@ -207,7 +208,7 @@ class MapBoxModel(val mapView: MapView, val context: Context, val myViewModel: L
 
 
         compassOnClickSubject
-                .takeWhile { isSubscribed }
+                .takeUntil(_onDestroy)
                 .subscribeBy(
                         onNext = {
                             val position = CameraPosition.Builder()
@@ -225,7 +226,7 @@ class MapBoxModel(val mapView: MapView, val context: Context, val myViewModel: L
         var previousLocation: Location? = null;
         var previousTime: Long? = null// = System.currentTimeMillis()
         Observables.combineLatest(followTypeSubject, locationSubject)
-                .takeWhile { isSubscribed }
+                .takeUntil(_onDestroy)
                 .filter(fun(pair): Boolean {
                     return pair.first != MapBoxStore.FollowViewType.TYPICAL
                 })
@@ -307,11 +308,14 @@ class MapBoxModel(val mapView: MapView, val context: Context, val myViewModel: L
         })
     }
 
+    fun onPause(){
+        mapboxMap?.let { mapDateBase.saveCameraPosition(it.cameraPosition) }
+    }
+
     fun onDestroy() {
-        isSubscribed = false
+        _onDestroy.onComplete()
         // mapboxMapSubjectReset()
         mapboxMap?.let { mapDateBase.saveCameraPosition(it.cameraPosition) }
-
         directionArea.onDestroy()
         flightRadius.onDestroy()
         tailTrace.onDestroy()

@@ -15,11 +15,12 @@ import com.atlas.mars.glidecon.store.MapBoxStore.Companion.compassOnClickSubject
 import com.atlas.mars.glidecon.store.MapBoxStore.Companion.followTypeSubject
 import com.mapbox.mapboxsdk.camera.CameraPosition
 import io.reactivex.rxkotlin.subscribeBy
+import io.reactivex.subjects.AsyncSubject
 
 
 class FragmentCompass : Fragment() {
 
-    private var isSubscribed = true
+    private val _onDestroy = AsyncSubject.create<Boolean>();
     var compassImageView: ImageView? = null
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -33,7 +34,7 @@ class FragmentCompass : Fragment() {
         compassImageView = view?.findViewById(R.id.compass_image_view)
         compassImageView?.setImageBitmap(myImage.btnCompass)
 
-        isSubscribed = true
+        // isSubscribed = true
         /*  mapboxMapSubject
                   .take(1)
                   .subscribeBy (
@@ -60,7 +61,7 @@ class FragmentCompass : Fragment() {
 
 
     override fun onDestroy() {
-        isSubscribed = false
+        _onDestroy.onComplete()
         super.onDestroy()
     }
 }

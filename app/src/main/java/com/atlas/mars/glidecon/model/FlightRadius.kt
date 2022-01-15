@@ -26,10 +26,11 @@ import io.reactivex.rxkotlin.subscribeBy
 
 
 import io.reactivex.rxkotlin.Observables
+import io.reactivex.subjects.AsyncSubject
 
 @SuppressLint("ResourceType")
 class FlightRadius(val style: Style, context: Context) {
-    private var isSubscribed = true
+    private val _onDestroy = AsyncSubject.create<Boolean>();
 
     companion object {
         const val CRITICAL_SOURCE_ID = "source-flight-area"
@@ -84,7 +85,7 @@ class FlightRadius(val style: Style, context: Context) {
         ) { speed, ratio, wind, startAltitude, location ->
             getCircleCoordinates(speed, ratio, wind, startAltitude, location)
         }
-                .takeWhile { isSubscribed }
+                .takeUntil(_onDestroy)
                 .subscribeBy { routeCoordinates ->
                     criticalSource.setGeoJson(FeatureCollection.fromFeatures(arrayOf(
                             Feature.fromGeometry(LineString.fromLngLats(routeCoordinates))
@@ -99,7 +100,7 @@ class FlightRadius(val style: Style, context: Context) {
         ) { speed, ratio, wind, startAltitude, location ->
             getCircleCoordinates(speed, ratio, wind, startAltitude + 300, location)
         }
-                .takeWhile { isSubscribed }
+                .takeUntil(_onDestroy)
                 .subscribeBy { routeCoordinates ->
                     safetySource.setGeoJson(FeatureCollection.fromFeatures(arrayOf(
                             Feature.fromGeometry(LineString.fromLngLats(routeCoordinates))
@@ -108,13 +109,13 @@ class FlightRadius(val style: Style, context: Context) {
 
 
         optimalSpeedSubject
-                .takeWhile { isSubscribed }
+                .takeUntil(_onDestroy)
                 .flatMap { locationSubject }
                 .subscribeBy {
 
                 }
         locationSubject
-                .takeWhile { isSubscribed }
+                .takeUntil(_onDestroy)
                 .concatMap {
                     optimalSpeedSubject
                 }
@@ -169,7 +170,7 @@ class FlightRadius(val style: Style, context: Context) {
 
 
     fun onDestroy() {
-        isSubscribed = false
+        _onDestroy.onComplete()
     }
 
 

@@ -13,9 +13,11 @@ import com.atlas.mars.glidecon.model.MyImage
 import com.atlas.mars.glidecon.store.MapBoxStore
 import com.atlas.mars.glidecon.store.MapBoxStore.Companion.satelliteSubject
 import io.reactivex.rxkotlin.subscribeBy
+import io.reactivex.subjects.AsyncSubject
 
 class FragmentGpsStatus : Fragment() {
-    private var isSubscribed = false
+   //  private var isSubscribed = false
+   private val _onDestroy = AsyncSubject.create<Boolean>();
     private val TAG = "FragmentGpsStatus"
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         //  return super.onCreateView(inflater, container, savedInstanceState)
@@ -24,7 +26,6 @@ class FragmentGpsStatus : Fragment() {
     }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
-        isSubscribed = true
         super.onActivityCreated(savedInstanceState)
         val context = activity as Context
         val myImage = MyImage(context)
@@ -34,7 +35,7 @@ class FragmentGpsStatus : Fragment() {
 
 
         satelliteSubject
-                .takeWhile { isSubscribed }
+                .takeUntil(_onDestroy)
                 .filter (fun(map): Boolean {
                     return 0 < map[MapBoxStore.SatCount.TOTAl]!!
                 })
@@ -56,7 +57,7 @@ class FragmentGpsStatus : Fragment() {
 
 
     override fun onDestroy() {
-        isSubscribed = false;
+        _onDestroy.onComplete()
         super.onDestroy()
     }
 

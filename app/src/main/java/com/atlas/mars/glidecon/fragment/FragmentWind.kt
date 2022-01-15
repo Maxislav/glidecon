@@ -14,11 +14,12 @@ import com.atlas.mars.glidecon.store.MapBoxStore.Companion.windSubject
 import com.atlas.mars.glidecon.util.LocationUtil
 import io.reactivex.rxkotlin.Observables
 import io.reactivex.rxkotlin.subscribeBy
+import io.reactivex.subjects.AsyncSubject
 
 class FragmentWind : Fragment() {
     val TAG = "FragmentWind"
 
-    private var isSubscribed = true;
+    private val _onDestroy = AsyncSubject.create<Boolean>();
 
     lateinit var windView: ImageView
 
@@ -45,7 +46,7 @@ class FragmentWind : Fragment() {
                 windSubject.map { it -> it[MapBoxStore.Wind.DIRECTION] },
                 MapBoxStore.cameraPositionSubject.map { it -> it.bearing }
         )
-                .takeWhile { isSubscribed }
+                .takeUntil(_onDestroy)
                 .subscribeBy {
                     val windDirection = it.first
                     val bearing = it.second
@@ -59,6 +60,6 @@ class FragmentWind : Fragment() {
 
     override fun onDestroy() {
         super.onDestroy()
-        isSubscribed = false
+        _onDestroy.onComplete()
     }
 }

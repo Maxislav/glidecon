@@ -26,6 +26,7 @@ import com.atlas.mars.glidecon.util.LocationUtil
 import com.atlas.mars.glidecon.view.CustomFontTextView
 import io.reactivex.rxkotlin.Observables
 import io.reactivex.rxkotlin.subscribeBy
+import io.reactivex.subjects.AsyncSubject
 import java.text.DecimalFormat
 
 
@@ -33,7 +34,7 @@ class FragmentDashboard : Fragment() {
     //  lateinit var dashboardDrawer: DashboardSpeedDrawer
     private val TAG = "FragmentDashboard"
     private lateinit var handler: Handler
-    var isSubscribed = true;
+    private val _onDestroy = AsyncSubject.create<Boolean>();
     private var speedFrame: FrameLayout? = null
     private var varioFrame: FrameLayout? = null
     private var altFrame: FrameLayout? = null
@@ -185,7 +186,7 @@ class FragmentDashboard : Fragment() {
 
         val locationUtil = LocationUtil()
         MapBoxStore.locationSubject
-                .takeWhile { isSubscribed }
+                .takeUntil(_onDestroy)
                 .doOnNext {
                     locationList.add(it)
                     while (3 < locationList.size) {
@@ -206,7 +207,7 @@ class FragmentDashboard : Fragment() {
 
 
         Observables.combineLatest(MapBoxStore.locationSubject, MapBoxStore.startAltitudeSubject)
-                .takeWhile { isSubscribed }
+                .takeUntil(_onDestroy)
                 .subscribeBy {
                     val msg: Message = handler.obtainMessage(WHAT_ALT)
                     val bundle = Bundle()
@@ -221,7 +222,7 @@ class FragmentDashboard : Fragment() {
 
     override fun onDestroy() {
         super.onDestroy()
-        isSubscribed = false
+        _onDestroy.onComplete()
         handler.removeCallbacksAndMessages(null);
     }
 }

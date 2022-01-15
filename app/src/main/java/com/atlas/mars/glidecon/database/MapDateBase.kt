@@ -15,14 +15,14 @@ import com.atlas.mars.glidecon.store.MapBoxStore.Companion.windSubject
 import com.mapbox.mapboxsdk.camera.CameraPosition
 import com.mapbox.mapboxsdk.geometry.LatLng
 import io.reactivex.rxkotlin.subscribeBy
+import io.reactivex.subjects.AsyncSubject
 import java.text.SimpleDateFormat
 import java.util.*
-import kotlin.collections.ArrayList
 
 class MapDateBase(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null, DATABASE_VERSION) {
 
-    private var isSubscribed = true
-
+   //  private var isSubscribed = true
+    private val _onDestroy = AsyncSubject.create<Boolean>();
     companion object {
         private const val TAG = "MapDateBase"
 
@@ -157,7 +157,7 @@ class MapDateBase(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, n
             windSubject.onNext(mapOf(MapBoxStore.Wind.SPEED to windSpeed, MapBoxStore.Wind.DIRECTION to windDirection))
         }
         windSubject
-                .takeWhile { isSubscribed }
+                .takeUntil(_onDestroy)
                 .skip(skip)
                 .subscribeBy(
                         onNext = {
@@ -175,7 +175,7 @@ class MapDateBase(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, n
             MapBoxStore.startAltitudeSubject.onNext(startAltitude)
             skip = 1
         }
-        MapBoxStore.startAltitudeSubject.takeWhile { isSubscribed }
+        MapBoxStore.startAltitudeSubject.takeUntil(_onDestroy)
                 .skip(skip)
                 .subscribeBy(
                         onNext = {
@@ -191,7 +191,7 @@ class MapDateBase(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, n
             MapBoxStore.liftToDragRatioSubject.onNext(ratio)
             skip = 1
         }
-        MapBoxStore.liftToDragRatioSubject.takeWhile { isSubscribed }
+        MapBoxStore.liftToDragRatioSubject.takeUntil(_onDestroy)
                 .skip(skip)
                 .subscribeBy(
                         onNext = {
@@ -208,7 +208,7 @@ class MapDateBase(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, n
             MapBoxStore.optimalSpeedSubject.onNext(speed)
             skip = 1
         }
-        MapBoxStore.optimalSpeedSubject.takeWhile { isSubscribed }
+        MapBoxStore.optimalSpeedSubject.takeUntil(_onDestroy)
                 .skip(skip)
                 .subscribeBy(
                         onNext = {
@@ -224,7 +224,7 @@ class MapDateBase(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, n
             MapBoxStore.landingBoxAngleSubject.onNext(angle)
             skip = 1
         }
-        MapBoxStore.landingBoxAngleSubject.takeWhile { isSubscribed }
+        MapBoxStore.landingBoxAngleSubject.takeUntil(_onDestroy)
                 .skip(skip)
                 .subscribeBy(
                         onNext = {
@@ -253,7 +253,7 @@ class MapDateBase(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, n
             MapBoxStore.landingStartPointSubject.onNext(lngLat)
         }
 
-        MapBoxStore.landingStartPointSubject.takeWhile { isSubscribed }
+        MapBoxStore.landingStartPointSubject.takeUntil(_onDestroy)
                 .skip(skip)
                 .subscribeBy(
                         onNext = {
@@ -284,7 +284,7 @@ class MapDateBase(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, n
             )
             skip = 1
         }
-        MapBoxStore.landingLiftToDragRatioSubject.takeWhile { isSubscribed }
+        MapBoxStore.landingLiftToDragRatioSubject.takeUntil(_onDestroy)
                 .skip(skip)
                 .subscribeBy {
                     it[MapBoxStore.LandingLiftToDragRatio.FLY]?.let { ratio -> saveParam(LANDING_RATIO_FLY, ratio) }
@@ -302,17 +302,17 @@ class MapDateBase(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, n
             val routeType = cursor.getDouble(cursor.getColumnIndex(VALUE))
             val rr: MapBoxStore.RouteType = MapBoxStore.RouteType.from(routeType.toInt())
             MapBoxStore.routeType.onNext(rr)
-            initRouteType = false
+
         } else {
             val rr: MapBoxStore.RouteType = MapBoxStore.RouteType.CAR
             MapBoxStore.routeType.onNext(rr)
         }
-        MapBoxStore.routeType.takeWhile { isSubscribed }
+        MapBoxStore.routeType.takeUntil(_onDestroy)
                 .filter { !initRouteType }
                 .subscribeBy {
                     saveParam(ROUTE_TYPE, it.routeType.toDouble())
                 }
-
+        initRouteType = false
         /**
          * Route selected
          */
@@ -323,15 +323,15 @@ class MapDateBase(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, n
             cursor.moveToFirst()
             val routeID = cursor.getDouble(cursor.getColumnIndex(VALUE))
             MapBoxStore.activeRoute.onNext(routeID.toInt())
-            initRouteId = false
         }
-        MapBoxStore.activeRoute.takeWhile { isSubscribed }
+        MapBoxStore.activeRoute.takeUntil(_onDestroy)
                 .filter { !initRouteId }
                 .subscribeBy {
                     saveParam(ROUTE_ID, it.toDouble())
                 }
+        initRouteId = false
 
-        MapBoxStore.activeRoute.takeWhile { isSubscribed }
+        MapBoxStore.activeRoute.takeUntil(_onDestroy)
                 .subscribeBy {
                     val name = getActiveRouteName(it)
                     MapBoxStore.activeRouteName.onNext(name)
@@ -351,7 +351,9 @@ class MapDateBase(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, n
         }
 
         cursor.moveToFirst()
-        return 0 < cursor.getDouble(cursor.getColumnIndex(VALUE))
+        val agreement = 0 < cursor.getDouble(cursor.getColumnIndex(VALUE))
+        cursor.close()
+        return agreement
     }
 
     fun saveAgreementAgree() {
@@ -396,6 +398,7 @@ class MapDateBase(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, n
         while (cursor.moveToNext()) {
             name = cursor.getString(cursor.getColumnIndex(NAME))
         }
+        cursor.close()
         return name
     }
 
@@ -413,6 +416,7 @@ class MapDateBase(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, n
 
     }
 
+    @Synchronized
     fun getRoutePoints(id: Number): MutableList<RoutePoints> {
         val routePointList: MutableList<RoutePoints> = mutableListOf()
         val sdb = readableDatabase
@@ -427,12 +431,11 @@ class MapDateBase(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, n
             val p: RoutePoints = object : RoutePoints {
                 override val lat = cursor.getDouble(cursor.getColumnIndex("lat"))
                 override val lon: Double = cursor.getDouble(cursor.getColumnIndex("lon"))
-
                 override val type = MapBoxStore.PointType.from(type)
             }
             routePointList.add(p)
-
         }
+        cursor.close()
         return routePointList
     }
 
@@ -498,7 +501,6 @@ class MapDateBase(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, n
         //sdb.close()
     }
 
-    @SuppressLint("Recycle")
     private fun isValueExist(value: String, sdb: SQLiteDatabase): Int {
         val jquery = "SELECT * FROM $TABLE_SETTING_PARAM WHERE $NAME=?"
         val cursor: Cursor = sdb.rawQuery(jquery, arrayOf(value))
@@ -507,12 +509,13 @@ class MapDateBase(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, n
             cursor.moveToFirst()
             id = cursor.getInt(cursor.getColumnIndex(UID))
         }
+        cursor.close()
         return id
     }
 
 
     fun onUnsubscribe() {
-        isSubscribed = false
+        _onDestroy.onComplete()
     }
 
 
@@ -523,16 +526,13 @@ class MapDateBase(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, n
         cameraPosition.zoom
         val sdb = readableDatabase
         val cv = ContentValues()
-
-
-
         cv.put("lat", cameraPosition.target.latitude)
         cv.put("lon", cameraPosition.target.longitude)
         cv.put("bearing", cameraPosition.bearing)
         cv.put("tilt", cameraPosition.tilt)
         cv.put("zoom", cameraPosition.zoom)
 
-        val jquery = "SELECT * FROM $TABLE_SETTING_MAP"
+        val jquery = "SELECT * FROM $TABLE_SETTING_MAP;"
         val cursor: Cursor = sdb.rawQuery(jquery, null)
         if (0 < cursor.count) {
             cursor.moveToFirst()
@@ -548,7 +548,7 @@ class MapDateBase(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, n
     fun getCameraPosition(): CameraPosition? {
 
 
-        val jquery = "SELECT * FROM $TABLE_SETTING_MAP"
+        val jquery = "SELECT * FROM $TABLE_SETTING_MAP;"
         val sdb = readableDatabase
         val cursor: Cursor = sdb.rawQuery(jquery, null)
         if (0 < cursor.count) {

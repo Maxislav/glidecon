@@ -11,10 +11,11 @@ import com.atlas.mars.glidecon.R
 import com.atlas.mars.glidecon.store.MapBoxStore
 import com.atlas.mars.glidecon.store.MapBoxStore.Companion.cameraPositionSubject
 import io.reactivex.rxkotlin.subscribeBy
+import io.reactivex.subjects.AsyncSubject
 
 class FragmentTilt : Fragment() {
     private val TAG = "FragmentTilt"
-    private var isSubscribed = true
+    private val _onDestroy = AsyncSubject.create<Boolean>();
     var seekBar: SeekBar? = null
     var isMove = false
 
@@ -55,7 +56,7 @@ class FragmentTilt : Fragment() {
             }
         })
         cameraPositionSubject
-                .takeWhile { isSubscribed }
+                .takeUntil(_onDestroy)
                 .filter { !isMove }
                 .subscribeBy(
                         onNext = {
@@ -66,7 +67,7 @@ class FragmentTilt : Fragment() {
     }
 
     override fun onDestroy() {
-        isSubscribed = false;
+       _onDestroy.onComplete()
         super.onDestroy()
     }
 }

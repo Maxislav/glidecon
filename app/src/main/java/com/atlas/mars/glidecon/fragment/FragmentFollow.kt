@@ -12,24 +12,33 @@ import com.atlas.mars.glidecon.model.MyImage
 import com.atlas.mars.glidecon.store.MapBoxStore
 import com.atlas.mars.glidecon.store.MapBoxStore.Companion.followTypeSubject
 import io.reactivex.rxkotlin.subscribeBy
+import io.reactivex.subjects.AsyncSubject
 import java.util.*
 
 class FragmentFollow : Fragment() {
-    private var isSubscribed = false
+    private val _onDestroy = AsyncSubject.create<Boolean>();
     private val TAG = "FragmentFollow"
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.fragment_follow, container, false)
     }
 
+    override fun onDestroy() {
+        _onDestroy.onComplete()
+        super.onDestroy()
+
+    }
+
     override fun onActivityCreated(savedInstanceState: Bundle?) {
-        isSubscribed = true
+
         super.onActivityCreated(savedInstanceState)
         val myImage = MyImage(activity as Context)
 
         val imageView: ImageView? = view?.findViewById(R.id.follow_image_view)
         // imageView?.setImageBitmap(myImage.btnArrowTypical)
 
-        followTypeSubject.subscribeBy(
+        followTypeSubject
+                .takeUntil(_onDestroy)
+                .subscribeBy(
                 onNext = { followType ->
                     when (followType) {
                         MapBoxStore.FollowViewType.TYPICAL -> {

@@ -20,14 +20,15 @@ import io.reactivex.rxkotlin.subscribeBy
 import com.mapbox.geojson.Point
 import com.mapbox.geojson.Polygon;
 import io.reactivex.rxkotlin.Observables
+import io.reactivex.subjects.AsyncSubject
 
 
 @SuppressLint("ResourceType")
 class DirectionArea(val mapView: MapView, mapboxMap: MapboxMap, val style: Style, context: Context) {
 
-    private var isSubscribed = true
+   //  private var isSubscribed = true
 
-
+    private val _onDestroy = AsyncSubject.create<Boolean>();
     val locationList = mutableListOf<Location>()
 
     init {
@@ -43,7 +44,7 @@ class DirectionArea(val mapView: MapView, mapboxMap: MapboxMap, val style: Style
         //var previousLocation: Location? = null
 
         val ll = MapBoxStore.locationSubject
-                .takeWhile { isSubscribed }
+                .takeUntil(_onDestroy)
                 .doOnNext { addLocation(it) }
                 .buffer(2, 1)
                 .filter { buff -> 1 < buff.size }
@@ -131,7 +132,7 @@ class DirectionArea(val mapView: MapView, mapboxMap: MapboxMap, val style: Style
     }
 
     fun onDestroy() {
-        isSubscribed = false
+       _onDestroy.onComplete()
     }
 
     companion object {
