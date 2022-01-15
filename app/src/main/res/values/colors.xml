@@ -17,6 +17,7 @@
     <item name="colorOrange" type="color">#EC5627</item>
     <item name="safetyColor" type="color">#0037FD</item>
     <item name="criticalColor" type="color">#F30000</item>
+    <item name="errorColor" type="color">#8AF30000</item>
     <item name="landingPatternColor" type="color">#0004FF</item>
     <item name="mapRouteColor" type="color">#E91E63</item>
     <item name="mapRoutePointAreaColor" type="color">#E91E63</item>

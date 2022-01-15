@@ -36,8 +36,8 @@ class FragmentActiveTrackName: Fragment() {
 
     fun onNameClick(v: View){
         activity
-        /*val tToast = activity?.let { TToast(it) }
-        tToast?.show("olool"){}*/
+      /*  val tToast = activity?.let { TToast(it) }
+        tToast?.show("olool", TToast.Type.ERROR, 5000)*/
 
         val popup = PopupMenu(context, v)
         popup.inflate(R.menu.menu_active_track_name)

@@ -4,6 +4,9 @@
         <variable
             name="myText"
             type="String" />
+        <variable
+            name="tToast"
+            type="com.atlas.mars.glidecon.model.TToast" />
     </data>
     <LinearLayout
         android:layout_marginTop="50dp"
@@ -13,10 +16,11 @@
         >
         <TextView
 
+            android:textColor="@{tToast.textColor}"
             android:padding="5dp"
-            android:background="@drawable/corner"
+            android:background="@{tToast.background}"
             android:layout_width="wrap_content"
-            android:text="@{myText}"
+            android:text="@{tToast.message}"
             android:layout_height="wrap_content">
         </TextView>
 

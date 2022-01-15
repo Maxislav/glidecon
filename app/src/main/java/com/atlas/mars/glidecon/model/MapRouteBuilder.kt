@@ -255,13 +255,13 @@ class MapRouteBuilder(val style: Style, val context: Context) {
                                             setAreaSource()
                                             setLineSource()
                                             Log.d(TAG, err.stackTraceToString())
-                                            TToast(context as Activity).show("Server error") {}
+                                            TToast(context as Activity).show("Server error", TToast.Type.ERROR, 3000)
 
                                         } else {
                                             routeTurnPointList.removeLast()
                                             setAreaSource()
                                             setLineSource()
-                                            TToast(context as Activity).show("Server error") {}
+                                            TToast(context as Activity).show("Server error", TToast.Type.ERROR, 3000)
                                         }
                                         loading = false
                                     }
