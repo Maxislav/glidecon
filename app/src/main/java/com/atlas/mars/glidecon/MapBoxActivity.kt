@@ -122,6 +122,7 @@ class MapBoxActivity : AppCompatActivity(), Ololo {
                 dialogLendingBox?.show()
             }
         })
+        getLayoutInflater()
     }
 
     val sCon = object : ServiceConnection {

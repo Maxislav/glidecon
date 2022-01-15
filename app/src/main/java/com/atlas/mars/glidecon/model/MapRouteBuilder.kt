@@ -1,6 +1,7 @@
 package com.atlas.mars.glidecon.model
 
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Color
@@ -113,7 +114,8 @@ class MapRouteBuilder(val style: Style, val context: Context) {
         // j.add(JsonParser.parseString("[\"interpolate\",[\"duration\",\"0\"]]"))
 
         val jjjs = JsonParser.parseString("[\"interpolate\", ['duration', 0]]")
-               // JsonArray =
+
+        // JsonArray =
         class AA {
             val duration = 0
             val delay = 0
@@ -247,16 +249,19 @@ class MapRouteBuilder(val style: Style, val context: Context) {
                                             }
                                             steps.add(list.size / 2)
                                             setLineSource()
+
                                         } else if (err !== null) {
                                             routeTurnPointList.removeLast()
                                             setAreaSource()
                                             setLineSource()
                                             Log.d(TAG, err.stackTraceToString())
+                                            TToast(context as Activity).show("Server error") {}
+
                                         } else {
                                             routeTurnPointList.removeLast()
                                             setAreaSource()
                                             setLineSource()
-                                            Log.d(TAG, "Track Error")
+                                            TToast(context as Activity).show("Server error") {}
                                         }
                                         loading = false
                                     }
@@ -330,10 +335,10 @@ class MapRouteBuilder(val style: Style, val context: Context) {
             val feature = Feature.fromGeometry(LineString.fromLngLats(getPointArea(c)))
             featureList.add(feature)
 
-            val singleFeatureOne = Feature.fromGeometry( Point.fromLngLat(
+            val singleFeatureOne = Feature.fromGeometry(Point.fromLngLat(
                     latLng.longitude,
                     latLng.latitude
-            ) )
+            ))
             pointList.add(singleFeatureOne)
         }
         areaSource.setGeoJson(FeatureCollection.fromFeatures(featureList))

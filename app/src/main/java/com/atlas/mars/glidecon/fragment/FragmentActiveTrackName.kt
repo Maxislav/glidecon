@@ -11,6 +11,7 @@ import androidx.fragment.app.Fragment
 import com.atlas.mars.glidecon.R
 import com.atlas.mars.glidecon.databinding.FragmentActiveTrackNameBinding
 import com.atlas.mars.glidecon.databinding.FragmentDashboardBinding
+import com.atlas.mars.glidecon.model.TToast
 import com.atlas.mars.glidecon.store.MapBoxStore
 import io.reactivex.rxkotlin.subscribeBy
 import io.reactivex.subjects.AsyncSubject
@@ -34,6 +35,10 @@ class FragmentActiveTrackName: Fragment() {
     }
 
     fun onNameClick(v: View){
+        activity
+        /*val tToast = activity?.let { TToast(it) }
+        tToast?.show("olool"){}*/
+
         val popup = PopupMenu(context, v)
         popup.inflate(R.menu.menu_active_track_name)
         popup.setOnMenuItemClickListener { menuItem: MenuItem ->
