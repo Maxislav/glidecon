@@ -37,7 +37,6 @@ import com.atlas.mars.glidecon.service.LocationService
 import com.atlas.mars.glidecon.store.MapBoxStore
 import com.google.android.material.navigation.NavigationView
 import com.mapbox.mapboxsdk.Mapbox
-import com.mapbox.mapboxsdk.geometry.LatLng
 import com.mapbox.mapboxsdk.maps.MapView
 import io.reactivex.rxkotlin.Observables
 import io.reactivex.rxkotlin.subscribeBy
@@ -62,7 +61,8 @@ class MapBoxActivity : AppCompatActivity(), Ololo {
 
     // lateinit var mapBoxStore: MapBoxStore
     private var fragmentTrackBuild: FragmentTrackBuild? = null
-    private var fragmentDashboard: FragmentDashboard? = null
+    private var fragmentDashboardFlight: FragmentDashboardFlight? = null
+    private var fragmentDashboardRoad: FragmentDashboardRoad? = null
     private var fragmentActiveTrackName: FragmentActiveTrackName? = null
     private val _onDestroy = AsyncSubject.create<Boolean>();
     private var _active = BehaviorSubject.createDefault(false);
@@ -220,7 +220,7 @@ class MapBoxActivity : AppCompatActivity(), Ololo {
 
     private fun setupActiveRouteName() {
 
-        Observables.combineLatest(_active, MapBoxStore.activeRoute){a,b -> Pair(a,b)}
+        Observables.combineLatest(_active, MapBoxStore.activeRoute) { a, b -> Pair(a, b) }
                 .takeUntil(_onDestroy)
                 .filter { it.first }
                 .map { it.second }
@@ -282,13 +282,20 @@ class MapBoxActivity : AppCompatActivity(), Ololo {
     private fun showBikeComputerFrame() {
         val fm = this.supportFragmentManager
         val ft: FragmentTransaction = fm.beginTransaction()
-        fragmentDashboard = FragmentDashboard()
-        fragmentDashboard?.let { fr -> ft.add(R.id.bike_computer_layout, fr).commit() }
+        fragmentDashboardRoad = FragmentDashboardRoad()
+        fragmentDashboardRoad?.let { fr -> ft.add(R.id.bike_computer_layout, fr).commit() }
+
+        /*val fm = this.supportFragmentManager
+        val ft: FragmentTransaction = fm.beginTransaction()
+        fragmentDashboardFlight = FragmentDashboardFlight()
+        fragmentDashboardFlight?.let { fr -> ft.add(R.id.bike_computer_layout, fr).commit() }*/
 
     }
 
     private fun hideBikeComputerFrame() {
-        fragmentDashboard?.let { fr -> this.supportFragmentManager.beginTransaction().remove(fr).commit() }
+        fragmentDashboardRoad?.let { fr -> this.supportFragmentManager.beginTransaction().remove(fr).commit() }
+
+        // fragmentDashboardFlight?.let { fr -> this.supportFragmentManager.beginTransaction().remove(fr).commit() }
     }
 
 
@@ -443,7 +450,7 @@ class MapBoxActivity : AppCompatActivity(), Ololo {
         }
     }
 
-    class SatUse(var total: Int, var used: Int): Serializable {
+    class SatUse(var total: Int, var used: Int) : Serializable {
 
     }
 
@@ -456,7 +463,7 @@ class MapBoxActivity : AppCompatActivity(), Ololo {
                 }
                 SAT_USE -> {
                     val satUse = intent.getSerializableExtra(SAT_USE_EXTRA) as SatUse
-                    MapBoxStore.satelliteSubject.onNext(mapOf(MapBoxStore.SatCount.TOTAl to satUse.total, MapBoxStore.SatCount.USED to satUse.used ))
+                    MapBoxStore.satelliteSubject.onNext(mapOf(MapBoxStore.SatCount.TOTAl to satUse.total, MapBoxStore.SatCount.USED to satUse.used))
                 }
             }
         }

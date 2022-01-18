@@ -9,18 +9,16 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.os.Message
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import androidx.fragment.app.Fragment
 import com.atlas.mars.glidecon.R
-import com.atlas.mars.glidecon.databinding.FragmentDashboardBinding
+import com.atlas.mars.glidecon.databinding.FragmentDashboardFlightBinding
 import com.atlas.mars.glidecon.model.DashboardAltitudeDrawer
 import com.atlas.mars.glidecon.model.DashboardSpeedDrawer
 import com.atlas.mars.glidecon.model.DashboardVarioDrawer
-import com.atlas.mars.glidecon.model.MyImage
 import com.atlas.mars.glidecon.store.MapBoxStore
 import com.atlas.mars.glidecon.util.LocationUtil
 import com.atlas.mars.glidecon.view.CustomFontTextView
@@ -30,7 +28,7 @@ import io.reactivex.subjects.AsyncSubject
 import java.text.DecimalFormat
 
 
-class FragmentDashboard : Fragment() {
+class FragmentDashboardFlight : Fragment() {
     //  lateinit var dashboardDrawer: DashboardSpeedDrawer
     private val TAG = "FragmentDashboard"
     private lateinit var handler: Handler
@@ -49,20 +47,20 @@ class FragmentDashboard : Fragment() {
     private lateinit var speedDrawer: DashboardSpeedDrawer
     private lateinit var varioDrawer: DashboardVarioDrawer
     private lateinit var altDrawer: DashboardAltitudeDrawer
-    private lateinit var binding: FragmentDashboardBinding
+    private lateinit var binding: FragmentDashboardFlightBinding
 
     companion object {
-        const val HANDLER_SPEED_KEY = "speed"
-        const val HANDLER_RATIO_KEY = "ratio"
-        const val HANDLER_VARIO_KEY = "vario"
-        const val HANDLER_ALT_KEY = "altitude"
-        const val WHAT_PARAM = 1
-        const val WHAT_ALT = 2
+       private const val HANDLER_SPEED_KEY = "speed"
+       private const val HANDLER_RATIO_KEY = "ratio"
+       private const val HANDLER_VARIO_KEY = "vario"
+       private const val HANDLER_ALT_KEY = "altitude"
+       private const val WHAT_PARAM = 1
+       private const val WHAT_ALT = 2
     }
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         // return super.onCreateView(inflater, container, savedInstanceState)
-        binding = FragmentDashboardBinding.inflate(inflater, container, false)
+        binding = FragmentDashboardFlightBinding.inflate(inflater, container, false)
         // return inflater.inflate(R.layout.fragment_dashboard, null)
         return binding.root;
     }
@@ -144,7 +142,6 @@ class FragmentDashboard : Fragment() {
 
         handler = object : Handler(Looper.getMainLooper()) {
             override fun handleMessage(msg: Message) {
-
                 when (msg.what) {
                     WHAT_PARAM -> {
                         val bundle = msg.data
@@ -200,7 +197,7 @@ class FragmentDashboard : Fragment() {
                     val calcParams = locationUtil.calcParams(locationList)
                     bundle.putDouble(HANDLER_SPEED_KEY, calcParams.speed)
                     bundle.putDouble(HANDLER_VARIO_KEY, calcParams.vario)
-                    bundle.putDouble(HANDLER_RATIO_KEY, calcParams.k)
+                    bundle.putDouble(HANDLER_RATIO_KEY, calcParams.ratio)
                     msg.data = bundle
                     handler.sendMessage(msg);
                 }

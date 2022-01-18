@@ -45,6 +45,8 @@ class MapRouteActive(val style: Style, val context: Context) {
         private const val POINT_SOURCE_ID = "ACTIVE_POINT_SOURCE_ID"
         private const val POINT_IMAGE_ID = "ACTIVE_POINT_IMAGE_ID"
         const val RADIUS = 500.0
+        private const val WHAT_DRAW_POINTS = 1;
+        private const val WHAT_CLEAR_POINTS = 2;
     }
     private val TAG = "MapRouteActive"
     val mapDateBase = MapDateBase(context)
@@ -67,7 +69,7 @@ class MapRouteActive(val style: Style, val context: Context) {
             routeTurnPointList.clear()
             routeFullPointList.clear()
             when (msg.what) {
-                1 -> {
+                WHAT_DRAW_POINTS -> {
                     val list = msg.obj as MutableList<RoutePoints>
 
                     list.forEach {
@@ -80,7 +82,7 @@ class MapRouteActive(val style: Style, val context: Context) {
                         }
                     }
                 }
-                2 -> {
+                WHAT_CLEAR_POINTS -> {
                     routeTurnPointList.clear()
                     routeFullPointList.clear()
                 }
@@ -148,11 +150,10 @@ class MapRouteActive(val style: Style, val context: Context) {
         if (-1 < id.toInt()) {
 
             val list = mapDateBase.getRoutePoints(id)
-            val msg = handler.obtainMessage(1, list)
+            val msg = handler.obtainMessage(WHAT_DRAW_POINTS, list)
             handler.sendMessage(msg)
         } else {
-            handler.sendEmptyMessage(2)
-
+            handler.sendEmptyMessage(WHAT_CLEAR_POINTS)
         }
 
 

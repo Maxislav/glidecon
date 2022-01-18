@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <data>
+        <variable
+            name="fragment"
+            type="com.atlas.mars.glidecon.fragment.FragmentDashboardRoad" />
+
+    </data>
+    <FrameLayout
+        android:layout_gravity="center|bottom"
+        android:layout_width="260dp"
+        android:layout_height="120dp">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+
+            <FrameLayout
+                android:id="@+id/vario_frame"
+                android:layout_width="60dp"
+                android:layout_height="60dp"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent">
+
+                <com.atlas.mars.glidecon.view.CustomFontTextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:gravity="bottom|center"
+                    android:text="@{fragment.varioField}"
+                    android:textSize="26sp" />
+
+            </FrameLayout>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:layout_marginLeft="10dp"
+                android:gravity="center"
+                android:orientation="horizontal"
+                app:layout_constraintBottom_toBottomOf="@+id/vario_frame"
+                app:layout_constraintStart_toEndOf="@+id/vario_frame"
+                app:layout_constraintTop_toTopOf="parent">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="R:">
+
+                </TextView>
+
+                <com.atlas.mars.glidecon.view.CustomFontTextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_marginLeft="5dp"
+                    android:gravity="center"
+                    android:text="@{fragment.ratiooField}"
+                    android:textSize="26sp" />
+
+            </LinearLayout>
+
+            <FrameLayout
+                android:id="@+id/alt_frame"
+                android:layout_width="60dp"
+                android:layout_height="60dp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toStartOf="parent">
+
+                <com.atlas.mars.glidecon.view.CustomFontTextView
+                    android:id="@+id/alt_view"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:gravity="center"
+                    android:text="@{fragment.altitudeField}"
+                    android:textSize="26sp" />
+            </FrameLayout>
+
+
+            <FrameLayout
+                android:id="@+id/comp"
+                android:layout_width="200dp"
+                android:layout_height="100dp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent">
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="bottom|center_horizontal"
+                    android:orientation="horizontal">
+
+                    <com.atlas.mars.glidecon.view.CustomFontTextView
+                        android:layout_width="120dp"
+                        android:layout_height="wrap_content"
+                        android:gravity="bottom|end"
+                        android:text="@{fragment.speedCeloe}"
+                        android:textSize="60sp" />
+
+                    <com.atlas.mars.glidecon.view.CustomFontTextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="bottom|start"
+                        android:layout_marginBottom="2dp"
+                        android:text="."
+                        android:textSize="40sp" />
+
+                    <com.atlas.mars.glidecon.view.CustomFontTextView
+                        android:layout_width="40dp"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="bottom|start"
+                        android:layout_marginBottom="1dp"
+                        android:gravity="bottom|start"
+                        android:text="@{fragment.speedDrobnoe}"
+                        android:textSize="40sp" />
+                </LinearLayout>
+            </FrameLayout>
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+    </FrameLayout>
+</layout>

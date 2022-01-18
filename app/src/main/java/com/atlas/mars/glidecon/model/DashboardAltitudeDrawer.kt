@@ -19,7 +19,7 @@ class DashboardAltitudeDrawer (private val context: Context, val size: Int){
 
     }
 
-    fun setAlt(alt: Float){
+    fun setAlt(alt: Float): Bitmap{
         clear()
         drawMeasurement()
         val p = Paint()
@@ -42,6 +42,7 @@ class DashboardAltitudeDrawer (private val context: Context, val size: Int){
             path.transform(matrix);
             canvas.drawPath(path, p)
         }
+        return  bitmap;
     }
 
     private fun clear(){

@@ -7,6 +7,7 @@ import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.ObservableField
 import com.atlas.mars.glidecon.databinding.ActivitySettingMapBoxBinding
+import com.atlas.mars.glidecon.model.TToast
 import io.reactivex.subjects.AsyncSubject
 
 
@@ -22,9 +23,10 @@ class SettingMapBoxActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivitySettingMapBoxBinding.inflate(layoutInflater)
         binding.settingMapBoxActivity = this
-
         radius.set("500")
         setContentView(binding.root)
+
+        TToast(this).show("In Develop Progress..", TToast.Type.WARNING, 5000)
         // val myParams: ObservableField<MyParams> = ObservableField<MyParams>()
     }
     class MyParams{

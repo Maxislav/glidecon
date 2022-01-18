@@ -6,12 +6,9 @@ import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.widget.PopupMenu
-import android.widget.TextView
 import androidx.fragment.app.Fragment
 import com.atlas.mars.glidecon.R
 import com.atlas.mars.glidecon.databinding.FragmentActiveTrackNameBinding
-import com.atlas.mars.glidecon.databinding.FragmentDashboardBinding
-import com.atlas.mars.glidecon.model.TToast
 import com.atlas.mars.glidecon.store.MapBoxStore
 import io.reactivex.rxkotlin.subscribeBy
 import io.reactivex.subjects.AsyncSubject
@@ -25,6 +22,7 @@ class FragmentActiveTrackName: Fragment() {
         binding = FragmentActiveTrackNameBinding.inflate(inflater, container, false)
         // return inflater.inflate(R.layout.fragment_dashboard, null)
         binding.fragmentActiveTrackName = this
+
         return binding.root;
         /*MapBoxStore.activeRouteName
                 .takeUntil(_onDestroy)

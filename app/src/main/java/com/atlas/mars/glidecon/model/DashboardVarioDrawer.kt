@@ -45,17 +45,6 @@ class DashboardVarioDrawer(private val context: Context, val size: Int) {
             canvas.drawPath(path, p)
         }
 
-        /*
-        for(i in 0..Math.abs(limit) step 2){
-            path.reset()
-            path.moveTo(0.0f , size.toFloat()/2)
-            path.lineTo(density*30 , size.toFloat()/2  )
-
-            matrix.reset()
-            matrix.setRotate(ccv.let { if(it) -i.toFloat() else i.toFloat()}, size.toFloat()/2, size.toFloat()/2);
-            path.transform(matrix);
-            canvas.drawPath(path, p)
-        }*/
     }
 
     private fun clear() {

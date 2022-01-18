@@ -68,7 +68,7 @@ class LocationUtil() : Location("A") {
 
     interface FlyParams {
         val speed: Double
-        val k: Double
+        val ratio: Double
         val vario: Double
     }
 
@@ -94,7 +94,7 @@ class LocationUtil() : Location("A") {
         }
         return object : FlyParams {
             override val speed = speedList.sum() / speedList.size
-            override val k = if (0 < kList.size) {
+            override val ratio = if (0 < kList.size) {
                 kList.sum() / kList.size
             } else {
                 0.0

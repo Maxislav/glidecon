@@ -44,6 +44,10 @@ class TToast(val activity: Activity) {
                 background = ContextCompat.getDrawable(activity, R.drawable.corner)
                 textColor = ContextCompat.getColor(activity, R.color.colorPrimaryText)
             }
+            Type.WARNING ->{
+                background = ContextCompat.getDrawable(activity, R.drawable.corner_orange)
+                textColor = ContextCompat.getColor(activity, R.color.white)
+            }
             else -> {
                 background = ContextCompat.getDrawable(activity, R.drawable.corner)
                 textColor = ContextCompat.getColor(activity, R.color.colorPrimaryText)
