@@ -42,11 +42,12 @@ class LocationService : Service() {
         Log.d(TAG, "onStartCommand")
 
         // TODO uncomment fo debug
-        // debug()
 
-        val job: Job = GlobalScope.launch(Dispatchers.IO) {
+       // debug()
+
+        /*val job: Job = GlobalScope.launch(Dispatchers.IO) {
             coroutine()
-        }
+        }*/
         return super.onStartCommand(intent, flags, startId)
     }
 

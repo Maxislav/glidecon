@@ -1,8 +1,6 @@
 package com.atlas.mars.glidecon.store
 
 import android.location.Location
-import android.os.Parcel
-import android.os.Parcelable
 import com.mapbox.mapboxsdk.camera.CameraPosition
 import com.mapbox.mapboxsdk.geometry.LatLng
 import com.mapbox.mapboxsdk.maps.MapboxMap
@@ -96,8 +94,16 @@ class MapBoxStore {
         TOTAl, USED
     }
 
-    enum class FollowViewType {
-        TYPICAL, FOLLOW, FOLLOW_ROTATE
+    enum class FollowViewType(var type: Int) {
+        TYPICAL(0),
+        FOLLOW(1),
+        FOLLOW_ROTATE(2);
+        companion object {
+            fun from(value: Int): FollowViewType {
+                val dd = values().find { v -> v.type == value }
+                return dd!!
+            }
+        }
     }
 
     enum class LandingLiftToDragRatio {

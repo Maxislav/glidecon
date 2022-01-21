@@ -77,7 +77,7 @@ class MyPositionMarker(val mapView: MapView, mapboxMap: MapboxMap, val style: St
         // val symbolLayer = SymbolLayer(MY_POSITION_MARKER_LAYER_ID, MY_POSITION_MARKER_SOURCE_ID)
 
         val j: JsonElement = JsonParser.parseString("{'duration': 0, 'delay': 0}")
-        val jj = object: Object() {
+        val jj = object {
             var duration = 0.0f
             var delay = 0.0f
         }
@@ -147,7 +147,7 @@ class MyPositionMarker(val mapView: MapView, mapboxMap: MapboxMap, val style: St
 
     }
 
-
+    @Synchronized
     private fun setMarkerPosition(l: Location) {
         val singleFeatureOne = Feature.fromGeometry(
                 Point.fromLngLat(l.longitude, l.latitude)
@@ -156,6 +156,7 @@ class MyPositionMarker(val mapView: MapView, mapboxMap: MapboxMap, val style: St
         markerSource.setGeoJson(singleFeatureOne)
     }
 
+    @Synchronized
     private fun setMarkerRotation(bearing: Float) {
         symbolLayer.setProperties(PropertyFactory.iconRotate(bearing))
     }
