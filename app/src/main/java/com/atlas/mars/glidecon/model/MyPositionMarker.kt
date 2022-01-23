@@ -27,6 +27,7 @@ import io.reactivex.Scheduler
 import io.reactivex.rxkotlin.subscribeBy
 import io.reactivex.schedulers.Schedulers
 import io.reactivex.subjects.AsyncSubject
+import kotlinx.coroutines.*
 import java.util.*
 import java.util.concurrent.TimeUnit
 import kotlin.math.abs
@@ -165,39 +166,79 @@ class MyPositionMarker(val mapView: MapView, mapboxMap: MapboxMap, val style: St
 
         var stepLat = 0.0
         var stepLon = 0.0
-        val l = just(1)
-                .subscribeOn(Schedulers.newThread())
-                .doOnNext {
-                    val lat1 = fromLocation.latitude
-                    val lat2 = toLocation.latitude
-                    val lon1 = fromLocation.longitude
-                    val lon2 = toLocation.longitude
-                    stepLat = (lat2 - lat1) / 15
-                    stepLon = (lon2 - lon1) / 15
-                }
-                .switchMap { interval(40, TimeUnit.MILLISECONDS) }
-                .takeUntil(_onDestroy)
-                .takeWhile { it < 15 }
-                .subscribeBy {
+        val j = GlobalScope.launch(Dispatchers.IO) {
+            val lat1 = fromLocation.latitude
+            val lat2 = toLocation.latitude
+            val lon1 = fromLocation.longitude
+            val lon2 = toLocation.longitude
+            stepLat = (lat2 - lat1) / 15
+            stepLon = (lon2 - lon1) / 15
+        }
+
+
+        var j2: Job? = null
+
+        j.invokeOnCompletion {
+            j2 = GlobalScope.launch {
+                for(i in 0..15){
                     val newLocation: Location = Location("A")
-                    newLocation.latitude = fromLocation.latitude + stepLat * it
-                    newLocation.longitude = fromLocation.longitude + stepLon * it
+                    newLocation.latitude = fromLocation.latitude + stepLat * i
+                    newLocation.longitude = fromLocation.longitude + stepLon * i
                     movingLocation = newLocation
                     val msg = handler.obtainMessage(WHAT_LOCATION, movingLocation)
                     handler.sendMessage(msg)
-                    //  Log.d(TAG, "$it")
+                    delay(40)
                 }
-        return fun() {
-            l.dispose()
+            }
         }
+        val callback: () -> Unit = {
+            if(j.isActive){
+                j.cancel()
+            }
+            j2?.let {
+                if(it.isActive){
+                    it.cancel()
+                }
+            }
+
+        }
+        return  callback
     }
 
     private fun rotateNext(fromAngle: Float, toAngle: Float): () -> Unit {
 
         Log.d(TAG, "$fromAngle, $toAngle")
-        var step = 1.0f;
-        //val lu = LocationUtil()
-        val l = just(1)
+        var step = 1.0f
+
+
+        val j = GlobalScope.launch {
+            step = if (180 < fromAngle - toAngle) {
+                (toAngle + 360 - fromAngle) / 10
+            } else if (fromAngle - toAngle < -180) {
+                (toAngle - fromAngle - 360) / 10
+            } else {
+                (toAngle - fromAngle) / 10
+            }
+        }
+        var j2: Job? = null
+
+        j.invokeOnCompletion {
+            j2 = GlobalScope.launch {
+                for(i in 0..10){
+                    val b: Float = fromAngle + step * i
+                    rotationBearing = b;
+                    val msg = handler.obtainMessage(WHAT_BEARING, b)
+                    handler.sendMessage(msg)
+                    delay(35)
+                }
+            }
+        }
+        return fun(){
+            if(j.isActive) j.cancel();
+            if(j2?.isActive == true) j2?.cancel()
+        }
+
+        /*val l = just(1)
                 .subscribeOn(Schedulers.newThread())
                 .doOnNext {
                     step = if (180 < fromAngle - toAngle) {
@@ -220,7 +261,7 @@ class MyPositionMarker(val mapView: MapView, mapboxMap: MapboxMap, val style: St
                 }
         return fun() {
             l.dispose()
-        }
+        }*/
     }
 
     private fun createSource(): GeoJsonSource {

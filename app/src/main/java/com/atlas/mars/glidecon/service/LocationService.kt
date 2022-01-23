@@ -43,7 +43,7 @@ class LocationService : Service() {
 
         // TODO uncomment fo debug
 
-       // debug()
+        // debug()
 
         /*val job: Job = GlobalScope.launch(Dispatchers.IO) {
             coroutine()
