@@ -222,6 +222,7 @@ class MapBoxModel(val mapView: MapView, val context: Context, val myViewModel: L
 
     }
 
+    @SuppressLint("CheckResult")
     private fun initCameraPositionListener(mapboxMap: MapboxMap) {
         var previousLocation: Location? = null;
         var previousTime: Long? = null// = System.currentTimeMillis()
@@ -230,48 +231,46 @@ class MapBoxModel(val mapView: MapView, val context: Context, val myViewModel: L
                 .filter(fun(pair): Boolean {
                     return pair.first != MapBoxStore.FollowViewType.TYPICAL
                 })
-                .subscribeBy(
-                        onNext = { pair ->
-                            val followViewType = pair.first;
-                            val location = pair.second
-                            val latLng = LatLng(location.latitude, location.longitude)
-                            val position: CameraPosition
+                .subscribe{ pair ->
+                    val followViewType = pair.first;
+                    val location = pair.second
+                    val latLng = LatLng(location.latitude, location.longitude)
+                    val position: CameraPosition
 
-                            if (previousLocation != null && followViewType == MapBoxStore.FollowViewType.FOLLOW_ROTATE) {
-                                val bearing = LocationUtil().bearingNormalize(previousLocation!!.bearingTo(location).toDouble()) //  - 180
+                    if (previousLocation != null && followViewType == MapBoxStore.FollowViewType.FOLLOW_ROTATE) {
+                        val bearing = LocationUtil().bearingNormalize(previousLocation!!.bearingTo(location).toDouble()) //  - 180
 
-                                /*Log.d(TAG, "bering to $bearing")
-                                if (bearing < 0) {
-                                    bearing += 360
-                                }
-                                bearing -= 180;
-                                if (bearing < 0) {
-                                    bearing += 360
-                                }*/
-
-                                Log.d(TAG, "bearing = $bearing")
-                                position = CameraPosition.Builder()
-                                        .bearing((bearing).toDouble())
-                                        .target(latLng)
-                                        .build()
-                            } else {
-                                position = CameraPosition.Builder()
-                                        .target(latLng)
-                                        .build()
-                            }
-
-                            //val time = previousTime?.minus(System.currentTimeMillis())?.let { Math.abs(it) }
-                            val time = previousTime?.let { previous -> System.currentTimeMillis() - previous }
-
-
-                            mapboxMap.easeCamera(CameraUpdateFactory
-                                    .newCameraPosition(position), time?.let { if (1000 < it) 1000 else it.toInt() }
-                                    ?: 1000, false);
-
-                            previousLocation = location
-                            previousTime = System.currentTimeMillis()
+                        /*Log.d(TAG, "bering to $bearing")
+                        if (bearing < 0) {
+                            bearing += 360
                         }
-                )
+                        bearing -= 180;
+                        if (bearing < 0) {
+                            bearing += 360
+                        }*/
+
+                        Log.d(TAG, "bearing = $bearing")
+                        position = CameraPosition.Builder()
+                                .bearing((bearing).toDouble())
+                                .target(latLng)
+                                .build()
+                    } else {
+                        position = CameraPosition.Builder()
+                                .target(latLng)
+                                .build()
+                    }
+
+                    //val time = previousTime?.minus(System.currentTimeMillis())?.let { Math.abs(it) }
+                    val time = previousTime?.let { previous -> System.currentTimeMillis() - previous }
+
+
+                    mapboxMap.easeCamera(CameraUpdateFactory
+                            .newCameraPosition(position), time?.let { if (1000 < it) 1000 else it.toInt() }
+                            ?: 1000, false);
+
+                    previousLocation = location
+                    previousTime = System.currentTimeMillis()
+                }
     }
 
     @SuppressLint("ClickableViewAccessibility")

@@ -104,6 +104,7 @@ class FragmentDashboardRoad : Fragment() {
         val locationUtil = LocationUtil()
         MapBoxStore.locationSubject
                 .takeUntil(_onDestroy)
+                .throttleWithTimeout(100,  TimeUnit.MILLISECONDS)
                 .doOnNext {
                     locationList.add(it)
                     while (3 < locationList.size) {

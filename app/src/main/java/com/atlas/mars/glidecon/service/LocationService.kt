@@ -43,7 +43,7 @@ class LocationService : Service() {
 
         // TODO uncomment fo debug
 
-        // debug()
+       // debug()
 
         /*val job: Job = GlobalScope.launch(Dispatchers.IO) {
             coroutine()
@@ -226,7 +226,7 @@ class LocationService : Service() {
         val a = suspend {
 
             while (0<locationList.size){
-                delay(500)
+                delay(90)
                 val currLocation = locationList.removeAt(0)
                 currLocation.time = System.currentTimeMillis()
                 // Log.d(TAG, )

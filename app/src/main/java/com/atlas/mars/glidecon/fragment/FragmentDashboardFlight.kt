@@ -26,6 +26,7 @@ import io.reactivex.rxkotlin.Observables
 import io.reactivex.rxkotlin.subscribeBy
 import io.reactivex.subjects.AsyncSubject
 import java.text.DecimalFormat
+import java.util.concurrent.TimeUnit
 
 
 class FragmentDashboardFlight : Fragment() {
@@ -184,6 +185,7 @@ class FragmentDashboardFlight : Fragment() {
         val locationUtil = LocationUtil()
         MapBoxStore.locationSubject
                 .takeUntil(_onDestroy)
+                .throttleWithTimeout(100,  TimeUnit.MILLISECONDS)
                 .doOnNext {
                     locationList.add(it)
                     while (3 < locationList.size) {

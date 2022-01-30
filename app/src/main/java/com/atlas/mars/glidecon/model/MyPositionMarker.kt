@@ -97,6 +97,7 @@ class MyPositionMarker(val mapView: MapView, mapboxMap: MapboxMap, val style: St
         style.addLayer(symbolLayer);
         MapBoxStore.locationSubject
                 .takeUntil(_onDestroy)
+                .throttleWithTimeout(100,  TimeUnit.MILLISECONDS)
                 .map { location ->
 
 
