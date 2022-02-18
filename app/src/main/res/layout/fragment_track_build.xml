@@ -48,16 +48,17 @@
                 android:layout_width="40dp"
                 android:layout_height="40dp"
                 android:layout_margin="5dp"
-                android:onClick="@{(view)->fragmentTrackBuild.onClickBack()}"
+                android:onClick="@{(view)->fragmentTrackBuild.onClickDownload()}"
                 android:padding="5dp"
-                app:srcCompat="@drawable/ic_go_back" />
+                app:srcCompat="@drawable/ic_download" />
             <ImageView
                 android:layout_width="40dp"
                 android:layout_height="40dp"
                 android:layout_margin="5dp"
-                android:onClick="@{(view)->fragmentTrackBuild.onClickDownload()}"
+                android:onClick="@{(view)->fragmentTrackBuild.onClickBack()}"
                 android:padding="5dp"
-                app:srcCompat="@drawable/ic_download" />
+                app:srcCompat="@drawable/ic_go_back" />
+
 
             <ImageView
 
