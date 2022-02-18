@@ -12,7 +12,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelProviders
 import com.atlas.mars.glidecon.MapBoxActivity
-import com.atlas.mars.glidecon.Ololo
 import com.atlas.mars.glidecon.R
 import com.atlas.mars.glidecon.databinding.DialogLandingBoxBinding
 import com.atlas.mars.glidecon.model.LandingBoxDrawer
@@ -30,7 +29,7 @@ import java.lang.Runnable
 import kotlin.math.atan
 
 
-class DialogLendingBox(val activity: AppCompatActivity, val ololo: Ololo) : AlertDialog.Builder(activity) {
+class DialogLendingBox(val activity: AppCompatActivity) : AlertDialog.Builder(activity) {
     lateinit var alertDialog: AlertDialog
     val imageView: ImageView
 

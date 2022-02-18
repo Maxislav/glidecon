@@ -13,11 +13,12 @@ import android.util.Log
 import com.atlas.mars.glidecon.R
 import com.atlas.mars.glidecon.database.MapDateBase
 import com.atlas.mars.glidecon.dialog.DialogSaveTrack
+import com.atlas.mars.glidecon.dialog.OpenFileDialog
 import com.atlas.mars.glidecon.rest.RouteRequest
 import com.atlas.mars.glidecon.store.MapBoxStore
+import com.atlas.mars.glidecon.util.LoadFile
 import com.atlas.mars.glidecon.util.LocationUtil
 import com.google.gson.JsonArray
-import com.google.gson.JsonElement
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import com.mapbox.geojson.Feature
@@ -28,7 +29,6 @@ import com.mapbox.mapboxsdk.geometry.LatLng
 import com.mapbox.mapboxsdk.maps.MapboxMap
 import com.mapbox.mapboxsdk.maps.Style
 import com.mapbox.mapboxsdk.style.expressions.Expression
-import com.mapbox.mapboxsdk.style.expressions.Expression.literal
 import com.mapbox.mapboxsdk.style.layers.*
 import com.mapbox.mapboxsdk.style.sources.GeoJsonSource
 import io.reactivex.Observable.just
@@ -37,8 +37,13 @@ import io.reactivex.schedulers.Schedulers
 import io.reactivex.subjects.AsyncSubject
 import io.reactivex.subjects.BehaviorSubject
 import kotlinx.coroutines.*
+import org.w3c.dom.Element
+import org.w3c.dom.NodeList
+import java.io.InputStream
 import java.text.SimpleDateFormat
 import java.util.*
+import javax.xml.parsers.DocumentBuilderFactory
+
 
 @ObsoleteCoroutinesApi
 @SuppressLint("ResourceType")
@@ -70,10 +75,14 @@ class MapRouteBuilder(val style: Style, val context: Context) {
         @SuppressLint("SetTextI18n")
         override fun handleMessage(msg: Message) {
             when (msg.what) {
-                1 -> {
+                WHAT_SAVE -> {
                     MapBoxStore.routeBuildProgress.onNext(false)
                     val id = msg.obj as Int
                     MapBoxStore.activeRoute.onNext(id)
+                }
+                WHAT_READ -> {
+                    setAreaSource()
+                    setLineSource()
                 }
             }
         }
@@ -90,6 +99,8 @@ class MapRouteBuilder(val style: Style, val context: Context) {
         private const val POINT_IMAGE_ID = "BUILDER_POINT_IMAGE_ID"
         private const val TAG = "MapRoute"
         private const val RADIUS = 500.0
+        private const val WHAT_SAVE = 1
+        private const val WHAT_READ = 2
     }
 
     init {
@@ -187,6 +198,36 @@ class MapRouteBuilder(val style: Style, val context: Context) {
                         onSave(trackName)
                     }
                     d.create().show()
+                }
+
+        MapBoxStore.routeButtonClick
+                .takeUntil(_onDestroy)
+                .filter {
+                    it === MapBoxStore.RouteAction.DOWNLOAD
+                }
+                .subscribe {
+                    val fileDialog = OpenFileDialog(context, getCurrentPath())
+                    fileDialog.setOpenDialogListener(object : OpenFileDialog.OpenDialogListener {
+                        override fun onSelectedFile(fileName: String?) {
+                            fileName?.let {
+                                if (it.matches(Regex(".+kml$", RegexOption.IGNORE_CASE))) {
+                                    readFileKml(it)
+                                } else if (it.matches(Regex(".+gpx$", RegexOption.IGNORE_CASE))) {
+                                    readFileGpx(it)
+                                }
+                            }
+                        }
+
+                        override fun onSelectPath(filePath: String?) {
+                            if (!filePath.isNullOrBlank()) {
+                                Log.d(TAG, (filePath))
+                                saveCurrentPath(filePath)
+                            }
+
+                        }
+
+                    })
+                    fileDialog.show()
                 }
 
     }
@@ -294,7 +335,7 @@ class MapRouteBuilder(val style: Style, val context: Context) {
                     val dist = calcDistance(routeFullPointList)
                     val id = mapDateBase.saveTrackName(trackName, dist)
                     mapDateBase.saveTrackPoints(id, trackPointList)
-                    val msg = handler.obtainMessage(1, id.toInt())
+                    val msg = handler.obtainMessage(WHAT_SAVE, id.toInt())
                     handler.sendMessage(msg)
                 }
 
@@ -385,4 +426,97 @@ class MapRouteBuilder(val style: Style, val context: Context) {
         handler.removeCallbacksAndMessages(null);
     }
 
+    private fun readFileGpx(path: String){
+        GlobalScope.launch(Dispatchers.IO) {
+            val text = LoadFile(path).text
+            val co = mutableListOf<LatLng>()
+            text?.let {
+                val inputStream: InputStream = text.byteInputStream()
+                val db = DocumentBuilderFactory.newInstance().newDocumentBuilder()
+                val doc = db.parse(inputStream)
+                var latLngs = arrayOfNulls<LatLng>(0)
+
+                var i = 0
+                var k = 0
+                var count = 0
+                val trkseg = doc.getElementsByTagName("trkseg")
+                for(i in 0 until trkseg.length){
+                    val element = trkseg.item(i) as Element
+                    val trkpt = element.getElementsByTagName("trkpt")
+                    for(k in 0..trkpt.length){
+                        count++
+                    }
+                }
+                latLngs = arrayOfNulls(count)
+                count = 0
+                for(i in 0 until trkseg.length){
+                    val element = trkseg.item(i) as Element
+                    val trkpt = element.getElementsByTagName("trkpt")
+                    for (k in 0 until trkpt.length){
+                        val ff = trkpt.item(k) as Element
+                        val lat = ff.getAttribute("lat")
+                        val lng = ff.getAttribute("lon")
+                        latLngs[count] = LatLng(lat.toDouble(), lng.toDouble())
+                        count++
+                    }
+                }
+                for(latLng in latLngs){
+                    latLng?.let{co.add(it)}
+                }
+                routeTurnPointList.add(co.first())
+                routeTurnPointList.add(co.last())
+                for (latLng in co) {
+                    routeFullPointList.add(latLng)
+                }
+                steps.add(co.size)
+                handler.sendEmptyMessage(WHAT_READ)
+
+            }
+        }
+    }
+
+    private fun readFileKml(path: String) {
+        GlobalScope.launch(Dispatchers.IO) {
+            val text = LoadFile(path).text
+            val co = mutableListOf<LatLng>()
+            text?.let {
+                val inputStream: InputStream = text.byteInputStream()
+                val db = DocumentBuilderFactory.newInstance().newDocumentBuilder()
+                val doc = db.parse(inputStream)
+                val coordinatesList: NodeList = doc.getElementsByTagName("coordinates")
+
+                for (i in 0 until coordinatesList.length) {
+                    val n = coordinatesList.item(i)
+                    val coordinates = n.textContent
+                    val coordinatesStringList = coordinates.split(Regex("\\s+")).filter { 0 < it.length }
+                    if (1 < coordinatesStringList.size) {
+                        coordinatesStringList.forEach { st ->
+                            val l = st.split(Regex(","))
+                            val latLng = LatLng(l[1].toDouble(), l[0].toDouble())
+                            co.add(latLng)
+                        }
+                    }
+                }
+            }
+            routeTurnPointList.add(co.first())
+            routeTurnPointList.add(co.last())
+            for (latLng in co) {
+                routeFullPointList.add(latLng)
+            }
+            steps.add(co.size)
+            handler.sendEmptyMessage(WHAT_READ)
+        }
+    }
+
+    private fun saveCurrentPath(path: String) {
+        if (2 < path.length) {
+            val sharedPreferences = context.getSharedPreferences("DATA", Context.MODE_PRIVATE)
+            sharedPreferences.edit().putString("READ_PATH", path).apply()
+        }
+    }
+
+    private fun getCurrentPath(): String? {
+        val sharedPreferences = context.getSharedPreferences("DATA", Context.MODE_PRIVATE)
+        return sharedPreferences.getString("READ_PATH", null)
+    }
 }

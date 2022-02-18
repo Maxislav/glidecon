@@ -8,7 +8,9 @@ import android.content.pm.PackageManager
 import android.graphics.Insets
 import android.location.Location
 import android.os.Build
+import android.os.Build.VERSION.SDK_INT
 import android.os.Bundle
+import android.os.Environment
 import android.os.IBinder
 import android.util.DisplayMetrics
 import android.util.Log
@@ -44,12 +46,13 @@ import io.reactivex.subjects.AsyncSubject
 import io.reactivex.subjects.BehaviorSubject
 import java.io.Serializable
 
-interface Ololo {
-    val ll: FragmentActivity
+
+interface CheckPermissionStorage{
+    fun check()
 }
 
 
-class MapBoxActivity : AppCompatActivity(), Ololo {
+class MapBoxActivity : AppCompatActivity(), CheckPermissionStorage {
     private val TAG = "MapBoxActivity"
     private var mapView: MapView? = null
     private var bound: Boolean = false;
@@ -65,7 +68,9 @@ class MapBoxActivity : AppCompatActivity(), Ololo {
     private var fragmentDashboardRoad: FragmentDashboardRoad? = null
     private var fragmentActiveTrackName: FragmentActiveTrackName? = null
     private val _onDestroy = AsyncSubject.create<Boolean>();
-    private var _active = BehaviorSubject.createDefault(false);
+    private var _active = BehaviorSubject.createDefault(false)
+    private var permissionStorageCb: () -> Unit = fun() {}
+
     var myReceiver: MyReceiver? = null
 
     var dialogLendingBox: AlertDialog? = null
@@ -83,10 +88,10 @@ class MapBoxActivity : AppCompatActivity(), Ololo {
                 displayMetrics.widthPixels
             }
         }
-    override val ll: FragmentActivity
-        get() {
-            return this
-        }
+
+    override fun check(){
+
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -183,7 +188,7 @@ class MapBoxActivity : AppCompatActivity(), Ololo {
                 R.id.rectangular_landing_pattern -> {
 
                     if (dialogLendingBox == null) {
-                        dialogLendingBox = DialogLendingBox(this, this).create()
+                        dialogLendingBox = DialogLendingBox(this).create()
                     }
 
                     dialogLendingBox?.show()
@@ -350,9 +355,7 @@ class MapBoxActivity : AppCompatActivity(), Ololo {
                 this, arrayOf(
                 Manifest.permission.ACCESS_FINE_LOCATION,
                 Manifest.permission.ACCESS_COARSE_LOCATION
-        ),
-                1
-        )
+        ), 1)
     }
 
     override fun onRequestPermissionsResult(
@@ -360,9 +363,20 @@ class MapBoxActivity : AppCompatActivity(), Ololo {
             permissions: Array<String>,
             grantResults: IntArray,
     ) {
-        if (grantResults[0] == PackageManager.PERMISSION_GRANTED && grantResults[1] == PackageManager.PERMISSION_GRANTED) {
-            startBackgroundProcess()
+        when (requestCode) {
+            1 -> {
+                if (grantResults[0] == PackageManager.PERMISSION_GRANTED && grantResults[1] == PackageManager.PERMISSION_GRANTED) {
+                    startBackgroundProcess()
+                }
+            }
+            2 -> {
+                if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    Log.d(TAG, "permission ok")
+                    permissionStorageCb()
+                }
+            }
         }
+
     }
 
     private fun startBackgroundProcess() {
@@ -412,6 +426,25 @@ class MapBoxActivity : AppCompatActivity(), Ololo {
             return
         }
         startBackgroundProcess()
+    }
+
+    fun checkPermissionStorage(cb: () -> Unit) {
+        permissionStorageCb = cb
+        if (SDK_INT >= Build.VERSION_CODES.R) {
+            Log.d("myz", "" + SDK_INT)
+            if (Environment.isExternalStorageManager()) {
+                permissionStorageCb()
+            } else {
+                ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE,
+                        Manifest.permission.MANAGE_EXTERNAL_STORAGE), 1) //permission request code is just an int
+            }
+        } else {
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE), 2)
+            } else {
+                permissionStorageCb()
+            }
+        }
     }
 
     override fun onPause() {
@@ -478,4 +511,6 @@ class MapBoxActivity : AppCompatActivity(), Ololo {
         const val LOCATION_EXTRA = "LOCATION_EXTRA";
         const val SETTING_REQUEST_CODE = 11
     }
+
+
 }

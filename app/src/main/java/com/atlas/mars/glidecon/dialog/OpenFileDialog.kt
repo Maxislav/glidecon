@@ -14,14 +14,15 @@ import android.util.TypedValue
 import android.view.*
 import android.widget.*
 import android.widget.AdapterView.OnItemClickListener
+import androidx.core.content.ContextCompat
 import java.io.File
 import java.io.FilenameFilter
 import java.util.*
 
-class OpenFileDialog(context: Context) : AlertDialog.Builder(context) {
+class OpenFileDialog(context: Context, path: String?) : AlertDialog.Builder(context) {
     private val LOG_TAG = "LOG_OpenFileDialog"
    //  private var currentPath = Environment.getExternalStorageDirectory().path
-    private var currentPath = context.getExternalFilesDir(null)!!.absolutePath
+    private var currentPath = if(path.isNullOrBlank()) context.getExternalFilesDir(null)!!.absolutePath else path
     private val files: MutableList<File> = ArrayList()
     private val title: TextView
     private val listView: ListView
@@ -149,8 +150,9 @@ class OpenFileDialog(context: Context) : AlertDialog.Builder(context) {
 
     private fun createBackItem(context: Context): TextView {
         val textView = createTextView(context, R.style.TextAppearance_DeviceDefault_Small)
-        val drawable = getContext().resources.getDrawable(R.drawable.ic_menu_directions)
-        drawable.setBounds(0, 0, 60, 60)
+       //  val drawable = getContext().resources.getDrawable(R.drawable.ic_menu_directions)
+        val drawable = ContextCompat.getDrawable(context, R.drawable.ic_menu_directions)
+        drawable?.setBounds(0, 0, 60, 60)
         textView.setCompoundDrawables(drawable, null, null, null)
         textView.layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
         textView.setOnClickListener {

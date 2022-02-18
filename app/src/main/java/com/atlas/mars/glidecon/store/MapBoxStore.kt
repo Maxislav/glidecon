@@ -113,7 +113,8 @@ class MapBoxStore {
     enum class RouteAction(var routeAction: String) {
         BACK("back"),
         SAVE("save"),
-        CLOSE("close");
+        CLOSE("close"),
+        DOWNLOAD("download");
 
         companion object {
             fun from(value: String): RouteAction {

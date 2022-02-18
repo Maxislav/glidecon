@@ -1,8 +1,8 @@
 package com.atlas.mars.glidecon.fragment
 
-import android.app.Activity
+// import io.reactivex.Flowable.interval
+// import io.reactivex.Observable
 import android.graphics.drawable.Drawable
-import android.icu.util.TimeUnit
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -11,14 +11,15 @@ import android.view.ViewGroup
 import androidx.core.content.ContextCompat
 import androidx.databinding.*
 import androidx.fragment.app.Fragment
+import com.atlas.mars.glidecon.MapBoxActivity
 import com.atlas.mars.glidecon.R
 import com.atlas.mars.glidecon.databinding.FragmentTrackBuildBinding
+import com.atlas.mars.glidecon.dialog.OpenFileDialog
 import com.atlas.mars.glidecon.store.MapBoxStore
-// import io.reactivex.Flowable.interval
 import io.reactivex.Observable
 import io.reactivex.rxkotlin.subscribeBy
-// import io.reactivex.Observable
 import io.reactivex.subjects.AsyncSubject
+
 //import java.util.concurrent
 
 class FragmentTrackBuild : Fragment() {
@@ -81,6 +82,34 @@ class FragmentTrackBuild : Fragment() {
 
     fun onClickBack() {
         MapBoxStore.routeButtonClick.onNext(MapBoxStore.RouteAction.BACK)
+    }
+
+    fun onClickDownload(){
+        // MapBoxStore.routeButtonClick.onNext(MapBoxStore.RouteAction.DOWNLOAD)
+
+
+        activity?.let { it
+
+            val a = it as MapBoxActivity
+            a.checkPermissionStorage{
+                MapBoxStore.routeButtonClick.onNext(MapBoxStore.RouteAction.DOWNLOAD)
+            }
+
+           /* val fileDialog = OpenFileDialog(it)
+            fileDialog.setOpenDialogListener(object : OpenFileDialog.OpenDialogListener {
+                override fun onSelectedFile(fileName: String?) {
+                  //  TODO("Not yet implemented")
+
+                }
+
+                override fun onSelectPath(filePath: String?) {
+                    // TODO("Not yet implemented")
+                }
+
+            })
+            fileDialog.show()*/
+        }
+
     }
 
     override fun onDestroy() {
