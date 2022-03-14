@@ -1,5 +1,6 @@
 package com.atlas.mars.glidecon.fragment
 
+import android.annotation.SuppressLint
 import android.graphics.Bitmap
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
@@ -14,16 +15,25 @@ import android.view.ViewGroup
 import android.widget.FrameLayout
 import androidx.databinding.ObservableField
 import androidx.fragment.app.Fragment
+import com.atlas.mars.glidecon.database.MapDateBase
 import com.atlas.mars.glidecon.databinding.FragmentDashboardRoadBinding
 import com.atlas.mars.glidecon.dialog.DialogStartAltitude
 import com.atlas.mars.glidecon.model.DashboardAltitudeDrawer
 import com.atlas.mars.glidecon.model.DashboardVarioDrawer
 import com.atlas.mars.glidecon.model.ImageBikeComputer
+import com.atlas.mars.glidecon.model.RoutePoints
 import com.atlas.mars.glidecon.store.MapBoxStore
 import com.atlas.mars.glidecon.util.LocationUtil
+import com.mapbox.mapboxsdk.geometry.LatLng
+import io.reactivex.disposables.Disposable
 import io.reactivex.rxkotlin.Observables
 import io.reactivex.rxkotlin.subscribeBy
+import io.reactivex.schedulers.Schedulers
 import io.reactivex.subjects.AsyncSubject
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.async
+import kotlinx.coroutines.launch
 import java.text.DecimalFormat
 import java.util.concurrent.TimeUnit
 
@@ -34,10 +44,20 @@ class FragmentDashboardRoad : Fragment() {
     var speedDrobnoe = ObservableField<String>()
     var varioField = ObservableField<String>()
     var altitudeField = ObservableField<String>()
-    var ratiooField = ObservableField<String>()
+    var ratioField = ObservableField<String>()
     private val _onDestroy = AsyncSubject.create<Boolean>();
     private lateinit var varioDrawer: DashboardVarioDrawer
     private lateinit var altitudeDrawer: DashboardAltitudeDrawer
+    private lateinit var mapDateBase: MapDateBase
+    var locationDisposable: Disposable = object : Disposable{
+        override fun dispose() {
+        }
+
+        override fun isDisposed(): Boolean {
+            return false
+        }
+
+    }
 
     val handler = object : Handler(Looper.getMainLooper()) {
         override fun handleMessage(msg: Message) {
@@ -54,7 +74,7 @@ class FragmentDashboardRoad : Fragment() {
                     speedDrobnoe.set(drobnoe.toString())
                     val vario = bundle.getDouble(HANDLER_VARIO_KEY)
                     varioDrawer.setVario(vario.toFloat())
-                    setBackground(varioDrawer.bitmap, binding.varioFrame )
+                    setBackground(varioDrawer.bitmap, binding.varioFrame)
                     varioField.set(vario.let {
                         if (0 < it) {
                             DecimalFormat("#.#").format(vario).let { "+$it" }
@@ -62,7 +82,7 @@ class FragmentDashboardRoad : Fragment() {
                             DecimalFormat("#.#").format(vario)
                         }
                     })
-                    ratiooField.set(DecimalFormat("#.#").format(ratio))
+                    ratioField.set(DecimalFormat("#.#").format(ratio))
 
 
                 }
@@ -75,7 +95,8 @@ class FragmentDashboardRoad : Fragment() {
             }
         }
     }
-    companion object{
+
+    companion object {
         private const val HANDLER_SPEED_KEY = "speed"
         private const val HANDLER_RATIO_KEY = "ratio"
         private const val HANDLER_VARIO_KEY = "vario"
@@ -88,9 +109,10 @@ class FragmentDashboardRoad : Fragment() {
         binding = FragmentDashboardRoadBinding.inflate(inflater, container, false)
         binding.fragment = this;
         context?.let {
+            mapDateBase = MapDateBase(it)
             imageBikeComputer = ImageBikeComputer(it)
-            varioDrawer =  DashboardVarioDrawer(it, 300)
-            altitudeDrawer =  DashboardAltitudeDrawer(it, 300)
+            varioDrawer = DashboardVarioDrawer(it, 300)
+            altitudeDrawer = DashboardAltitudeDrawer(it, 300)
             sendParams(0.0, 0.0, 0.0)
             sendAltitude(0.0)
         }
@@ -98,13 +120,14 @@ class FragmentDashboardRoad : Fragment() {
         return binding.root
     }
 
-    private fun onInit(){
+    @SuppressLint("CheckResult")
+    private fun onInit() {
 
         val locationList = mutableListOf<Location>()
         val locationUtil = LocationUtil()
         MapBoxStore.locationSubject
                 .takeUntil(_onDestroy)
-                .throttleWithTimeout(100,  TimeUnit.MILLISECONDS)
+                .throttleWithTimeout(100, TimeUnit.MILLISECONDS)
                 .doOnNext {
                     locationList.add(it)
                     while (3 < locationList.size) {
@@ -125,9 +148,52 @@ class FragmentDashboardRoad : Fragment() {
                 .subscribeBy {
                     sendAltitude(it.first.altitude - it.second)
                 }
+        MapBoxStore.activeRoute
+                .takeUntil(_onDestroy)
+                .subscribeOn(Schedulers.newThread())
+                .subscribe {
+                    if (-1 < it.toInt()) {
+                        val routePoints = mapDateBase.getRoutePoints(id)
+                        startCalculationDist(routePoints)
+                    } else {
+                        if (!locationDisposable.isDisposed()) {
+                            locationDisposable.dispose()
+                        }
+                    }
+
+                }
+        /* Observables.combineLatest(MapBoxStore.locationSubject, MapBoxStore.activeRoute)
+                 .takeUntil(_onDestroy)
+                 .subscribe{
+
+                 }*/
     }
 
-    private fun sendAltitude(altitude: Double){
+
+    private fun startCalculationDist(routePoints: MutableList<RoutePoints>) {
+        if (!locationDisposable.isDisposed()) {
+            locationDisposable.dispose()
+        }
+        locationDisposable = MapBoxStore.locationSubject
+                .takeUntil(_onDestroy)
+                .subscribe {
+                    GlobalScope.launch(Dispatchers.IO) { calculateDist(routePoints) }
+                }
+    }
+
+    private fun calculateDist(routePoints: MutableList<RoutePoints>) {
+        routePoints.filter { it.type === MapBoxStore.PointType.ROUTE }.map { getLocation(it) }
+    }
+
+    private fun getLocation(r: RoutePoints): Location {
+        val l = Location("A")
+        l.longitude = r.lon
+        l.latitude = r.lat
+        return l
+    }
+
+
+    private fun sendAltitude(altitude: Double) {
         val msg: Message = handler.obtainMessage(WHAT_ALT)
         val bundle = Bundle()
         bundle.putDouble(HANDLER_ALT_KEY, altitude)
@@ -136,7 +202,7 @@ class FragmentDashboardRoad : Fragment() {
     }
 
 
-    private fun sendParams(speed: Double, vario: Double, ratio: Double){
+    private fun sendParams(speed: Double, vario: Double, ratio: Double) {
         val bundle = Bundle()
         bundle.putDouble(HANDLER_SPEED_KEY, speed)
         bundle.putDouble(HANDLER_VARIO_KEY, vario)

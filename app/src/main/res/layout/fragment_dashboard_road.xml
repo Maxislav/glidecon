@@ -39,7 +39,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="10dp"
                 android:layout_marginLeft="10dp"
-                android:gravity="center"
+                android:gravity="start|center"
                 android:orientation="horizontal"
                 app:layout_constraintBottom_toBottomOf="@+id/vario_frame"
                 app:layout_constraintStart_toEndOf="@+id/vario_frame"
@@ -53,14 +53,19 @@
                 </TextView>
 
                 <com.atlas.mars.glidecon.view.CustomFontTextView
-                    android:layout_width="wrap_content"
+                    android:layout_width="20dp"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
                     android:layout_marginLeft="5dp"
                     android:gravity="center"
-                    android:text="@{fragment.ratiooField}"
+                    android:text="@{fragment.ratioField}"
                     android:textSize="26sp" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Distance:">
 
+                </TextView>
             </LinearLayout>
 
             <FrameLayout

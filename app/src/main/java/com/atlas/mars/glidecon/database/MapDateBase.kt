@@ -374,7 +374,7 @@ class MapDateBase(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, n
 
     fun getTrackNameLis(): ArrayList<ListTrackItem> {
         val sdb = readableDatabase
-        val jquery = "SELECT * FROM $TABLE_ROUTE_NAME;"
+        val jquery = "SELECT * FROM $TABLE_ROUTE_NAME ORDER BY $UID DESC;"
         val cursor: Cursor = sdb.rawQuery(jquery, arrayOf())
 
         val trackList = arrayListOf<ListTrackItem>()

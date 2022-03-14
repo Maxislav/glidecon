@@ -30,7 +30,7 @@ android {
         applicationId "com.atlas.mars.glidecon"
         minSdkVersion 15
         targetSdkVersion 30
-        versionCode 62
+        versionCode 64
         versionName "2.0"
         multiDexEnabled true
         vectorDrawables {
