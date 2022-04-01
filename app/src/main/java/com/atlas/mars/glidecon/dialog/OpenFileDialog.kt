@@ -92,7 +92,7 @@ class OpenFileDialog(context: Context, path: String?) : AlertDialog.Builder(cont
     fun setOnlyFoldersFilter(): OpenFileDialog {
         isOnlyFoldersFilter = true
         filenameFilter = FilenameFilter { file, fileName ->
-            val tempFile = File(String.format("%s/%s", file.path, fileName))
+            val tempFile = File(String.format(Locale.ENGLISH, "%s/%s", file.path, fileName))
             tempFile.isDirectory
         }
         return this

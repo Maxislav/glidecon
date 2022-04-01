@@ -348,7 +348,7 @@ class MapRouteBuilder(val style: Style, val context: Context) {
             val b = list[i + 1]
             dist += a.distanceTo(b)
         }
-        return String.format("%.1f", dist / 1000).toDouble();
+        return String.format(Locale.ENGLISH, "%.1f", dist / 1000).toDouble();
     }
 
     private fun stepBack() {
