@@ -30,10 +30,7 @@ import io.reactivex.rxkotlin.Observables
 import io.reactivex.rxkotlin.subscribeBy
 import io.reactivex.schedulers.Schedulers
 import io.reactivex.subjects.AsyncSubject
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.async
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import java.text.DecimalFormat
 import java.util.concurrent.TimeUnit
 
@@ -45,11 +42,12 @@ class FragmentDashboardRoad : Fragment() {
     var varioField = ObservableField<String>()
     var altitudeField = ObservableField<String>()
     var ratioField = ObservableField<String>()
+    val distanceField = ObservableField<String>()
     private val _onDestroy = AsyncSubject.create<Boolean>();
     private lateinit var varioDrawer: DashboardVarioDrawer
     private lateinit var altitudeDrawer: DashboardAltitudeDrawer
     private lateinit var mapDateBase: MapDateBase
-    var locationDisposable: Disposable = object : Disposable{
+    var locationDisposable: Disposable = object : Disposable {
         override fun dispose() {
         }
 
@@ -92,6 +90,11 @@ class FragmentDashboardRoad : Fragment() {
                     setBackground(altitudeDrawer.setAlt(altitude.toFloat()), binding.altFrame)
                     altitudeField.set(DecimalFormat("#").format(altitude))
                 }
+                WHAT_DIST -> {
+                    val bundle = msg.data
+                    val distFloat = bundle.getFloat(HANDLER_DIST_KEY)
+                    distanceField.set(DecimalFormat("#.#").format(distFloat))
+                }
             }
         }
     }
@@ -101,8 +104,10 @@ class FragmentDashboardRoad : Fragment() {
         private const val HANDLER_RATIO_KEY = "ratio"
         private const val HANDLER_VARIO_KEY = "vario"
         private const val HANDLER_ALT_KEY = "altitude"
+        private const val HANDLER_DIST_KEY = "distance"
         private const val WHAT_PARAM = 1
         private const val WHAT_ALT = 2
+        private const val WHAT_DIST = 3
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
@@ -153,36 +158,68 @@ class FragmentDashboardRoad : Fragment() {
                 .subscribeOn(Schedulers.newThread())
                 .subscribe {
                     if (-1 < it.toInt()) {
-                        val routePoints = mapDateBase.getRoutePoints(id)
+                        val routePoints = mapDateBase.getRoutePoints(it)
                         startCalculationDist(routePoints)
                     } else {
-                        if (!locationDisposable.isDisposed()) {
+                        if (!locationDisposable.isDisposed) {
                             locationDisposable.dispose()
                         }
                     }
-
                 }
-        /* Observables.combineLatest(MapBoxStore.locationSubject, MapBoxStore.activeRoute)
-                 .takeUntil(_onDestroy)
-                 .subscribe{
-
-                 }*/
     }
 
 
+    @DelicateCoroutinesApi
     private fun startCalculationDist(routePoints: MutableList<RoutePoints>) {
-        if (!locationDisposable.isDisposed()) {
+        if (!locationDisposable.isDisposed) {
+            locationDisposable.dispose()
+        }
+
+        GlobalScope.launch(Dispatchers.IO) {
+            val locationList = routePoints.filter { it.type === MapBoxStore.PointType.ROUTE }.map { getLocation(it) }
+            locationListener(locationList)
+        }
+
+    }
+
+    private fun locationListener(locationList: List<Location>) {
+        if (!locationDisposable.isDisposed) {
             locationDisposable.dispose()
         }
         locationDisposable = MapBoxStore.locationSubject
                 .takeUntil(_onDestroy)
                 .subscribe {
-                    GlobalScope.launch(Dispatchers.IO) { calculateDist(routePoints) }
+                    val i = getNearest(it, locationList)
+                    val dist = calculateDist(locationList, it, i)
+                    val msg = handler.obtainMessage(WHAT_DIST)
+                    val bundle = Bundle()
+                    bundle.putFloat(HANDLER_DIST_KEY, dist)
+                    msg.data = bundle;
+                    handler.sendMessageDelayed(msg, 10);
+
                 }
     }
 
-    private fun calculateDist(routePoints: MutableList<RoutePoints>) {
-        routePoints.filter { it.type === MapBoxStore.PointType.ROUTE }.map { getLocation(it) }
+    private fun getNearest(current: Location, locationList: List<Location>): Int {
+        var dist = Float.POSITIVE_INFINITY
+        var i = 0
+        locationList.forEachIndexed { index, it ->
+            val d = it.distanceTo(current)
+            if (d < dist) {
+                dist = d
+                i = index
+            }
+        }
+        return i
+    }
+
+    private fun calculateDist(locationList: List<Location>, currentLocation: Location, index: Int): Float {
+        var dist = 0.0f
+        for (i in (index + 1)..locationList.size - 2) {
+            dist += locationList[i].distanceTo(locationList[i + 1])
+        }
+        dist+=currentLocation.distanceTo(locationList[index+1])
+        return dist / 1000
     }
 
     private fun getLocation(r: RoutePoints): Location {

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout xmlns:android="http://schemas.android.com/apk/res/android"
+<layout xmlns:tools="http://schemas.android.com/tools"
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <data>
         <variable
@@ -13,6 +14,7 @@
         android:layout_height="120dp">
 
         <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/mainContentView"
             android:layout_width="match_parent"
             android:layout_height="match_parent">
 
@@ -33,40 +35,6 @@
                     android:textSize="26sp" />
 
             </FrameLayout>
-
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="10dp"
-                android:layout_marginLeft="10dp"
-                android:gravity="start|center"
-                android:orientation="horizontal"
-                app:layout_constraintBottom_toBottomOf="@+id/vario_frame"
-                app:layout_constraintStart_toEndOf="@+id/vario_frame"
-                app:layout_constraintTop_toTopOf="parent">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="R:">
-
-                </TextView>
-
-                <com.atlas.mars.glidecon.view.CustomFontTextView
-                    android:layout_width="20dp"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center"
-                    android:layout_marginLeft="5dp"
-                    android:gravity="center"
-                    android:text="@{fragment.ratioField}"
-                    android:textSize="26sp" />
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Distance:">
-
-                </TextView>
-            </LinearLayout>
 
             <FrameLayout
                 android:id="@+id/alt_frame"
@@ -123,7 +91,51 @@
                         android:text="@{fragment.speedDrobnoe}"
                         android:textSize="40sp" />
                 </LinearLayout>
+
             </FrameLayout>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="75dp"
+                android:layout_marginLeft="75dp"
+                android:gravity="start|center"
+                android:orientation="horizontal"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="R:">
+
+                </TextView>
+
+                <com.atlas.mars.glidecon.view.CustomFontTextView
+                    android:layout_width="40dp"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_marginLeft="5dp"
+                    android:gravity="center"
+                    android:text="@{fragment.ratioField}"
+                    android:textSize="26sp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Dist:">
+
+                </TextView>
+
+                <com.atlas.mars.glidecon.view.CustomFontTextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_marginLeft="5dp"
+                    android:gravity="center"
+                    android:text="@{fragment.distanceField}"
+                    android:textSize="26sp" />
+            </LinearLayout>
         </androidx.constraintlayout.widget.ConstraintLayout>
 
     </FrameLayout>
