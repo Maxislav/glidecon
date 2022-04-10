@@ -112,13 +112,15 @@
                 </TextView>
 
                 <com.atlas.mars.glidecon.view.CustomFontTextView
-                    android:layout_width="40dp"
+                    android:layout_width="60dp"
                     android:layout_height="wrap_content"
-                    android:layout_gravity="center"
+                    android:layout_gravity="end"
                     android:layout_marginLeft="5dp"
+                    android:layout_marginRight="5dp"
                     android:gravity="center"
                     android:text="@{fragment.ratioField}"
-                    android:textSize="26sp" />
+                    android:textSize="26sp"
+                    android:layout_marginStart="5dp" />
 
                 <TextView
                     android:layout_width="wrap_content"

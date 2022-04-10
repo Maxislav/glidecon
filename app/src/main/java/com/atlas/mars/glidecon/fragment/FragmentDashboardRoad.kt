@@ -33,6 +33,9 @@ import io.reactivex.subjects.AsyncSubject
 import kotlinx.coroutines.*
 import java.text.DecimalFormat
 import java.util.concurrent.TimeUnit
+import kotlin.math.abs
+import kotlin.math.ceil
+import kotlin.math.floor
 
 class FragmentDashboardRoad : Fragment() {
     lateinit var binding: FragmentDashboardRoadBinding
@@ -64,7 +67,7 @@ class FragmentDashboardRoad : Fragment() {
                     val bundle = msg.data
                     val speed = bundle.getDouble(HANDLER_SPEED_KEY) * 3.6
                     val bitmap = imageBikeComputer.getBitmap(speed)
-                    val ratio = bundle.getDouble(HANDLER_RATIO_KEY)
+                    val ratio: Double = bundle.getDouble(HANDLER_RATIO_KEY)
                     setBackground(bitmap, binding.comp)
                     val celoe = speed.toInt()
                     val drobnoe = ((speed - celoe) * 10).toInt()
@@ -80,9 +83,17 @@ class FragmentDashboardRoad : Fragment() {
                             DecimalFormat("#.#").format(vario)
                         }
                     })
-                    ratioField.set(DecimalFormat("#.#").format(ratio))
-
-
+                    when {
+                        50 < abs(ratio) -> {
+                            ratioField.set("--")
+                        }
+                        10 < abs(ratio) -> {
+                            ratioField.set(floor(ratio).toString())
+                        }
+                        else -> {
+                            ratioField.set(DecimalFormat("#.#").format(ratio))
+                        }
+                    }
                 }
                 WHAT_ALT -> {
                     val bundle = msg.data
@@ -177,9 +188,35 @@ class FragmentDashboardRoad : Fragment() {
 
         GlobalScope.launch(Dispatchers.IO) {
             val locationList = routePoints.filter { it.type === MapBoxStore.PointType.ROUTE }.map { getLocation(it) }
-            locationListener(locationList)
+            val filledLocationList = fillLocationList(locationList)
+            locationListener(filledLocationList)
         }
 
+    }
+
+    private fun fillLocationList(locationList: List<Location>): List<Location> {
+        val newLocationList = mutableListOf<Location>();
+
+        for (i in 0..(locationList.size - 2)) {
+            val distance = locationList[i].distanceTo(locationList[i + 1])
+            if (1000 < distance) {
+                val k = ceil((distance / 1000).toDouble()).toInt()
+                val location1 = locationList[i]
+                val location2 = locationList[i + 1]
+                val dLat = (location2.latitude - location1.latitude) / k
+                val dLon = (location2.longitude - location1.longitude) / k
+                for (cc in 0..k) {
+                    val l = Location("A")
+                    l.longitude = location1.longitude + cc * dLon
+                    l.latitude = location1.latitude + cc * dLat
+                    newLocationList.add(l)
+                }
+            } else {
+                newLocationList.add(locationList[i])
+            }
+        }
+        newLocationList.add(locationList.last())
+        return newLocationList
     }
 
     private fun locationListener(locationList: List<Location>) {
@@ -218,7 +255,9 @@ class FragmentDashboardRoad : Fragment() {
         for (i in (index + 1)..locationList.size - 2) {
             dist += locationList[i].distanceTo(locationList[i + 1])
         }
-        dist+=currentLocation.distanceTo(locationList[index+1])
+        if (index + 1 <= locationList.size - 1) {
+            dist += currentLocation.distanceTo(locationList[index + 1])
+        }
         return dist / 1000
     }
 
