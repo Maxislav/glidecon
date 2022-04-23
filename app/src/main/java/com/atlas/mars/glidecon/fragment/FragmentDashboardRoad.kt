@@ -257,6 +257,8 @@ class FragmentDashboardRoad : Fragment() {
         }
         if (index + 1 <= locationList.size - 1) {
             dist += currentLocation.distanceTo(locationList[index + 1])
+        } else {
+            dist += currentLocation.distanceTo(locationList.last())
         }
         return dist / 1000
     }
