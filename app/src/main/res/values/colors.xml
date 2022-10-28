@@ -29,6 +29,7 @@
     <item name="tailTrace3" type="color">#FF0059F3</item>
     <item name="tailTrace4" type="color">#FF599BFF</item>
     <item name="tailTrace5" type="color">#000020F3</item>
+    <color name="colorPrimaryRed">#c4000a</color>
 
 
 
