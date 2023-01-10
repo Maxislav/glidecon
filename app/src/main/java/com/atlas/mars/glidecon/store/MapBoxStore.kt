@@ -31,6 +31,7 @@ class MapBoxStore {
         lateinit var activeRouteName: BehaviorSubject<String>
         lateinit var routeType: BehaviorSubject<RouteType>
         lateinit var routeButtonClick: PublishSubject<RouteAction>
+        lateinit var loaderBar: PublishSubject<Boolean>
 
         fun onCreate() {
             mapboxMapSubject = BehaviorSubject.create()
@@ -54,6 +55,7 @@ class MapBoxStore {
             activeRouteName = BehaviorSubject.create()
             routeType = BehaviorSubject.create()
             routeButtonClick = PublishSubject.create()
+            loaderBar = PublishSubject.create()
         }
         fun onDestroy(){
             mapboxMapSubject.onComplete()
@@ -77,6 +79,7 @@ class MapBoxStore {
             activeRouteName.onComplete()
             routeType.onComplete()
             routeButtonClick.onComplete()
+            loaderBar.onComplete()
         }
     }
 

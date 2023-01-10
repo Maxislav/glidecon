@@ -22,8 +22,10 @@ class LoaderBar(var activity: Activity) {
 
 
     fun onCreate(){
-        val v = inflater.inflate(R.layout.progressbar, null, false)
+        val v  = inflater.inflate(R.layout.progressbar, null, false)
         density = activity.resources.displayMetrics.density
+
+        linearLayoutCOntext = v as FrameLayout
         progress = linearLayoutCOntext!!.findViewById<View>(R.id.progress) as LinearLayout
         v.visibility = View.INVISIBLE
         globalLayout!!.addView(v)
