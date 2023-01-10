@@ -47,7 +47,7 @@ import io.reactivex.subjects.BehaviorSubject
 import java.io.Serializable
 
 
-interface CheckPermissionStorage{
+interface CheckPermissionStorage {
     fun check()
 }
 
@@ -61,6 +61,7 @@ class MapBoxActivity : AppCompatActivity(), CheckPermissionStorage {
     lateinit var toolbar: Toolbar
     lateinit var mapBoxModel: MapBoxModel
     lateinit var mapDateBase: MapDateBase
+    lateinit var loaderBar: LoaderBar;
 
     // lateinit var mapBoxStore: MapBoxStore
     private var fragmentTrackBuild: FragmentTrackBuild? = null
@@ -80,7 +81,7 @@ class MapBoxActivity : AppCompatActivity(), CheckPermissionStorage {
             return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                 val windowMetrics = this.windowManager.currentWindowMetrics
                 val insets: Insets = windowMetrics.windowInsets
-                        .getInsetsIgnoringVisibility(WindowInsets.Type.systemBars())
+                    .getInsetsIgnoringVisibility(WindowInsets.Type.systemBars())
                 windowMetrics.bounds.width() - insets.left - insets.right
             } else {
                 val displayMetrics = DisplayMetrics()
@@ -89,7 +90,7 @@ class MapBoxActivity : AppCompatActivity(), CheckPermissionStorage {
             }
         }
 
-    override fun check(){
+    override fun check() {
 
     }
 
@@ -101,6 +102,7 @@ class MapBoxActivity : AppCompatActivity(), CheckPermissionStorage {
         MapBoxStore.onCreate()
         mapDateBase = MapDateBase(this)
         mapDateBase.initValues()
+        loaderBar = LoaderBar(this);
 
         Mapbox.getInstance(this, getString(R.string.mapbox_access_token))
         setContentView(R.layout.activity_mapbox)
@@ -169,7 +171,13 @@ class MapBoxActivity : AppCompatActivity(), CheckPermissionStorage {
         toolbar = findViewById(R.id.toolbar)
         setSupportActionBar(toolbar)
         val drawer: DrawerLayout = findViewById(R.id.drawer_layout)
-        val toggle = ActionBarDrawerToggle(this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_open)
+        val toggle = ActionBarDrawerToggle(
+            this,
+            drawer,
+            toolbar,
+            R.string.navigation_drawer_open,
+            R.string.navigation_drawer_open
+        )
         drawer.addDrawerListener(toggle)
         toggle.syncState()
         val navigationView: NavigationView = findViewById(R.id.nav_view)
@@ -209,43 +217,54 @@ class MapBoxActivity : AppCompatActivity(), CheckPermissionStorage {
 
     @SuppressLint("CheckResult")
     private fun setupStoreSubscribers() {
-        MapBoxStore.routeBuildProgress
-                .takeUntil(_onDestroy)
-                .distinctUntilChanged()
-                .subscribe {
-                    if (it) {
-                        showBuildTrackFrame()
-                        hideBikeComputerFrame()
-                    } else {
-                        hideBuildTrackFrame()
-                        showBikeComputerFrame()
-                    }
+        // LoaderBar(this)
+        MapBoxStore.loaderBar
+            .takeUntil(_onDestroy)
+            .subscribe {
+                if(it){
+                   loaderBar.show()
+                }else{
+                    loaderBar.hide()
                 }
+            }
+
+        MapBoxStore.routeBuildProgress
+            .takeUntil(_onDestroy)
+            .distinctUntilChanged()
+            .subscribe {
+                if (it) {
+                    showBuildTrackFrame()
+                    hideBikeComputerFrame()
+                } else {
+                    hideBuildTrackFrame()
+                    showBikeComputerFrame()
+                }
+            }
     }
 
     private fun setupActiveRouteName() {
 
         Observables.combineLatest(_active, MapBoxStore.activeRoute) { a, b -> Pair(a, b) }
-                .takeUntil(_onDestroy)
-                .filter { it.first }
-                .map { it.second }
-                .distinctUntilChanged { a, b ->
-                    Log.d(TAG, "${a.toString()} ${b}")
-                    if (a == b) {
-                        return@distinctUntilChanged true
-                    } else if (a == -1 || b == -1) {
-                        return@distinctUntilChanged false
-                    } else {
-                        true
-                    }
+            .takeUntil(_onDestroy)
+            .filter { it.first }
+            .map { it.second }
+            .distinctUntilChanged { a, b ->
+                Log.d(TAG, "${a.toString()} ${b}")
+                if (a == b) {
+                    return@distinctUntilChanged true
+                } else if (a == -1 || b == -1) {
+                    return@distinctUntilChanged false
+                } else {
+                    true
                 }
-                .subscribeBy {
-                    if (-1 < it) {
-                        showActiveNameFrame()
-                    } else {
-                        hideActiveNameFrame()
-                    }
+            }
+            .subscribeBy {
+                if (-1 < it) {
+                    showActiveNameFrame()
+                } else {
+                    hideActiveNameFrame()
                 }
+            }
 
 
     }
@@ -254,12 +273,15 @@ class MapBoxActivity : AppCompatActivity(), CheckPermissionStorage {
         val fm = this.supportFragmentManager
         val ft: FragmentTransaction = fm.beginTransaction()
         fragmentActiveTrackName = FragmentActiveTrackName()
-        fragmentActiveTrackName?.let { fr -> ft.add(R.id.activeTrackNameFrame, fr).commitAllowingStateLoss() }
+        fragmentActiveTrackName?.let { fr ->
+            ft.add(R.id.activeTrackNameFrame, fr).commitAllowingStateLoss()
+        }
     }
 
     private fun hideActiveNameFrame() {
         fragmentActiveTrackName?.let { fr ->
-            this.supportFragmentManager.beginTransaction().remove(fr).commit(); fragmentActiveTrackName = null
+            this.supportFragmentManager.beginTransaction().remove(fr)
+                .commit(); fragmentActiveTrackName = null
         }
     }
 
@@ -273,7 +295,8 @@ class MapBoxActivity : AppCompatActivity(), CheckPermissionStorage {
 
     private fun hideBuildTrackFrame() {
         fragmentTrackBuild?.let { fr ->
-            this.supportFragmentManager.beginTransaction().remove(fr).commit(); fragmentTrackBuild = null
+            this.supportFragmentManager.beginTransaction().remove(fr).commit(); fragmentTrackBuild =
+            null
         }
     }
 
@@ -298,7 +321,9 @@ class MapBoxActivity : AppCompatActivity(), CheckPermissionStorage {
     }
 
     private fun hideBikeComputerFrame() {
-        fragmentDashboardRoad?.let { fr -> this.supportFragmentManager.beginTransaction().remove(fr).commit() }
+        fragmentDashboardRoad?.let { fr ->
+            this.supportFragmentManager.beginTransaction().remove(fr).commit()
+        }
 
         // fragmentDashboardFlight?.let { fr -> this.supportFragmentManager.beginTransaction().remove(fr).commit() }
     }
@@ -352,24 +377,25 @@ class MapBoxActivity : AppCompatActivity(), CheckPermissionStorage {
 
     private fun requestLocationPermission() {
         ActivityCompat.requestPermissions(
-                this, arrayOf(
+            this, arrayOf(
                 Manifest.permission.ACCESS_FINE_LOCATION,
                 Manifest.permission.ACCESS_COARSE_LOCATION
-        ), 1)
+            ), ACCESS_LOCATION_CODE
+        )
     }
 
     override fun onRequestPermissionsResult(
-            requestCode: Int,
-            permissions: Array<String>,
-            grantResults: IntArray,
+        requestCode: Int,
+        permissions: Array<String>,
+        grantResults: IntArray,
     ) {
         when (requestCode) {
-            1 -> {
+            ACCESS_LOCATION_CODE -> {
                 if (grantResults[0] == PackageManager.PERMISSION_GRANTED && grantResults[1] == PackageManager.PERMISSION_GRANTED) {
                     startBackgroundProcess()
                 }
             }
-            2 -> {
+            READ_EXTERNAL_STORAGE_CODE -> {
                 if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     Log.d(TAG, "permission ok")
                     permissionStorageCb()
@@ -381,9 +407,9 @@ class MapBoxActivity : AppCompatActivity(), CheckPermissionStorage {
 
     private fun startBackgroundProcess() {
         bindService(
-                serviceIntent,
-                sCon,
-                Context.BIND_AUTO_CREATE
+            serviceIntent,
+            sCon,
+            Context.BIND_AUTO_CREATE
         )
         startService(serviceIntent)
     }
@@ -406,20 +432,20 @@ class MapBoxActivity : AppCompatActivity(), CheckPermissionStorage {
             val dialogWindSetting = DialogInfoPermission(this)
             dialogWindSetting.create().show()
             dialogWindSetting.onAgreeSubject
-                    .subscribeBy {
-                        if (it) {
-                            mapDateBase.saveAgreementAgree()
-                            checkPermissionAndStart()
-                        }
+                .subscribeBy {
+                    if (it) {
+                        mapDateBase.saveAgreementAgree()
+                        checkPermissionAndStart()
                     }
+                }
         }
     }
 
     private fun checkPermissionAndStart() {
         if (ActivityCompat.checkSelfPermission(
-                        this,
-                        Manifest.permission.ACCESS_FINE_LOCATION
-                ) != PackageManager.PERMISSION_GRANTED
+                this,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED
         ) {
             Log.d(TAG, "no location permission")
             requestLocationPermission()
@@ -435,12 +461,24 @@ class MapBoxActivity : AppCompatActivity(), CheckPermissionStorage {
             if (Environment.isExternalStorageManager()) {
                 permissionStorageCb()
             } else {
-                ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE,
-                        Manifest.permission.MANAGE_EXTERNAL_STORAGE), 1) //permission request code is just an int
+                ActivityCompat.requestPermissions(
+                    this, arrayOf(
+                        Manifest.permission.READ_EXTERNAL_STORAGE,
+                        Manifest.permission.MANAGE_EXTERNAL_STORAGE
+                    ), READ_EXTERNAL_STORAGE_CODE
+                ) //permission request code is just an int
             }
         } else {
-            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE), 2)
+            if (ActivityCompat.checkSelfPermission(
+                    this,
+                    Manifest.permission.READ_EXTERNAL_STORAGE
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
+                ActivityCompat.requestPermissions(
+                    this,
+                    arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE),
+                    READ_EXTERNAL_STORAGE_CODE
+                )
             } else {
                 permissionStorageCb()
             }
@@ -496,7 +534,12 @@ class MapBoxActivity : AppCompatActivity(), CheckPermissionStorage {
                 }
                 SAT_USE -> {
                     val satUse = intent.getSerializableExtra(SAT_USE_EXTRA) as SatUse
-                    MapBoxStore.satelliteSubject.onNext(mapOf(MapBoxStore.SatCount.TOTAl to satUse.total, MapBoxStore.SatCount.USED to satUse.used))
+                    MapBoxStore.satelliteSubject.onNext(
+                        mapOf(
+                            MapBoxStore.SatCount.TOTAl to satUse.total,
+                            MapBoxStore.SatCount.USED to satUse.used
+                        )
+                    )
                 }
             }
         }
@@ -510,6 +553,8 @@ class MapBoxActivity : AppCompatActivity(), CheckPermissionStorage {
         const val SAT_USE_EXTRA = "SAT_USE_EXTRA";
         const val LOCATION_EXTRA = "LOCATION_EXTRA";
         const val SETTING_REQUEST_CODE = 11
+        const val ACCESS_LOCATION_CODE = 1
+        const val READ_EXTERNAL_STORAGE_CODE = 2
     }
 
 

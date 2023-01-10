@@ -75,10 +75,14 @@ class MapRouteBuilder(val style: Style, val context: Context) {
         @SuppressLint("SetTextI18n")
         override fun handleMessage(msg: Message) {
             when (msg.what) {
-                WHAT_SAVE -> {
+                WHAT_SAVE_START -> {
+                    MapBoxStore.loaderBar.onNext(true)
+                }
+                WHAT_SAVE_DONE -> {
                     MapBoxStore.routeBuildProgress.onNext(false)
                     val id = msg.obj as Int
                     MapBoxStore.activeRoute.onNext(id)
+                    MapBoxStore.loaderBar.onNext(false)
                 }
                 WHAT_READ -> {
                     setAreaSource()
@@ -99,8 +103,10 @@ class MapRouteBuilder(val style: Style, val context: Context) {
         private const val POINT_IMAGE_ID = "BUILDER_POINT_IMAGE_ID"
         private const val TAG = "MapRoute"
         private const val RADIUS = 500.0
-        private const val WHAT_SAVE = 1
+        private const val WHAT_SAVE_DONE = 1
         private const val WHAT_READ = 2
+        private const val WHAT_SAVE_START = 3
+      //   private const val WHAT_SAVE_DONE = 4
     }
 
     init {
@@ -321,6 +327,8 @@ class MapRouteBuilder(val style: Style, val context: Context) {
     }
 
     private fun onSave(trackName: String) {
+        // handler.obtainMessage(WHAT_SAVE_START)
+        handler.sendEmptyMessage(WHAT_SAVE_START)
         just(1)
                 .subscribeOn(Schedulers.newThread())
                 .subscribeBy {
@@ -335,7 +343,7 @@ class MapRouteBuilder(val style: Style, val context: Context) {
                     val dist = calcDistance(routeFullPointList)
                     val id = mapDateBase.saveTrackName(trackName, dist)
                     mapDateBase.saveTrackPoints(id, trackPointList)
-                    val msg = handler.obtainMessage(WHAT_SAVE, id.toInt())
+                    val msg = handler.obtainMessage(WHAT_SAVE_DONE, id.toInt())
                     handler.sendMessage(msg)
                 }
 
