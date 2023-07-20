@@ -185,6 +185,7 @@ class FragmentDashboardFlight : Fragment() {
         val locationUtil = LocationUtil()
         MapBoxStore.locationSubject
                 .takeUntil(_onDestroy)
+                //TODO danger 1
                 .throttleWithTimeout(100,  TimeUnit.MILLISECONDS)
                 .doOnNext {
                     locationList.add(it)

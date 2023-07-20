@@ -9,6 +9,7 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.os.Message
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -38,6 +39,7 @@ import kotlin.math.ceil
 import kotlin.math.floor
 
 class FragmentDashboardRoad : Fragment() {
+    private val TAG = "FragmentDashboardRoad"
     lateinit var binding: FragmentDashboardRoadBinding
     lateinit var imageBikeComputer: ImageBikeComputer
     var speedCeloe = ObservableField<String>()
@@ -50,6 +52,8 @@ class FragmentDashboardRoad : Fragment() {
     private lateinit var varioDrawer: DashboardVarioDrawer
     private lateinit var altitudeDrawer: DashboardAltitudeDrawer
     private lateinit var mapDateBase: MapDateBase
+
+    var isPaused = false
     var locationDisposable: Disposable = object : Disposable {
         override fun dispose() {
         }
@@ -60,55 +64,20 @@ class FragmentDashboardRoad : Fragment() {
 
     }
 
-    val handler = object : Handler(Looper.getMainLooper()) {
-        override fun handleMessage(msg: Message) {
-            when (msg.what) {
-                WHAT_PARAM -> {
-                    val bundle = msg.data
-                    val speed = bundle.getDouble(HANDLER_SPEED_KEY) * 3.6
-                    val bitmap = imageBikeComputer.getBitmap(speed)
-                    val ratio: Double = bundle.getDouble(HANDLER_RATIO_KEY)
-                    setBackground(bitmap, binding.comp)
-                    val celoe = speed.toInt()
-                    val drobnoe = ((speed - celoe) * 10).toInt()
-                    speedCeloe.set(celoe.toString())
-                    speedDrobnoe.set(drobnoe.toString())
-                    val vario = bundle.getDouble(HANDLER_VARIO_KEY)
-                    varioDrawer.setVario(vario.toFloat())
-                    setBackground(varioDrawer.bitmap, binding.varioFrame)
-                    varioField.set(vario.let {
-                        if (0 < it) {
-                            DecimalFormat("#.#").format(vario).let { "+$it" }
-                        } else {
-                            DecimalFormat("#.#").format(vario)
-                        }
-                    })
-                    when {
-                        50 < abs(ratio) -> {
-                            ratioField.set("--")
-                        }
-                        10 < abs(ratio) -> {
-                            ratioField.set(floor(ratio).toString())
-                        }
-                        else -> {
-                            ratioField.set(DecimalFormat("#.#").format(ratio))
-                        }
-                    }
-                }
-                WHAT_ALT -> {
-                    val bundle = msg.data
-                    val altitude = bundle.getDouble(HANDLER_ALT_KEY)
-                    setBackground(altitudeDrawer.setAlt(altitude.toFloat()), binding.altFrame)
-                    altitudeField.set(DecimalFormat("#").format(altitude))
-                }
-                WHAT_DIST -> {
-                    val bundle = msg.data
-                    val distFloat = bundle.getFloat(HANDLER_DIST_KEY)
-                    distanceField.set(DecimalFormat("#.#").format(distFloat))
-                }
-            }
-        }
+    override fun onResume() {
+        super.onResume()
+        isPaused = false
+        Log.d(TAG, "oncreate")
     }
+
+    override fun onPause() {
+        super.onPause()
+        isPaused = true
+        Log.d(TAG, "onPause")
+    }
+
+    private lateinit var handler: Handler
+
 
     companion object {
         private const val HANDLER_SPEED_KEY = "speed"
@@ -124,6 +93,7 @@ class FragmentDashboardRoad : Fragment() {
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         binding = FragmentDashboardRoadBinding.inflate(inflater, container, false)
         binding.fragment = this;
+        onInitHandler()
         context?.let {
             mapDateBase = MapDateBase(it)
             imageBikeComputer = ImageBikeComputer(it)
@@ -136,20 +106,77 @@ class FragmentDashboardRoad : Fragment() {
         return binding.root
     }
 
+    private fun onInitHandler(){
+        handler = object : Handler(Looper.getMainLooper()) {
+            override fun handleMessage(msg: Message) {
+                when (msg.what) {
+                    WHAT_PARAM -> {
+                        val bundle = msg.data
+                        val speed = bundle.getDouble(HANDLER_SPEED_KEY) * 3.6
+                        val bitmap = imageBikeComputer.getBitmap(speed)
+                        val ratio: Double = bundle.getDouble(HANDLER_RATIO_KEY)
+                        setBackground(bitmap, binding.comp)
+                        val celoe = speed.toInt()
+                        val drobnoe = ((speed - celoe) * 10).toInt()
+                        speedCeloe.set(celoe.toString())
+                        speedDrobnoe.set(drobnoe.toString())
+                        val vario = bundle.getDouble(HANDLER_VARIO_KEY)
+                        varioDrawer.setVario(vario.toFloat())
+                        setBackground(varioDrawer.bitmap, binding.varioFrame)
+                        varioField.set(vario.let {
+                            if (0 < it) {
+                                DecimalFormat("#.#").format(vario).let { "+$it" }
+                            } else {
+                                DecimalFormat("#.#").format(vario)
+                            }
+                        })
+                        when {
+                            50 < abs(ratio) -> {
+                                ratioField.set("--")
+                            }
+                            10 < abs(ratio) -> {
+                                ratioField.set(floor(ratio).toString())
+                            }
+                            else -> {
+                                ratioField.set(DecimalFormat("#.#").format(ratio))
+                            }
+                        }
+                    }
+                    WHAT_ALT -> {
+                        val bundle = msg.data
+                        val altitude = bundle.getDouble(HANDLER_ALT_KEY)
+                        setBackground(altitudeDrawer.setAlt(altitude.toFloat()), binding.altFrame)
+                        altitudeField.set(DecimalFormat("#").format(altitude))
+                    }
+                    WHAT_DIST -> {
+                        val bundle = msg.data
+                        val distFloat = bundle.getFloat(HANDLER_DIST_KEY)
+                        distanceField.set(DecimalFormat("#.#").format(distFloat))
+                    }
+                }
+            }
+        }
+    }
+
     @SuppressLint("CheckResult")
     private fun onInit() {
+
+
 
         val locationList = mutableListOf<Location>()
         val locationUtil = LocationUtil()
         MapBoxStore.locationSubject
                 .takeUntil(_onDestroy)
+                //TODO danger 2
                 .throttleWithTimeout(100, TimeUnit.MILLISECONDS)
+
                 .doOnNext {
                     locationList.add(it)
                     while (3 < locationList.size) {
                         locationList.removeAt(0)
                     }
                 }
+                .filter { !isPaused }
                 .filter { 1 < locationList.size }
                 .doOnNext {
                     val calcParams = locationUtil.calcParams(locationList)
@@ -292,12 +319,15 @@ class FragmentDashboardRoad : Fragment() {
     }
 
     private fun setBackground(bitmap: Bitmap, frameLayout: FrameLayout?) {
-        val d: Drawable = BitmapDrawable(resources, bitmap)
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.JELLY_BEAN) {
-            frameLayout?.background = d
-        } else {
-            frameLayout?.setBackgroundDrawable(d)
+        if(!isPaused){
+            val d: Drawable = BitmapDrawable(resources, bitmap)
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.JELLY_BEAN) {
+                frameLayout?.background = d
+            } else {
+                frameLayout?.setBackgroundDrawable(d)
+            }
         }
+
     }
 
     override fun onDestroy() {

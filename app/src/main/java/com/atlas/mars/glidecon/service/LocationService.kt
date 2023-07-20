@@ -15,8 +15,11 @@ import com.atlas.mars.glidecon.store.MapBoxStore
 import com.atlas.mars.glidecon.util.LocationUtil
 import io.reactivex.Observable
 import io.reactivex.rxkotlin.subscribeBy
+import io.reactivex.subjects.AsyncSubject
+import io.reactivex.subjects.PublishSubject
 import kotlinx.coroutines.*
 import java.util.concurrent.TimeUnit
+import javax.security.auth.Subject
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 import kotlin.time.Duration
@@ -29,7 +32,10 @@ class LocationService : Service() {
     private lateinit var gpsListener: GPSListener
     var mGnssStatusCallback: GnssStatus.Callback? = null
     var gpsStatusListener: GpsStatus.Listener? = null
-    var isDebug = false
+    var isDebug = false;
+    private lateinit var locationSubject: PublishSubject<Location>;
+
+
 
     @ObsoleteCoroutinesApi
     private val scope = CoroutineScope(newSingleThreadContext("name"))
@@ -40,8 +46,19 @@ class LocationService : Service() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         Log.d(TAG, "onStartCommand")
-
+        locationSubject = PublishSubject.create<Location>()
         // TODO uncomment fo debug
+
+        locationSubject
+            .throttleWithTimeout(400,  TimeUnit.MILLISECONDS)
+            .subscribeBy{ location ->
+
+                Log.d(TAG, location.toString())
+                val intent: Intent = Intent(MapBoxActivity.LOCATION)
+                intent.putExtra(MapBoxActivity.LOCATION_EXTRA, location)
+                sendBroadcast(intent)
+
+            }
 
        // debug()
 
@@ -60,6 +77,10 @@ class LocationService : Service() {
     override fun onDestroy() {
         Log.d(TAG, "onDestroy")
         stopLocationListener()
+        if (this::locationSubject.isInitialized){
+            locationSubject.onComplete()
+        }
+
         super.onDestroy()
     }
 
@@ -270,9 +291,10 @@ class LocationService : Service() {
     inner class GPSListener : LocationListener {
         override fun onLocationChanged(location: Location) {
             if (!isDebug) {
-                val intent: Intent = Intent(MapBoxActivity.LOCATION)
+                locationSubject.onNext(location)
+               /* val intent: Intent = Intent(MapBoxActivity.LOCATION)
                 intent.putExtra(MapBoxActivity.LOCATION_EXTRA, location)
-                sendBroadcast(intent)
+                sendBroadcast(intent)*/
                 // intent.se
                // MapBoxStore.locationSubject.onNext(location)
             }
